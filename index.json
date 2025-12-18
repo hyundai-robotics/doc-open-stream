@@ -60,8 +60,13 @@
 		"byte_ofs": 11839
 	},
 	{
-		"link": "9-faq/README.md",
+		"link": "4-examples/README.md",
 		"char_ofs": 7693,
 		"byte_ofs": 12238
+	},
+	{
+		"link": "9-faq/README.md",
+		"char_ofs": 7693,
+		"byte_ofs": 12241
 	}
 ]

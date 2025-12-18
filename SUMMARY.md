@@ -15,6 +15,6 @@
   * [3.3 CONTROL](3-recipe/3-control.md)
   * [3.4 STOP](3-recipe/4-stop.md)
 
-* [4. 예제](5-examples/README.md)
+* [4. 예제](4-examples/README.md)
 
 * [9. FAQ](9-faq/README.md)
