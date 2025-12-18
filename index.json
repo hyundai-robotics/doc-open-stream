@@ -1,62 +1,67 @@
 ﻿[
 	{
-		"link": "0-overview/README.md",
+		"link": "README.md",
 		"char_ofs": 0,
 		"byte_ofs": 0
 	},
 	{
+		"link": "0-overview/README.md",
+		"char_ofs": 417,
+		"byte_ofs": 764
+	},
+	{
 		"link": "0-overview/1-about-open-stream.md",
-		"char_ofs": 219,
-		"byte_ofs": 464
+		"char_ofs": 636,
+		"byte_ofs": 1231
 	},
 	{
 		"link": "1-quickstart/README.md",
-		"char_ofs": 1990,
-		"byte_ofs": 3637
+		"char_ofs": 2371,
+		"byte_ofs": 4289
 	},
 	{
 		"link": "2-operation/README.md",
-		"char_ofs": 1990,
-		"byte_ofs": 3637
+		"char_ofs": 2371,
+		"byte_ofs": 4292
 	},
 	{
 		"link": "3-protocol/README.md",
-		"char_ofs": 2063,
-		"byte_ofs": 3754
+		"char_ofs": 2444,
+		"byte_ofs": 4412
 	},
 	{
 		"link": "4-recipe/README.md",
-		"char_ofs": 2150,
-		"byte_ofs": 3873
+		"char_ofs": 2531,
+		"byte_ofs": 4534
 	},
 	{
 		"link": "4-recipe/1-handshake.md",
-		"char_ofs": 2150,
-		"byte_ofs": 3873
+		"char_ofs": 2531,
+		"byte_ofs": 4537
 	},
 	{
 		"link": "4-recipe/2-monitor.md",
-		"char_ofs": 2484,
-		"byte_ofs": 4254
+		"char_ofs": 2865,
+		"byte_ofs": 4921
 	},
 	{
 		"link": "4-recipe/3-control.md",
-		"char_ofs": 3031,
-		"byte_ofs": 5055
+		"char_ofs": 3412,
+		"byte_ofs": 5725
 	},
 	{
 		"link": "4-recipe/4-stop.md",
-		"char_ofs": 3525,
-		"byte_ofs": 5689
+		"char_ofs": 3906,
+		"byte_ofs": 6362
 	},
 	{
 		"link": "5-examples/README.md",
-		"char_ofs": 3853,
-		"byte_ofs": 6085
+		"char_ofs": 4234,
+		"byte_ofs": 6761
 	},
 	{
 		"link": "9-faq/README.md",
-		"char_ofs": 3853,
-		"byte_ofs": 6085
+		"char_ofs": 4234,
+		"byte_ofs": 6764
 	}
 ]
