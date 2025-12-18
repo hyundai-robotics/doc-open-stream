@@ -7,7 +7,8 @@
 
 <br>
 
-<h4 style="font-size:15px;">릴리즈 노트 분류 기준</h4>
+
+<h4 style="font-size:15px; font-weight:bold;">릴리즈 노트 분류 기준</h4>
 
 <div style="max-width:fit-content;">
 
@@ -29,9 +30,7 @@
 릴리즈 간 동작 변경 사항이 있는 경우, 기존 시스템에 영향을 줄 수 있으므로<br>
 업데이트 전 반드시 해당 버전의 릴리즈 노트를 확인하시기 바랍니다.
 
-<br>
-
-<h4 style="font-size:15px;">릴리즈 정보</h4>
+<h4 style="font-size:15px; font-weight:bold;">릴리즈 정보</h4>
 
 <div style="max-width:fit-content;">
 
