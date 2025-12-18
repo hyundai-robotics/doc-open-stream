@@ -45,19 +45,18 @@ Open Stream의 기본 동작 흐름은 다음과 같습니다.
       <li>서버가 주기 데이터 또는 처리 결과를 송신합니다</li>
       <li>필요 시 STOP 명령으로 동작을 종료합니다</li>
     </ol>
-    
-    {% hint style="info" %}
-
-    MONITOR 명령이란? 클라이언트가 지정한 하나의 ${cond_model} Open API 서비스 함수를 짧은 주기로 반복 호출하여,
-    그 결과를 스트리밍 형태로 지속적으로 수신합니다.
-
-    CONTROL 명령이란? 클라이언트가 ${cond_model} Open API를 통해 단발성 제어 요청을 전달하기 위한 명령입니다. 클라이언트는 필요에 따라 짧은 주기로 반복 송신할 수 있습니다.
-
-    {% endhint %}
-
   </div>
 </div>
 <br>
+
+{% hint style="info" %}
+
+MONITOR 명령이란? 클라이언트가 지정한 하나의 ${cond_model} Open API 서비스 함수를 짧은 주기로 반복 호출하여,
+그 결과를 스트리밍 형태로 지속적으로 수신합니다.
+
+CONTROL 명령이란? 클라이언트가 ${cond_model} Open API를 통해 단발성 제어 요청을 전달하기 위한 명령입니다. 클라이언트는 필요에 따라 짧은 주기로 반복 송신할 수 있습니다.
+
+{% endhint %}
 
 Open Stream은 하나의 TCP 연결 내에서  
 MONITOR와 CONTROL 명령을 함께 사용할 수 있습니다.
