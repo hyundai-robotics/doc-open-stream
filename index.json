@@ -1,0 +1,62 @@
+﻿[
+	{
+		"link": "0-overview/README.md",
+		"char_ofs": 0,
+		"byte_ofs": 0
+	},
+	{
+		"link": "0-overview/1-about-open-stream.md",
+		"char_ofs": 219,
+		"byte_ofs": 464
+	},
+	{
+		"link": "1-quickstart/README.md",
+		"char_ofs": 1990,
+		"byte_ofs": 3637
+	},
+	{
+		"link": "2-operation/README.md",
+		"char_ofs": 1990,
+		"byte_ofs": 3637
+	},
+	{
+		"link": "3-protocol/README.md",
+		"char_ofs": 2063,
+		"byte_ofs": 3754
+	},
+	{
+		"link": "4-recipe/README.md",
+		"char_ofs": 2150,
+		"byte_ofs": 3873
+	},
+	{
+		"link": "4-recipe/1-handshake.md",
+		"char_ofs": 2150,
+		"byte_ofs": 3873
+	},
+	{
+		"link": "4-recipe/2-monitor.md",
+		"char_ofs": 2484,
+		"byte_ofs": 4254
+	},
+	{
+		"link": "4-recipe/3-control.md",
+		"char_ofs": 3031,
+		"byte_ofs": 5055
+	},
+	{
+		"link": "4-recipe/4-stop.md",
+		"char_ofs": 3525,
+		"byte_ofs": 5689
+	},
+	{
+		"link": "5-examples/README.md",
+		"char_ofs": 3853,
+		"byte_ofs": 6085
+	},
+	{
+		"link": "9-faq/README.md",
+		"char_ofs": 3853,
+		"byte_ofs": 6085
+	}
+]
