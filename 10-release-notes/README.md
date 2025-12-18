@@ -12,7 +12,7 @@
 
 |Version|Release Schedule|Link|
 |:--:|:--:|:--:|
-|1.0.0|Scheduled March 2026 _(TBD)_|[🔗](1-0-0.md)|
+|1.0.0|2026.03 예정|[🔗](1-0-0.md)|
 
 </div>
 
