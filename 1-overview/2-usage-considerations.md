@@ -18,7 +18,7 @@ CONTROL과 MONITOR를 동시에 수행한 경우의 주기 특성을 비교한 �
 
 
 시험 환경 
-- 서버 : Hi6 COM
+- 서버 : ${cont_model} COM
 - 클라이언트 : Windows 11 기반 Python 클라이언트
 - 네트워크 : TCP 연결
 - 송/수신 주기 : MONITOR 명령으로 설정 가능한 최대 주기로 설정

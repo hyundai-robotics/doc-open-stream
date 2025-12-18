@@ -1,10 +1,10 @@
-﻿# Hi6 Open Stream
+﻿# ${cont_model} Open Stream
 
 {% hint style="warning" %}
 
-본 제품 메뉴얼에 제공된 정보는 <b>현대 로보틱스(Hyundai Robotics)</b>의 자산입니다.
+본 제품 메뉴얼에 제공된 정보는 <b>HD현대로보틱스(HD Hyundai Robotics)</b>의 자산입니다.
 
-본 메뉴얼은 현대 로보틱스의 사전 서면 동의 없이, 전체 또는 일부를 복제하거나 재배포할 수 없으며, 제3자에게 제공하거나 다른 목적으로 사용할 수 없습니다.
+본 메뉴얼은 HD현대로보틱스의 사전 서면 동의 없이, 전체 또는 일부를 복제하거나 재배포할 수 없으며, 제3자에게 제공하거나 다른 목적으로 사용할 수 없습니다.
 
 본 메뉴얼의 내용은 사전 예고 없이 변경될 수 있습니다.
 
@@ -15,7 +15,7 @@
 
 {% hint style="warning" %}
 
-본 매뉴얼에 명시되지 않은 Hi6 Open Stream 기능 또는 Hi6 Open API 매뉴얼에 명시되지 않은 API를 사용함으로써 발생하는 어떠한 손해나 문제에 대해서도 당사는 책임을 지지 않습니다.
+본 매뉴얼에 명시되지 않은 ${cont_model} Open Stream 기능 또는 ${cont_model} Open API 매뉴얼에 명시되지 않은 API를 사용함으로써 발생하는 어떠한 손해나 문제에 대해서도 당사는 책임을 지지 않습니다.
 
 {% endhint %}# 1. 개요
 
@@ -113,22 +113,31 @@ Open Stream은 실시간 제어 및 상태 수신을 효율적으로 처리하�
 
 <b> MONITOR 및 CONTROL 운용 시 참고 성능 (시험 결과) </b>
 
-아래 결과는 동일한 시험 환경에서 MONITOR 단독 수행과
+아래 결과는 동일한 시험 환경에서 MONITOR 단독 수행과  
 CONTROL과 MONITOR를 동시에 수행한 경우의 주기 특성을 비교한 참고 자료입니다.
 
+
 시험 환경 
-- 서버: Hi6 COM
-- 클라이언트: Windows 11 기반 Python 클라이언트
-- 네트워크: TCP 연결
+- 서버 : ${cont_model} COM
+- 클라이언트 : Windows 11 기반 Python 클라이언트
+- 네트워크 : TCP 연결
+- 송/수신 주기 : MONITOR 명령으로 설정 가능한 최대 주기로 설정
 
 <br>
 
 시험 결과 요약
 
-| 구분                          | **시험 조건**                                                              | **주기 특성 요약**                                                                                                    |
-| --------------------------- | ---------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
-| **MONITOR 단독 수행**           | - MONITOR 주기: 2 ms (500 Hz)<br>- CONTROL 미사용<br>- 연속 실행: 10시간          | - <u><b>평균 수신 주기: 약 2.0 ms</b></u><br>- 수신 프레임 수: 약 1,800만<br>- 누락 프레임 비율: 약 0.001%                                           |
-| **CONTROL + MONITOR 동시 수행** | - CONTROL 주기: 2 ms<br>- MONITOR 주기: 2 ms<br>- CONTROL / MONITOR 동시 활성화 | - CONTROL(SEND): <u><b>평균 주기 약 2.0 ms</b></u>, 최대 지연 약 30~40 ms<br>- MONITOR(RECV): <b><u>평균 주기 약 2.1~2.2 ms</b></u>, 최대 지연 수십 ms~100 ms 이상 |
+1. MONITOR 단독 수행
+
+    | **시험 조건**                                                              | **주기 특성 요약**                                                                                                    |
+    | ---------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
+    | - MONITOR 주기: 2 ms (500 Hz)<br>- CONTROL 미사용<br>- 연속 실행: 10시간          | - <u><b>평균 수신 주기: 약 2.0 ms</b></u><br>- 수신 프레임 수: 약 1,800만<br>- 누락 프레임 비율: 약 0.001%                                           |
+
+2. CONTROL + MONITOR 동시 수행
+
+    | **시험 조건**                                                              | **주기 특성 요약**                                                                                                    |
+    | ---------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
+    | - CONTROL 주기: 2 ms<br>- MONITOR 주기: 2 ms<br>- CONTROL / MONITOR 동시 활성화 | - CONTROL(SEND): <u><b>평균 주기 약 2.0 ms</b></u>, 최대 지연 약 30~40 ms<br>- MONITOR(RECV): <b><u>평균 주기 약 2.1~2.2 ms</b></u>, 최대 지연 수십 ms~100 ms 이상 |
 
 <br><br>
 
@@ -242,40 +251,52 @@ A. 불가합니다. MONITOR payload의 method는 반드시 "GET" 이어야 합�
 
 ## Q4. url에 공백이 있으면?
 A. 거부됩니다. url은 공백을 포함할 수 없습니다.
-# 10. 릴리즈 노트
+<h2 style="display:flex; align-items:center; gap:8px;">
+  10. 릴리즈 노트
+</h2>
 
-본 섹션은 Open Stream 인터페이스의 버전별 변경 이력을 정리한 릴리즈 노트입니다.  
+본 섹션은 Open Stream 인터페이스의 버전별 변경 이력을 정리한 릴리즈 노트입니다.<br>
 각 버전에서는 기능 추가, 동작 변경, 수정 사항 및 호환성 관련 정보를 제공합니다.
 
-- Added: 신규 기능 또는 필드가 추가된 경우
 
-- Changed: 기존 동작이나 사양이 변경된 경우
+<h4 style="font-size:15px; font-weight:bold;">릴리즈 정보</h4>
 
-- Fixed: 오류 수정 또는 안정성 개선
+<div style="max-width:fit-content;">
 
-- Deprecated: 향후 제거 예정이거나 사용이 권장되지 않는 기능
+|Version|Release Schedule|Link|
+|:--:|:--:|:--:|
+|1.0.0|2026.03 예정|[🔗](1-0-0.md)|
 
-각 릴리즈 문서에서는 해당 버전에서 변경된 내용만을 간결하게 기술하며,  
-상세한 사용 방법이나 프로토콜 설명은 본 문서의 각 레퍼런스 섹션을 따릅니다.  
-
-주의  
-릴리즈 간 동작 변경 사항이 있는 경우, 기존 시스템에 영향을 줄 수 있으므로
-업데이트 전 반드시 해당 버전의 릴리즈 노트를 확인하시기 바랍니다.
+</div>
 
 
-- 릴리즈 정보
+<br>
 
-    <div style="max-width:31vw;">
 
-    |Version|Release Schedule|Link|
-    |:--:|:--:|:--:|
-    |1.0.0| Scheduled March 2026 _(TBD)_|[🔗](1-0-0.md)|
+<h4 style="font-size:15px; font-weight:bold;">릴리즈 노트 분류 기준</h4>
 
-    </div>
-<h2 style="display:flex; align-items:center; gap:8px;">
+<div style="max-width:fit-content;">
+
+|구분|설명|
+|:--|:--|
+|<span style="border-left:4px solid rgb(255,140,0); padding-left:6px;"><b>✨ Added</b></span>|신규 기능, 명령어, 필드 또는 옵션이 추가된 경우|
+|<span style="border-left:4px solid #3F51B5; padding-left:6px;"><b>🔧 Changed</b></span>|기존 동작 방식, 사양, 기본값이 변경된 경우|
+|<span style="border-left:4px solid #2E7D32; padding-left:6px;"><b>🛠 Fixed</b></span>|오류 수정, 안정성 개선, 비정상 동작 보완|
+|<span style="border-left:4px solid #B71C1C; padding-left:6px;"><b>❌ Deprecated</b></span>|향후 제거 예정이거나 사용이 권장되지 않는 기능|
+|<span style="border-left:4px solid #9E9E9E; padding-left:6px;"><b>⚠ Caution</b></span>|해당 버전 사용 시 반드시 인지해야 할 주의 사항|
+
+</div>
+
+<br>
+
+각 릴리즈 문서에서는 <b>해당 버전에서 변경된 내용만</b>을 위 기준에 따라 기술합니다.<br>
+상세한 사용 방법이나 프로토콜 설명은 본 문서의 각 레퍼런스 섹션을 따릅니다.
+
+릴리즈 간 동작 변경 사항이 있는 경우, 기존 시스템에 영향을 줄 수 있으므로<br>
+업데이트 전 반드시 해당 버전의 릴리즈 노트를 확인하시기 바랍니다.<h2 style="display:flex; align-items:center; gap:8px;">
   Release Notes – v1.0.0
   <span style="
-    font-size:12px;
+    font-size:14px;
     font-weight:bold;
     padding:2px 6px;
     border-radius:4px;
@@ -286,41 +307,39 @@ A. 거부됩니다. url은 공백을 포함할 수 없습니다.
   </span>
 </h2>
 
-<p>
-  <b>Status</b>: Initial Release<br>
-  본 버전은 Open Stream 인터페이스의 최초 공개 버전입니다.
-</p>
 
-<p>
-  <b>Release Schedule</b>: 2026년 3월 (예정)
-</p>
+{% hint style="warning" %}
 
-<br>
+<h4 style="font-size:15px; font-weight:bold;">Status</h4>
 
-<h3>Overview</h3>
+- 본 버전은 Open Stream 인터페이스의 최초 공개 버전입니다.
+- 정식 배포 : 2026년 3월 (예정)
 
-<p>
-  Open Stream은 로봇 제어 및 상태 수신을 위해 설계된
-  실시간 스트리밍 기반 인터페이스입니다.<br>
-  본 릴리즈에서는 Open Stream의 기본 프로토콜,
-  MONITOR 및 CONTROL 레시피, 그리고 이를 위한 통신 규칙을 제공합니다.
-</p>
+{% endhint %}
+
+{% hint style="info" %}
+
+<h4 style="font-size:15px; font-weight:bold;">Overview</h4>
+
+- Open Stream은 로봇 제어 및 상태 수신을 위해 설계된 실시간 스트리밍 기반 인터페이스입니다.
+- 본 릴리즈에서는 Open Stream의 기본 프로토콜, 레시피 명령어, 그리고 이를 위한 통신 규칙을 제공합니다.
+
+{% endhint %}
 
 <br>
 
 <h4 style="
   display:inline-block;
   padding:2px 8px;
-  border-left:4px solid #2E7D32;
-  background:#FAFAFA;
-  font-size:14px;
+  border-left:4px solid rgb(255, 140, 0);
+  font-size:15px;
   font-weight:bold;
 ">
   ✨ Added
 </h4>
 
 <ul>
-  <li><b>Protocol</b>
+  <li>프로토콜
     <ul>
       <li>NDJSON 기반의 경량 스트리밍 프로토콜</li>
       <li>단일 TCP 연결 기반 양방향 통신</li>
@@ -328,12 +347,12 @@ A. 거부됩니다. url은 공백을 포함할 수 없습니다.
     </ul>
   </li>
 
-  <li><b>Recipe Commands</b>
+  <li>Recipe 명령어
     <ul>
-      <li><b>HANDSHAKE</b> – 프로토콜 버전 협상</li>
-      <li><b>MONITOR</b> – 주기적인 상태 데이터 수신 (ms 단위 주기 설정)</li>
-      <li><b>CONTROL</b> – 실시간 제어 명령 전송 (우선순위 높음)</li>
-      <li><b>STOP</b> – 활성 세션 또는 레시피 종료</li>
+      <li>HANDSHAKE : 프로토콜 버전 협상</li>
+      <li>MONITOR : 주기적인 상태 데이터 수신 (ms 단위 주기 설정)</li>
+      <li>CONTROL : 실시간 제어 명령 전송 (우선순위 높음)</li>
+      <li>STOP : 활성 세션 또는 레시피 종료</li>
     </ul>
   </li>
 </ul>
@@ -344,8 +363,7 @@ A. 거부됩니다. url은 공백을 포함할 수 없습니다.
   display:inline-block;
   padding:2px 6px;
   border-left:4px solid #3F51B5;
-  background:#F5F6FA;
-  font-size:14px;
+  font-size:15px;
   font-weight:bold;
 ">
   🔧 Changed
@@ -353,8 +371,6 @@ A. 거부됩니다. url은 공백을 포함할 수 없습니다.
 
 <ul>
   <li>본 버전은 최초 공개 버전으로, 이전 버전 대비 변경 사항은 없습니다.</li>
-  <li>CONTROL과 MONITOR를 동시에 수행하는 경우 CONTROL 세션의 실시간성이 우선 보장됩니다.</li>
-  <li>운영체제 스케줄링 및 네트워크 환경에 따라 주기 지연이 발생할 수 있습니다.</li>
 </ul>
 
 <br>
@@ -362,9 +378,8 @@ A. 거부됩니다. url은 공백을 포함할 수 없습니다.
 <h4 style="
   display:inline-block;
   padding:2px 8px;
-  border-left:4px solid rgb(255, 140, 0);
-  background:#FAFAFA;
-  font-size:14px;
+  border-left:4px solid #2E7D32;
+  font-size:15px;
   font-weight:bold;
 ">
   🛠 Fixed
@@ -380,8 +395,7 @@ A. 거부됩니다. url은 공백을 포함할 수 없습니다.
   display:inline-block;
   padding:2px 8px;
   border-left:4px solid #B71C1C;
-  background:#FAFAFA;
-  font-size:14px;
+  font-size:15px;
   font-weight:bold;
 ">
   ❌ Deprecated
@@ -397,14 +411,15 @@ A. 거부됩니다. url은 공백을 포함할 수 없습니다.
   display:inline-block;
   padding:2px 8px;
   border-left:4px solid #9E9E9E;
-  background:#FAFAFA;
-  font-size:14px;
+  font-size:15px;
   font-weight:bold;
 ">
-  ⚠ Known Limitations
+  ⚠ Caution
 </h4>
 
 <ul>
+  <li>CONTROL과 MONITOR를 동시에 수행하는 경우 CONTROL 세션의 실시간성이 우선 보장됩니다.</li>
+  <li>운영체제 스케줄링 및 네트워크 환경에 따라 주기 지연이 발생할 수 있습니다.</li>
   <li>하나의 TCP 연결에서는 하나의 MONITOR 세션만 활성화할 수 있습니다.</li>
   <li>MONITOR 데이터는 실시간 제어 판단 용도로 적합하지 않습니다.</li>
   <li>네트워크 및 클라이언트 성능에 따라 지연 및 지터가 발생할 수 있습니다.</li>
@@ -412,7 +427,7 @@ A. 거부됩니다. url은 공백을 포함할 수 없습니다.
 
 <br>
 
-<h3>Related Documentation</h3>
+<h4 style="font-size:15px; font-weight:bold;">Related Documentation</h4>
 
 <ul>
   <li><a href="../1-overview/README.md">Open Stream 개요</a></li>
