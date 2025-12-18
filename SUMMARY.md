@@ -1,22 +1,20 @@
 ﻿# Table of contents
 
 * [${cont_model} Open Stream 설명서](README.md)
-* [0. 개요](0-overview/README.md)
-  * [0.1 Open Stream 이란?](0-overview/1-about-open-stream.md)
-  * [0.2 사용전 유의 사항](0-overview/2-usage-considerations.md)
+* [1. 개요](1-overview/README.md)
+  * [1.1 Open Stream 이란?](1-overview/1-about-open-stream.md)
+  * [1.2 사용전 유의 사항](1-overview/2-usage-considerations.md)
+  * [1.3 Open Stream 버전 정책](1-overview/2-usage-considerations.md)
 
-* [1. 빠른 시작](1-quickstart/README.md)
+* [2. 프로토콜 레퍼런스](2-protocol/README.md)
+  * [2.1 NDJSON 이란?](2-protocol/1-ndjson.md)
 
-* [2. 운영 및 성능 고려사항](2-operation/README.md)
+* [3. Recipe 명령어 레퍼런스](3-recipe/README.md)
+  * [3.1 HANDSHAKE](3-recipe/1-handshake.md)
+  * [3.2 MONITOR](3-recipe/2-monitor.md)
+  * [3.3 CONTROL](3-recipe/3-control.md)
+  * [3.4 STOP](3-recipe/4-stop.md)
 
-* [3. 프로토콜 레퍼런스](3-protocol/README.md)
-
-* [4. Recipe 명령어 레퍼런스](4-recipe/README.md)
-  * [4.1 HANDSHAKE](4-recipe/1-handshake.md)
-  * [4.2 MONITOR](4-recipe/2-monitor.md)
-  * [4.3 CONTROL](4-recipe/3-control.md)
-  * [4.4 STOP](4-recipe/4-stop.md)
-
-* [5. 예제](5-examples/README.md)
+* [4. 예제](5-examples/README.md)
 
 * [9. FAQ](9-faq/README.md)

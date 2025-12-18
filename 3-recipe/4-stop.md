@@ -1,4 +1,4 @@
-﻿# 2.4 STOP
+﻿# 3.4 STOP
 
 STOP은 대상(target)에 따라 monitor/control/session을 중단합니다.
 

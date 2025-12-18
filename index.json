@@ -5,68 +5,63 @@
 		"byte_ofs": 0
 	},
 	{
-		"link": "0-overview/README.md",
+		"link": "1-overview/README.md",
 		"char_ofs": 447,
 		"byte_ofs": 813
 	},
 	{
-		"link": "0-overview/1-about-open-stream.md",
+		"link": "1-overview/1-about-open-stream.md",
 		"char_ofs": 666,
 		"byte_ofs": 1280
 	},
 	{
-		"link": "0-overview/2-usage-considerations.md",
-		"char_ofs": 2396,
-		"byte_ofs": 4331
+		"link": "1-overview/2-usage-considerations.md",
+		"char_ofs": 2233,
+		"byte_ofs": 3978
 	},
 	{
-		"link": "1-quickstart/README.md",
-		"char_ofs": 4204,
-		"byte_ofs": 7255
+		"link": "1-overview/2-usage-considerations.md",
+		"char_ofs": 4068,
+		"byte_ofs": 6932
 	},
 	{
-		"link": "2-operation/README.md",
-		"char_ofs": 4204,
-		"byte_ofs": 7258
+		"link": "2-protocol/README.md",
+		"char_ofs": 5903,
+		"byte_ofs": 9886
 	},
 	{
-		"link": "3-protocol/README.md",
-		"char_ofs": 4277,
-		"byte_ofs": 7378
+		"link": "2-protocol/1-ndjson.md",
+		"char_ofs": 5990,
+		"byte_ofs": 10008
 	},
 	{
-		"link": "4-recipe/README.md",
-		"char_ofs": 4364,
-		"byte_ofs": 7500
+		"link": "3-recipe/README.md",
+		"char_ofs": 5990,
+		"byte_ofs": 10011
 	},
 	{
-		"link": "4-recipe/1-handshake.md",
-		"char_ofs": 4364,
-		"byte_ofs": 7503
+		"link": "3-recipe/1-handshake.md",
+		"char_ofs": 5990,
+		"byte_ofs": 10014
 	},
 	{
-		"link": "4-recipe/2-monitor.md",
-		"char_ofs": 4698,
-		"byte_ofs": 7887
+		"link": "3-recipe/2-monitor.md",
+		"char_ofs": 6324,
+		"byte_ofs": 10398
 	},
 	{
-		"link": "4-recipe/3-control.md",
-		"char_ofs": 5245,
-		"byte_ofs": 8691
+		"link": "3-recipe/3-control.md",
+		"char_ofs": 6871,
+		"byte_ofs": 11202
 	},
 	{
-		"link": "4-recipe/4-stop.md",
-		"char_ofs": 5739,
-		"byte_ofs": 9328
-	},
-	{
-		"link": "5-examples/README.md",
-		"char_ofs": 6067,
-		"byte_ofs": 9727
+		"link": "3-recipe/4-stop.md",
+		"char_ofs": 7365,
+		"byte_ofs": 11839
 	},
 	{
 		"link": "9-faq/README.md",
-		"char_ofs": 6067,
-		"byte_ofs": 9730
+		"char_ofs": 7693,
+		"byte_ofs": 12238
 	}
 ]

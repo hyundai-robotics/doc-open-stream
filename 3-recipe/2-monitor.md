@@ -1,4 +1,4 @@
-﻿# 2.2 MONITOR
+﻿# 3.2 MONITOR
 
 MONITOR는 서버가 주기적으로 REST GET을 호출하고, 그 결과를 NDJSON으로 스트리밍하는 기능입니다.
 

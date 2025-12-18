@@ -1,4 +1,4 @@
-﻿# 2.3 CONTROL
+﻿# 3.3 CONTROL
 
 CONTROL은 REST API를 단발로 호출하는 제어 커맨드입니다.
 

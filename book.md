@@ -17,7 +17,7 @@
 
 본 매뉴얼에 명시되지 않은 Hi6 Open Stream 기능 또는 Hi6 Open API 매뉴얼에 명시되지 않은 API를 사용함으로써 발생하는 어떠한 손해나 문제에 대해서도 당사는 책임을 지지 않습니다.
 
-{% endhint %}# 0. 개요
+{% endhint %}# 1. 개요
 
 본 문서는 Open Stream을 사용하는 외부 클라이언트를 위한 사용 메뉴얼입니다.<br>
 Open Stream의 목적, 기본 개념, 전체 동작 구조와 지원되는 사용 시나리오를 설명합니다.
@@ -30,7 +30,7 @@ Open Stream의 목적, 기본 개념, 전체 동작 구조와 지원되는 사�
 - 어떤 방식으로 동작하는지
 - 어떤 상황에서 사용하는 것이 적절한지
 
-를 이해할 수 있습니다.## 0.1 Open Stream이란?
+를 이해할 수 있습니다.## 1.1 Open Stream이란?
 
 해당 기능은 ${cont_model} Open API를 짧은 주기로 반복 호출하여,  
 클라이언트가 그 결과를 스트리밍 형태로 지속적으로 수신할 수 있도록 제공되는 인터페이스입니다.
@@ -55,9 +55,9 @@ Open Stream은 다음과 같은 특징을 가집니다.
 Open Stream은 짧은 주기로 제어 명령과 상태 수신을 하나의 연결에서 처리해야 하는  
 클라이언트 환경을 위해 설계되었습니다.
 
-<br>
+<br><br>
 
-## 0.2 전체 동작 개요
+<b> 전체 동작 개요 </b>
 
 Open Stream의 기본 동작 흐름은 다음과 같습니다.
 
@@ -96,17 +96,7 @@ Open Stream은 하나의 TCP 연결 내에서 MONITOR와 CONTROL 명령을 함�
 
 단, 하나의 연결에서는 하나의 MONITOR 세션, 하나의 CONTROL 세션만 활성화할 수 있습니다.
 
-{% endhint %}
-
-<br>
-
-## 0.3 사용 전 유의 사항
-
-- Open Stream은 하드 리얼타임을 보장하지 않습니다
-- 운영체제 및 네트워크 환경에 따라 주기 지연이 발생할 수 있습니다
-- 하나의 TCP 연결에서는 하나의 MONITOR 세션만 활성화할 수 있습니다
-- 모든 명령은 지정된 순서를 따라야 합니다
-## 0.2 사용 전 유의 사항
+{% endhint %}## 1.2 사용 전 유의 사항
 
 Open Stream은 실시간 제어 및 상태 수신을 효율적으로 처리하기 위한 인터페이스이지만,  
 다음과 같은 제약 및 전제를 반드시 고려해야 합니다.
@@ -117,9 +107,9 @@ Open Stream은 실시간 제어 및 상태 수신을 효율적으로 처리하�
 - 모든 명령은 정의된 프로토콜 순서를 따라야 하며,  
   순서 위반 시 서버는 명령을 거부하거나 연결을 종료할 수 있습니다.
 
-----
+<br><br>
 
-#### MONITOR 및 CONTROL 운용 시 참고 성능 (시험 결과)
+<b> MONITOR 및 CONTROL 운용 시 참고 성능 (시험 결과) </b>
 
 아래 결과는 동일한 시험 환경에서 MONITOR 단독 수행과
 CONTROL과 MONITOR를 동시에 수행한 경우의 주기 특성을 비교한 참고 자료입니다.
@@ -129,6 +119,8 @@ CONTROL과 MONITOR를 동시에 수행한 경우의 주기 특성을 비교한 �
 - 클라이언트: Windows 11 기반 Python 클라이언트
 - 네트워크: TCP 연결
 
+<br>
+
 시험 결과 요약
 
 | 구분                          | **시험 조건**                                                              | **주기 특성 요약**                                                                                                    |
@@ -136,8 +128,9 @@ CONTROL과 MONITOR를 동시에 수행한 경우의 주기 특성을 비교한 �
 | **MONITOR 단독 수행**           | - MONITOR 주기: 2 ms (500 Hz)<br>- CONTROL 미사용<br>- 연속 실행: 10시간          | - <u><b>평균 수신 주기: 약 2.0 ms</b></u><br>- 수신 프레임 수: 약 1,800만<br>- 누락 프레임 비율: 약 0.001%                                           |
 | **CONTROL + MONITOR 동시 수행** | - CONTROL 주기: 2 ms<br>- MONITOR 주기: 2 ms<br>- CONTROL / MONITOR 동시 활성화 | - CONTROL(SEND): <u><b>평균 주기 약 2.0 ms</b></u>, 최대 지연 약 30~40 ms<br>- MONITOR(RECV): <b><u>평균 주기 약 2.1~2.2 ms</b></u>, 최대 지연 수십 ms~100 ms 이상 |
 
+<br><br>
 
-#### 해석 및 운용 시 유의 사항
+<b> 해석 및 운용 시 유의 사항 </b>
 
 - MONITOR 레시피를 단독으로 운용하는 경우, 장시간 연속 실행에서도 비교적 안정적인 주기 수신이 가능합니다.  
 
@@ -147,11 +140,53 @@ CONTROL과 MONITOR를 동시에 수행한 경우의 주기 특성을 비교한 �
 MONITOR 수신 주기는 평균 증가 및 간헐적인 지연이 발생할 수 있습니다.  
 
 - CONTROL과 MONITOR를 동시에 사용하는 환경에서는  
-MONITOR 데이터의 정주기성 저하 및 지연 발생을 전제로 시스템을 설계해야 합니다.  # 1. Protocol
+MONITOR 데이터의 정주기성 저하 및 지연 발생을 전제로 시스템을 설계해야 합니다.  ## 1.2 사용 전 유의 사항
 
-이 장은 전송(Transport), NDJSON 프레이밍, 제한(Limits), 에러 모델을 정의합니다.# 2. Recipe Commands
+Open Stream은 실시간 제어 및 상태 수신을 효율적으로 처리하기 위한 인터페이스이지만,  
+다음과 같은 제약 및 전제를 반드시 고려해야 합니다.
 
-이 장은 HANDSHAKE / MONITOR / CONTROL / STOP의 payload 규격과 동작을 정의합니다.# 2.1 HANDSHAKE
+- Open Stream은 정주기 데이터 전달을 목표로 하지만 보장하지는 않습니다.
+- 운영체제 스케줄링, 네트워크 상태 및 클라이언트 처리 부하에 따라 주기 지연(jitter) 이 발생할 수 있습니다.
+- 하나의 TCP 연결에서는 하나의 MONITOR 세션만 활성화할 수 있습니다.
+- 모든 명령은 정의된 프로토콜 순서를 따라야 하며,  
+  순서 위반 시 서버는 명령을 거부하거나 연결을 종료할 수 있습니다.
+
+<br><br>
+
+<b> MONITOR 및 CONTROL 운용 시 참고 성능 (시험 결과) </b>
+
+아래 결과는 동일한 시험 환경에서 MONITOR 단독 수행과
+CONTROL과 MONITOR를 동시에 수행한 경우의 주기 특성을 비교한 참고 자료입니다.
+
+시험 환경 
+- 서버: Hi6 COM
+- 클라이언트: Windows 11 기반 Python 클라이언트
+- 네트워크: TCP 연결
+
+<br>
+
+시험 결과 요약
+
+| 구분                          | **시험 조건**                                                              | **주기 특성 요약**                                                                                                    |
+| --------------------------- | ---------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
+| **MONITOR 단독 수행**           | - MONITOR 주기: 2 ms (500 Hz)<br>- CONTROL 미사용<br>- 연속 실행: 10시간          | - <u><b>평균 수신 주기: 약 2.0 ms</b></u><br>- 수신 프레임 수: 약 1,800만<br>- 누락 프레임 비율: 약 0.001%                                           |
+| **CONTROL + MONITOR 동시 수행** | - CONTROL 주기: 2 ms<br>- MONITOR 주기: 2 ms<br>- CONTROL / MONITOR 동시 활성화 | - CONTROL(SEND): <u><b>평균 주기 약 2.0 ms</b></u>, 최대 지연 약 30~40 ms<br>- MONITOR(RECV): <b><u>평균 주기 약 2.1~2.2 ms</b></u>, 최대 지연 수십 ms~100 ms 이상 |
+
+<br><br>
+
+<b> 해석 및 운용 시 유의 사항 </b>
+
+- MONITOR 레시피를 단독으로 운용하는 경우, 장시간 연속 실행에서도 비교적 안정적인 주기 수신이 가능합니다.  
+
+- CONTROL과 MONITOR를 동시에 운용할 경우, 시스템 설계에 따라 CONTROL 세션이 더 높은 우선순위로 처리됩니다.  
+
+- 이로 인해 CONTROL 주기 안정성은 유지되지만,  
+MONITOR 수신 주기는 평균 증가 및 간헐적인 지연이 발생할 수 있습니다.  
+
+- CONTROL과 MONITOR를 동시에 사용하는 환경에서는  
+MONITOR 데이터의 정주기성 저하 및 지연 발생을 전제로 시스템을 설계해야 합니다.  # 2. Recipe Commands
+
+이 장은 HANDSHAKE / MONITOR / CONTROL / STOP의 payload 규격과 동작을 정의합니다.# 3.1 HANDSHAKE
 
 ## Request
 ```json 
@@ -168,7 +203,7 @@ MONITOR 데이터의 정주기성 저하 및 지연 발생을 전제로 시스�
 ## Errors
 - busy_session_active (409): CONTROL 또는 MONITOR가 active면 HANDSHAKE 불가
 - version_mismatch (400): major 불일치
-# 2.2 MONITOR
+# 3.2 MONITOR
 
 MONITOR는 서버가 주기적으로 REST GET을 호출하고, 그 결과를 NDJSON으로 스트리밍하는 기능입니다.
 
@@ -196,7 +231,7 @@ MONITOR는 서버가 주기적으로 REST GET을 호출하고, 그 결과를 NDJ
 ## Stream data
 MONITOR가 활성화되면 서버는 주기마다 NDJSON 라인을 전송합니다.  
 (데이터 라인의 정확한 스키마는 “해당 url의 REST 응답 스키마”에 의해 결정됩니다.)
-# 2.3 CONTROL
+# 3.3 CONTROL
 
 CONTROL은 REST API를 단발로 호출하는 제어 커맨드입니다.
 
@@ -216,7 +251,7 @@ CONTROL은 REST API를 단발로 호출하는 제어 커맨드입니다.
 - 성공(HTTP 200) 시: **응답 바디를 보내지 않습니다. (no response line)**
 - 실패 시:
 {"type":"control_err","status":<http_status>,"body":<optional_json>}\n
-# 2.4 STOP
+# 3.4 STOP
 
 STOP은 대상(target)에 따라 monitor/control/session을 중단합니다.
 

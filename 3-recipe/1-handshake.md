@@ -1,4 +1,4 @@
-﻿# 2.1 HANDSHAKE
+﻿# 3.1 HANDSHAKE
 
 ## Request
 ```json 
