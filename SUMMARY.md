@@ -1,4 +1,6 @@
-﻿* [${cont_model} Open Stream 설명서](README.md)
+﻿# Table of contents
+
+* [${cont_model} Open Stream 설명서](README.md)
 * [0. 개요](0-overview/README.md)
   * [0.1 Open Stream 이란?](0-overview/1-about-open-stream.md)
 
