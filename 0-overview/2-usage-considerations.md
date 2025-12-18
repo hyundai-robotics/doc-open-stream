@@ -9,9 +9,9 @@ Open Stream은 실시간 제어 및 상태 수신을 효율적으로 처리하�
 - 모든 명령은 정의된 프로토콜 순서를 따라야 하며,  
   순서 위반 시 서버는 명령을 거부하거나 연결을 종료할 수 있습니다.
 
-----
+<br><br>
 
-#### MONITOR 및 CONTROL 운용 시 참고 성능 (시험 결과)
+<b> MONITOR 및 CONTROL 운용 시 참고 성능 (시험 결과) </b>
 
 아래 결과는 동일한 시험 환경에서 MONITOR 단독 수행과
 CONTROL과 MONITOR를 동시에 수행한 경우의 주기 특성을 비교한 참고 자료입니다.
@@ -21,6 +21,8 @@ CONTROL과 MONITOR를 동시에 수행한 경우의 주기 특성을 비교한 �
 - 클라이언트: Windows 11 기반 Python 클라이언트
 - 네트워크: TCP 연결
 
+<br>
+
 시험 결과 요약
 
 | 구분                          | **시험 조건**                                                              | **주기 특성 요약**                                                                                                    |
@@ -28,8 +30,9 @@ CONTROL과 MONITOR를 동시에 수행한 경우의 주기 특성을 비교한 �
 | **MONITOR 단독 수행**           | - MONITOR 주기: 2 ms (500 Hz)<br>- CONTROL 미사용<br>- 연속 실행: 10시간          | - <u><b>평균 수신 주기: 약 2.0 ms</b></u><br>- 수신 프레임 수: 약 1,800만<br>- 누락 프레임 비율: 약 0.001%                                           |
 | **CONTROL + MONITOR 동시 수행** | - CONTROL 주기: 2 ms<br>- MONITOR 주기: 2 ms<br>- CONTROL / MONITOR 동시 활성화 | - CONTROL(SEND): <u><b>평균 주기 약 2.0 ms</b></u>, 최대 지연 약 30~40 ms<br>- MONITOR(RECV): <b><u>평균 주기 약 2.1~2.2 ms</b></u>, 최대 지연 수십 ms~100 ms 이상 |
 
+<br><br>
 
-#### 해석 및 운용 시 유의 사항
+<b> 해석 및 운용 시 유의 사항 </b>
 
 - MONITOR 레시피를 단독으로 운용하는 경우, 장시간 연속 실행에서도 비교적 안정적인 주기 수신이 가능합니다.  
 
