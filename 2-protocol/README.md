@@ -1,3 +1,3 @@
-﻿# 2. Recipe Commands
+﻿# 2. 프로토콜 관련
 
-이 장은 HANDSHAKE / MONITOR / CONTROL / STOP의 payload 규격과 동작을 정의합니다.
+이 장은 Open Stream 에서 사용하는 데이터 프로콜과 관련하여 설명을 진행합니다.

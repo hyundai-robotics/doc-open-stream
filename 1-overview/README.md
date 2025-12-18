@@ -12,3 +12,5 @@ Open Stream의 목적, 기본 개념, 전체 동작 구조와 지원되는 사�
 - 어떤 상황에서 사용하는 것이 적절한지
 
 를 이해할 수 있습니다.
+
+ 📌 최신 변경 사항은 [Release Notes](../10-release-notes/README.md)를 참고하세요.

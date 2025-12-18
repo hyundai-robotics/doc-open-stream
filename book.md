@@ -30,7 +30,9 @@ Open Stream의 목적, 기본 개념, 전체 동작 구조와 지원되는 사�
 - 어떤 방식으로 동작하는지
 - 어떤 상황에서 사용하는 것이 적절한지
 
-를 이해할 수 있습니다.## 1.1 Open Stream이란?
+를 이해할 수 있습니다.
+
+ 📌 최신 변경 사항은 [Release Notes](../10-release-notes/README.md)를 참고하세요.## 1.1 Open Stream이란?
 
 해당 기능은 ${cont_model} Open API를 짧은 주기로 반복 호출하여,  
 클라이언트가 그 결과를 스트리밍 형태로 지속적으로 수신할 수 있도록 제공되는 인터페이스입니다.
@@ -140,53 +142,9 @@ CONTROL과 MONITOR를 동시에 수행한 경우의 주기 특성을 비교한 �
 MONITOR 수신 주기는 평균 증가 및 간헐적인 지연이 발생할 수 있습니다.  
 
 - CONTROL과 MONITOR를 동시에 사용하는 환경에서는  
-MONITOR 데이터의 정주기성 저하 및 지연 발생을 전제로 시스템을 설계해야 합니다.  ## 1.2 사용 전 유의 사항
+MONITOR 데이터의 정주기성 저하 및 지연 발생을 전제로 시스템을 설계해야 합니다.  # 2. 프로토콜 관련
 
-Open Stream은 실시간 제어 및 상태 수신을 효율적으로 처리하기 위한 인터페이스이지만,  
-다음과 같은 제약 및 전제를 반드시 고려해야 합니다.
-
-- Open Stream은 정주기 데이터 전달을 목표로 하지만 보장하지는 않습니다.
-- 운영체제 스케줄링, 네트워크 상태 및 클라이언트 처리 부하에 따라 주기 지연(jitter) 이 발생할 수 있습니다.
-- 하나의 TCP 연결에서는 하나의 MONITOR 세션만 활성화할 수 있습니다.
-- 모든 명령은 정의된 프로토콜 순서를 따라야 하며,  
-  순서 위반 시 서버는 명령을 거부하거나 연결을 종료할 수 있습니다.
-
-<br><br>
-
-<b> MONITOR 및 CONTROL 운용 시 참고 성능 (시험 결과) </b>
-
-아래 결과는 동일한 시험 환경에서 MONITOR 단독 수행과
-CONTROL과 MONITOR를 동시에 수행한 경우의 주기 특성을 비교한 참고 자료입니다.
-
-시험 환경 
-- 서버: Hi6 COM
-- 클라이언트: Windows 11 기반 Python 클라이언트
-- 네트워크: TCP 연결
-
-<br>
-
-시험 결과 요약
-
-| 구분                          | **시험 조건**                                                              | **주기 특성 요약**                                                                                                    |
-| --------------------------- | ---------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
-| **MONITOR 단독 수행**           | - MONITOR 주기: 2 ms (500 Hz)<br>- CONTROL 미사용<br>- 연속 실행: 10시간          | - <u><b>평균 수신 주기: 약 2.0 ms</b></u><br>- 수신 프레임 수: 약 1,800만<br>- 누락 프레임 비율: 약 0.001%                                           |
-| **CONTROL + MONITOR 동시 수행** | - CONTROL 주기: 2 ms<br>- MONITOR 주기: 2 ms<br>- CONTROL / MONITOR 동시 활성화 | - CONTROL(SEND): <u><b>평균 주기 약 2.0 ms</b></u>, 최대 지연 약 30~40 ms<br>- MONITOR(RECV): <b><u>평균 주기 약 2.1~2.2 ms</b></u>, 최대 지연 수십 ms~100 ms 이상 |
-
-<br><br>
-
-<b> 해석 및 운용 시 유의 사항 </b>
-
-- MONITOR 레시피를 단독으로 운용하는 경우, 장시간 연속 실행에서도 비교적 안정적인 주기 수신이 가능합니다.  
-
-- CONTROL과 MONITOR를 동시에 운용할 경우, 시스템 설계에 따라 CONTROL 세션이 더 높은 우선순위로 처리됩니다.  
-
-- 이로 인해 CONTROL 주기 안정성은 유지되지만,  
-MONITOR 수신 주기는 평균 증가 및 간헐적인 지연이 발생할 수 있습니다.  
-
-- CONTROL과 MONITOR를 동시에 사용하는 환경에서는  
-MONITOR 데이터의 정주기성 저하 및 지연 발생을 전제로 시스템을 설계해야 합니다.  # 2. Recipe Commands
-
-이 장은 HANDSHAKE / MONITOR / CONTROL / STOP의 payload 규격과 동작을 정의합니다.# 3.1 HANDSHAKE
+이 장은 Open Stream 에서 사용하는 데이터 프로콜과 관련하여 설명을 진행합니다.# 3.1 HANDSHAKE
 
 ## Request
 ```json 
@@ -284,3 +242,183 @@ A. 불가합니다. MONITOR payload의 method는 반드시 "GET" 이어야 합�
 
 ## Q4. url에 공백이 있으면?
 A. 거부됩니다. url은 공백을 포함할 수 없습니다.
+# 10. 릴리즈 노트
+
+본 섹션은 Open Stream 인터페이스의 버전별 변경 이력을 정리한 릴리즈 노트입니다.  
+각 버전에서는 기능 추가, 동작 변경, 수정 사항 및 호환성 관련 정보를 제공합니다.
+
+- Added: 신규 기능 또는 필드가 추가된 경우
+
+- Changed: 기존 동작이나 사양이 변경된 경우
+
+- Fixed: 오류 수정 또는 안정성 개선
+
+- Deprecated: 향후 제거 예정이거나 사용이 권장되지 않는 기능
+
+각 릴리즈 문서에서는 해당 버전에서 변경된 내용만을 간결하게 기술하며,  
+상세한 사용 방법이나 프로토콜 설명은 본 문서의 각 레퍼런스 섹션을 따릅니다.  
+
+주의  
+릴리즈 간 동작 변경 사항이 있는 경우, 기존 시스템에 영향을 줄 수 있으므로
+업데이트 전 반드시 해당 버전의 릴리즈 노트를 확인하시기 바랍니다.
+
+
+- 릴리즈 정보
+
+    <div style="max-width:31vw;">
+
+    |Version|Release Schedule|Link|
+    |:--:|:--:|:--:|
+    |1.0.0| Scheduled March 2026 _(TBD)_|[🔗](1-0-0.md)|
+
+    </div>
+<h2 style="display:flex; align-items:center; gap:8px;">
+  Release Notes – v1.0.0
+  <span style="
+    font-size:12px;
+    font-weight:bold;
+    padding:2px 6px;
+    border-radius:4px;
+    border:1px solid #c62828;
+    color:#c62828;
+  ">
+    PREVIEW
+  </span>
+</h2>
+
+<p>
+  <b>Status</b>: Initial Release<br>
+  본 버전은 Open Stream 인터페이스의 최초 공개 버전입니다.
+</p>
+
+<p>
+  <b>Release Schedule</b>: 2026년 3월 (예정)
+</p>
+
+<br>
+
+<h3>Overview</h3>
+
+<p>
+  Open Stream은 로봇 제어 및 상태 수신을 위해 설계된
+  실시간 스트리밍 기반 인터페이스입니다.<br>
+  본 릴리즈에서는 Open Stream의 기본 프로토콜,
+  MONITOR 및 CONTROL 레시피, 그리고 이를 위한 통신 규칙을 제공합니다.
+</p>
+
+<br>
+
+<h4 style="
+  display:inline-block;
+  padding:2px 8px;
+  border-left:4px solid #2E7D32;
+  background:#FAFAFA;
+  font-size:14px;
+  font-weight:bold;
+">
+  ✨ Added
+</h4>
+
+<ul>
+  <li><b>Protocol</b>
+    <ul>
+      <li>NDJSON 기반의 경량 스트리밍 프로토콜</li>
+      <li>단일 TCP 연결 기반 양방향 통신</li>
+      <li>명령 기반 세션 관리 구조</li>
+    </ul>
+  </li>
+
+  <li><b>Recipe Commands</b>
+    <ul>
+      <li><b>HANDSHAKE</b> – 프로토콜 버전 협상</li>
+      <li><b>MONITOR</b> – 주기적인 상태 데이터 수신 (ms 단위 주기 설정)</li>
+      <li><b>CONTROL</b> – 실시간 제어 명령 전송 (우선순위 높음)</li>
+      <li><b>STOP</b> – 활성 세션 또는 레시피 종료</li>
+    </ul>
+  </li>
+</ul>
+
+<br>
+
+<h4 style="
+  display:inline-block;
+  padding:2px 6px;
+  border-left:4px solid #3F51B5;
+  background:#F5F6FA;
+  font-size:14px;
+  font-weight:bold;
+">
+  🔧 Changed
+</h4>
+
+<ul>
+  <li>본 버전은 최초 공개 버전으로, 이전 버전 대비 변경 사항은 없습니다.</li>
+  <li>CONTROL과 MONITOR를 동시에 수행하는 경우 CONTROL 세션의 실시간성이 우선 보장됩니다.</li>
+  <li>운영체제 스케줄링 및 네트워크 환경에 따라 주기 지연이 발생할 수 있습니다.</li>
+</ul>
+
+<br>
+
+<h4 style="
+  display:inline-block;
+  padding:2px 8px;
+  border-left:4px solid rgb(255, 140, 0);
+  background:#FAFAFA;
+  font-size:14px;
+  font-weight:bold;
+">
+  🛠 Fixed
+</h4>
+
+<ul>
+  <li>본 버전은 최초 공개 버전으로, 수정된 이슈는 없습니다.</li>
+</ul>
+
+<br>
+
+<h4 style="
+  display:inline-block;
+  padding:2px 8px;
+  border-left:4px solid #B71C1C;
+  background:#FAFAFA;
+  font-size:14px;
+  font-weight:bold;
+">
+  ❌ Deprecated
+</h4>
+
+<ul>
+  <li>본 버전은 최초 공개 버전으로, 사용 중단되거나 제거된 기능은 없습니다.</li>
+</ul>
+
+<br>
+
+<h4 style="
+  display:inline-block;
+  padding:2px 8px;
+  border-left:4px solid #9E9E9E;
+  background:#FAFAFA;
+  font-size:14px;
+  font-weight:bold;
+">
+  ⚠ Known Limitations
+</h4>
+
+<ul>
+  <li>하나의 TCP 연결에서는 하나의 MONITOR 세션만 활성화할 수 있습니다.</li>
+  <li>MONITOR 데이터는 실시간 제어 판단 용도로 적합하지 않습니다.</li>
+  <li>네트워크 및 클라이언트 성능에 따라 지연 및 지터가 발생할 수 있습니다.</li>
+</ul>
+
+<br>
+
+<h3>Related Documentation</h3>
+
+<ul>
+  <li><a href="../1-overview/README.md">Open Stream 개요</a></li>
+  <li><a href="../1-overview/2-usage-considerations.md">사용 전 유의 사항</a></li>
+  <li><a href="../2-protocol/README.md">프로토콜</a></li>
+  <li><a href="../3-recipe/README.md">Recipe 명령어</a></li>
+  <li><a href="../4-examples/README.md">예제</a></li>
+  <li><a href="../9-faq/README.md">F&Q</a></li>
+</ul>
