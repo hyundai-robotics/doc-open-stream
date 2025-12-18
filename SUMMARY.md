@@ -3,6 +3,7 @@
 * [${cont_model} Open Stream 설명서](README.md)
 * [0. 개요](0-overview/README.md)
   * [0.1 Open Stream 이란?](0-overview/1-about-open-stream.md)
+  * [0.2 사용전 유의 사항](0-overview/2-usage-considerations.md)
 
 * [1. 빠른 시작](1-quickstart/README.md)
 
