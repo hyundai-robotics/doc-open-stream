@@ -25,24 +25,28 @@ Open Stream은 메시지 프레이밍을 위해 **NDJSON(Newline Delimited JSON)
 
 <br>
 
+<h4 style="font-size:15px; font-weight:bold;">2. 필수 규칙</h4>
 
-<h4 style="font-size:15px; font-weight:bold;">2. 반드시 지켜야 할 규칙</h4>
+1. 모든 메시지는 JSON 1개를 정확히 1줄로 직렬화해야 합니다.  
+   &rightarrow; JSON 문자열 내부에 개행 문자가 포함되면 프레이밍이 깨집니다.
+2. 각 메시지 끝에는 반드시 개행 문자 \n 가 포함되어야 합니다.  
+3. 모든 메시지는 UTF-8 인코딩으로 전송되어야 합니다.
 
-1. JSON은 반드시 1줄이어야 합니다.
-    - JSON 문자열 내부에 줄바꿈(개행)이 들어가면 프레이밍이 깨집니다.
+<br>
 
-2. 각 메시지 끝에는 \n이 반드시 있어야 합니다.
-    - 권장: json.dumps(obj) + "\n" 형태로 전송
+<h4 style="font-size:15px; font-weight:bold;">3. 권장 사항</h4>
 
-3. (권장) 공백 없는 직렬화
-    - 메시지 크기를 줄이기 위해 아래 형태를 권장합니다.
-        <div style="max-width:fit-content;">
+1. 메시지 크기 최소화를 위해 공백 없는 직렬화를 권장합니다.
 
-        ```py
-        json.dumps(obj, separators=(",", ":")) + "\n"
-        ```
+    <div style="max-width:fit-content;">
 
-        </div>
+    ```py
+    # python example
+    import json
+    json.dumps(recipe_data, separators=(",", ":")) + "\n"
+    ```
+
+    </div>
 
 <br>
 
@@ -52,8 +56,8 @@ Open Stream은 메시지 프레이밍을 위해 **NDJSON(Newline Delimited JSON)
 
 {% hint style="info" %}
 
-수신 시에는 TCP 스트림 특성상 “한 번의 recv가 한 줄”이 아닐 수 있으므로,  
-내부 버퍼에 누적하고, \n 기준으로 라인을 분리하여, 라인 단위로 JSON 파싱을 수행하는 구조를 권장합니다.
+TCP 스트림 특성상, 한 번의 recv() 호출이 정확히 한 줄을 반환한다는 보장은 없습니다.  
+수신 데이터는 내부 버퍼에 누적한 뒤, \n 기준으로 라인을 분리하여 JSON 파싱을 수행하는 구조를  권장합니다.
 
 {% endhint %}
 

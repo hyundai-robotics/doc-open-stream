@@ -215,24 +215,28 @@ Open Stream은 메시지 프레이밍을 위해 **NDJSON(Newline Delimited JSON)
 
 <br>
 
+<h4 style="font-size:15px; font-weight:bold;">2. 필수 규칙</h4>
 
-<h4 style="font-size:15px; font-weight:bold;">2. 반드시 지켜야 할 규칙</h4>
+1. 모든 메시지는 JSON 1개를 정확히 1줄로 직렬화해야 합니다.  
+   &rightarrow; JSON 문자열 내부에 개행 문자가 포함되면 프레이밍이 깨집니다.
+2. 각 메시지 끝에는 반드시 개행 문자 \n 가 포함되어야 합니다.  
+3. 모든 메시지는 UTF-8 인코딩으로 전송되어야 합니다.
 
-1. JSON은 반드시 1줄이어야 합니다.
-    - JSON 문자열 내부에 줄바꿈(개행)이 들어가면 프레이밍이 깨집니다.
+<br>
 
-2. 각 메시지 끝에는 \n이 반드시 있어야 합니다.
-    - 권장: json.dumps(obj) + "\n" 형태로 전송
+<h4 style="font-size:15px; font-weight:bold;">3. 권장 사항</h4>
 
-3. (권장) 공백 없는 직렬화
-    - 메시지 크기를 줄이기 위해 아래 형태를 권장합니다.
-        <div style="max-width:fit-content;">
+1. 메시지 크기 최소화를 위해 공백 없는 직렬화를 권장합니다.
 
-        ```py
-        json.dumps(obj, separators=(",", ":")) + "\n"
-        ```
+    <div style="max-width:fit-content;">
 
-        </div>
+    ```py
+    # python example
+    import json
+    json.dumps(recipe_data, separators=(",", ":")) + "\n"
+    ```
+
+    </div>
 
 <br>
 
@@ -242,8 +246,8 @@ Open Stream은 메시지 프레이밍을 위해 **NDJSON(Newline Delimited JSON)
 
 {% hint style="info" %}
 
-수신 시에는 TCP 스트림 특성상 “한 번의 recv가 한 줄”이 아닐 수 있으므로,  
-내부 버퍼에 누적하고, \n 기준으로 라인을 분리하여, 라인 단위로 JSON 파싱을 수행하는 구조를 권장합니다.
+TCP 스트림 특성상, 한 번의 recv() 호출이 정확히 한 줄을 반환한다는 보장은 없습니다.  
+수신 데이터는 내부 버퍼에 누적한 뒤, \n 기준으로 라인을 분리하여 JSON 파싱을 수행하는 구조를  권장합니다.
 
 {% endhint %}
 
@@ -281,7 +285,7 @@ def recv_lines(sock):
 
 <br>
 
-<h4 style="font-size:15px; font-weight:bold;">1. Session Lifecycle</h4>
+<h4 style="font-size:16px; font-weight:bold;">1. 세션 라이프사이클</h4>
 
 Open Stream은 <b>TCP 연결 1개를 하나의 세션(Session)</b> 으로 간주합니다.  
 일반적인 세션 흐름은 다음과 같습니다.
@@ -295,7 +299,7 @@ Open Stream은 <b>TCP 연결 1개를 하나의 세션(Session)</b> 으로 간주
 
 <br>
 
-<h4 style="font-size:15px; font-weight:bold;">2. 사용 규칙</h4>
+<h4 style="font-size:16px; font-weight:bold;">2. 사용 규칙</h4>
 
 다음 규칙은 Open Stream을 올바르게 사용하기 위해 지켜야하는 규칙입니다.
 
@@ -306,7 +310,7 @@ Open Stream은 <b>TCP 연결 1개를 하나의 세션(Session)</b> 으로 간주
    이후 TCP Close를 수행하는 구조를 권장합니다.
 
 <br>
-<h4 style="font-size:15px; font-weight:bold;">3. 메세지 방향</h4>
+<h4 style="font-size:16px; font-weight:bold;">3. 메세지 방향</h4>
 
 <p>
 Open Stream에서 사용되는 메시지는 <b>방향과 역할</b>에 따라 다음과 같이 구분됩니다.
@@ -345,7 +349,7 @@ Open Stream에서 사용되는 메시지는 <b>방향과 역할</b>에 따라 �
   </div>
 
   <div style="overflow-x:auto;">
-    <div style="font-weight:bold; margin-bottom:6px;">Server → Client (Events)</div>
+    <div style="font-weight:bold; margin-bottom:6px;">Client ⇠ Server (Events)</div>
     <table style="width:fit-content; min-width:fit-content; border-collapse:collapse;">
       <thead>
         <tr>
@@ -357,13 +361,13 @@ Open Stream에서 사용되는 메시지는 <b>방향과 역할</b>에 따라 �
       <tbody>
         <tr>
           <td><code>*_ack</code></td>
-          <td>명령 수신 또는 설정 성공 ACK</td>
+          <td>명령이 수락되었음을 알리는 ACK</td>
           <td>예: <code>handshake_ack</code>, <code>monitor_ack</code>, <code>stop_ack</code></td>
         </tr>
         <tr>
           <td><code>data</code></td>
           <td>MONITOR 활성 시 주기적 데이터 이벤트</td>
-          <td>요청과 1:1 매칭되지 않을 수 있음</td>
+          <td>Hi6 Open API 서비스 함수를 수행한 결과</td>
         </tr>
         <tr>
           <td><code>error</code></td>
@@ -376,11 +380,9 @@ Open Stream에서 사용되는 메시지는 <b>방향과 역할</b>에 따라 �
 
   {% hint style="info" %}
 
-  <ul>
-    <li>Server → Client 이벤트는 클라이언트 요청과 <b>1:1로 대응되지 않을 수 있습니다.</b></li>
-    <li>특히 <code>data</code> 이벤트는 클라이언트 요청과 무관하게 언제든지 전송될 수 있습니다.</li>
-    <li>클라이언트는 항상 수신 루프를 유지해야 합니다.</li>
-  </ul>
+  Server → Client 이벤트는 클라이언트 요청과 <b>1:1로 대응되지 않을 수 있습니다.</b>  
+  특히 <code>data</code> 이벤트는 클라이언트 요청과 무관하게 언제든지 전송될 수 있습니다.  
+  클라이언트는 항상 수신 루프를 유지해야 합니다.
 
   {% endhint %}
   
@@ -388,26 +390,26 @@ Open Stream에서 사용되는 메시지는 <b>방향과 역할</b>에 따라 �
 </div>
 
 
+<br>
+<h4 style="font-size:16px; font-weight:bold;">4. MONITOR 스트리밍 동작 방식</h4>
+
+`MONITOR`는 클라이언트가 전달한 레시피를 기준으로  
+서버가 지정된 주기(`period_ms`)마다 Hi6 Open API 서비스 함수를 실행하고,  
+그 결과를 `data` 이벤트로 스트리밍하는 서버 주도형 메커니즘입니다.
+
+클라이언트는 다음 사항을 전제로 구현해야 합니다.
+
+- 항상 수신 루프를 유지합니다.
+- 요청–응답의 동기적 대응을 가정하지 않습니다.
+- `data`, `*_ack`, `error` 이벤트는
+  순서 보장이 없음을 전제로 처리해야 합니다.
 
 
----
+<br>
+<h4 style="font-size:16px; font-weight:bold;">5. CONTROL 명령 수행</h4>
 
-## 3. Streaming Behavior
 
-`MONITOR`가 활성화되면 서버는 클라이언트 요청과 무관하게 언제든지
-`data` 메시지를 푸시할 수 있습니다.
-
-따라서 클라이언트는 다음을 반드시 만족해야 합니다.
-
-- 항상 수신 루프(receive loop)를 유지한다.
-- 요청을 보냈다고 해서 “곧바로 응답이 온다”는 가정을 하지 않는다.
-- `data`, `ack`, `error`가 <b>임의 순서로 섞여 수신될 수 있음</b>을 전제로 파싱한다.
-
----
-
-## 4. CONTROL Response Handling
-
-`CONTROL`은 정책/구현에 따라 <b>성공 시 별도 응답 라인이 없을 수 있습니다.</b>
+`CONTROL`은 정책/구현에 따라 <b>성공 시 별도 응답 라인이 없습니다.</b>
 
 권장 전략:
 
@@ -415,38 +417,43 @@ Open Stream에서 사용되는 메시지는 <b>방향과 역할</b>에 따라 �
 - 성공 여부는 다음 방식으로 검증한다.
   - MONITOR 결과 변화 확인
   - 별도 상태 조회 MONITOR endpoint 사용
-  - 애플리케이션 레벨의 idempotent 설계
 
----
 
-## 5. Timeout / Watchdog
+<br>
+<h4 style="font-size:16px; font-weight:bold;">6. Timeout / Watchdog</h4>
 
-서버는 세션이 장기간 유휴 상태로 유지되면 연결을 종료할 수 있습니다.
+서버는 세션이 장시간 유휴 상태일 경우 연결을 종료할 수 있습니다.
 
 클라이언트 권장 사항:
 
 - 연결 직후 즉시 `HANDSHAKE` 수행
-- 세션이 필요 없으면 `STOP(target=session)` 후 정상 종료
-- 스트리밍 사용 시 수신 루프가 중단되지 않도록 구현
-- 연결 종료(EOF) 또는 소켓 오류 발생 시 재연결/재HANDSHAKE 로직 준비
+- 사용 종료 시 `STOP(target=session)` 후 정상 종료
+- 스트리밍 중 수신 루프 중단 방지
+- EOF 또는 소켓 오류 발생 시 재연결 및 재HANDSHAKE 로직 준비
 
----
+현재 서버 구현 기준으로는 다음과 같은 정책이 적용됩니다.
 
-## 6. Recommended Client Architecture
+- <b>비무장 상태(Idle / No active MONITOR)</b>  
+  &rightarrow; 약 <b>180초</b> 동안 유의미한 활동이 없을 경우 세션 종료
 
-실전 구현에서는 아래 구조를 권장합니다.
+- <b>무장 상태(Active MONITOR streaming)</b>  
+  &rightarrow; 스트리밍이 중단된 상태가 <b>약 5초</b> 이상 지속될 경우 세션 종료
 
-- 송신(Command)과 수신(Event)을 분리한다.
+※ 위 시간 값은 서버 정책 또는 운영 환경에 따라 변경될 수 있습니다.
+
+<br>
+<h4 style="font-size:16px; font-weight:bold;">7. 권장 아키텍쳐 </h4>
+
+실전 구현에서는 다음 구조를 권장합니다.
+
+- 송신(Command)과 수신(Event)을 분리
   - 송신: 명령 생성 + sendall
   - 수신: NDJSON 라인 파서 + 디스패처
 
-- 수신 루프는 단일 책임을 갖는다.
-  - 라인 분리(`\n`)
+- 수신 루프의 단일 책임
+  - `\n` 기준 라인 분리
   - JSON 파싱
-  - `type`/`error` 기반 라우팅
-
-(예제 코드는 Examples 섹션에서 제공합니다.)
-# 3.1 HANDSHAKE
+  - `type` / `error` 기반 이벤트 라우팅# 3.1 HANDSHAKE
 
 ## Request
 ```json 
@@ -682,9 +689,9 @@ A. 거부됩니다. url은 공백을 포함할 수 없습니다.
 
 <div style="max-width:fit-content;">
 
-|Version|Release Schedule|Link|
-|:--:|:--:|:--:|
-|1.0.0|2026.03 예정|[🔗](1-0-0.md)|
+| Version| ${cont_model} Version|Release Schedule|Link|
+|:--:|:--:|:--:|:--:|
+|1.0.0|60.34-00 ⇡|2026.03 예정|[🔗](1-0-0.md)|
 
 </div>
 

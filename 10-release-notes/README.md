@@ -10,9 +10,9 @@
 
 <div style="max-width:fit-content;">
 
-|Version|Release Schedule|Link|
-|:--:|:--:|:--:|
-|1.0.0|2026.03 예정|[🔗](1-0-0.md)|
+| Version| ${cont_model} Version|Release Schedule|Link|
+|:--:|:--:|:--:|:--:|
+|1.0.0|60.34-00 ⇡|2026.03 예정|[🔗](1-0-0.md)|
 
 </div>
 
