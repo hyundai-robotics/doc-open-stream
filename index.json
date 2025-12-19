@@ -6,82 +6,82 @@
 	},
 	{
 		"link": "1-overview/README.md",
-		"char_ofs": 447,
-		"byte_ofs": 813
+		"char_ofs": 482,
+		"byte_ofs": 848
 	},
 	{
 		"link": "1-overview/1-about-open-stream.md",
-		"char_ofs": 736,
-		"byte_ofs": 1380
+		"char_ofs": 771,
+		"byte_ofs": 1415
 	},
 	{
 		"link": "1-overview/2-usage-considerations.md",
-		"char_ofs": 3081,
-		"byte_ofs": 5273
+		"char_ofs": 3116,
+		"byte_ofs": 5308
 	},
 	{
 		"link": "2-protocol/README.md",
-		"char_ofs": 5293,
-		"byte_ofs": 8671
+		"char_ofs": 5338,
+		"byte_ofs": 8716
 	},
 	{
 		"link": "2-protocol/1-ndjson.md",
-		"char_ofs": 5594,
-		"byte_ofs": 9207
+		"char_ofs": 5639,
+		"byte_ofs": 9252
 	},
 	{
 		"link": "2-protocol/2-session-and-streaming.md",
-		"char_ofs": 7214,
-		"byte_ofs": 11424
+		"char_ofs": 7259,
+		"byte_ofs": 11469
 	},
 	{
 		"link": "3-recipe/README.md",
-		"char_ofs": 11621,
-		"byte_ofs": 17850
+		"char_ofs": 11666,
+		"byte_ofs": 17895
 	},
 	{
 		"link": "3-recipe/1-handshake.md",
-		"char_ofs": 11621,
-		"byte_ofs": 17853
+		"char_ofs": 11666,
+		"byte_ofs": 17898
 	},
 	{
 		"link": "3-recipe/2-monitor.md",
-		"char_ofs": 11955,
-		"byte_ofs": 18237
+		"char_ofs": 12000,
+		"byte_ofs": 18282
 	},
 	{
 		"link": "3-recipe/3-control.md",
-		"char_ofs": 12502,
-		"byte_ofs": 19041
+		"char_ofs": 12547,
+		"byte_ofs": 19086
 	},
 	{
 		"link": "3-recipe/4-stop.md",
-		"char_ofs": 12996,
-		"byte_ofs": 19678
+		"char_ofs": 13041,
+		"byte_ofs": 19723
 	},
 	{
 		"link": "4-error/README.md",
-		"char_ofs": 13324,
-		"byte_ofs": 20077
+		"char_ofs": 13369,
+		"byte_ofs": 20122
 	},
 	{
 		"link": "5-examples/README.md",
-		"char_ofs": 18109,
-		"byte_ofs": 26631
+		"char_ofs": 18154,
+		"byte_ofs": 26676
 	},
 	{
 		"link": "9-faq/README.md",
-		"char_ofs": 18109,
-		"byte_ofs": 26634
+		"char_ofs": 18154,
+		"byte_ofs": 26679
 	},
 	{
 		"link": "10-release-notes/README.md",
-		"char_ofs": 18472,
-		"byte_ofs": 27241
+		"char_ofs": 18517,
+		"byte_ofs": 27286
 	},
 	{
 		"link": "10-release-notes/1-0-0.md",
-		"char_ofs": 19760,
-		"byte_ofs": 29186
+		"char_ofs": 19805,
+		"byte_ofs": 29231
 	}
 ]
