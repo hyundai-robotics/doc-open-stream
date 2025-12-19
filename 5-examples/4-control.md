@@ -322,27 +322,34 @@ if __name__ == "__main__":
 <br>
 <h4 style="font-size:16px; font-weight:bold;">실행 방법</h4>
 
-<div style="max-width:fit-content;">
+1. 로봇을 원점 위치로 이동 시킵니다. 
+2. joint_traject_insert_point API 의 동작 조건은 Playback 이 재생 중일 때 입니다.  
+하기 wait 문을 job 에 그대로 작성합니다.  
+0001.job - ```wait di1```
+3. 0001.job 을 자동모드에서 start 합니다.
+4. 하기 main.py 수행문을 실행합니다.
 
-```bash
-# 예: 30초 길이의 sine trajectory(진폭 1 deg)를 dt=2ms로 전송합니다.
-# - cycle-sec=5  : sine 파 1주기(0→2π)가 5초에 해당합니다.
-# - look-ahead-time=0.04s, dt=0.002s 이므로, look-ahead 버퍼는 0.04/0.002 = 20 포인트입니다.
-#   (버퍼에 20개의 point 가 찰 때까지 추종이 지연될 수 있습니다.)
+    <div style="max-width:fit-content;">
 
-python main.py control \
-  --host 192.168.1.150 \
-  --port 49000 \
-  --major 1 \
-  --http-port 8888 \
-  --total-duration-sec 30.0 \
-  --dt-sec 0.002 \
-  --look-ahead-time 0.04 \
-  --amplitude-deg 1 \
-  --cycle-sec 5
-```
+    ```bash
+    # 예: 30초 길이의 sine trajectory(진폭 1 deg)를 dt=2ms로 전송합니다.
+    # - cycle-sec=5  : sine 파 1주기(0→2π)가 5초에 해당합니다.
+    # - look-ahead-time=0.04s, dt=0.002s 이므로, look-ahead 버퍼는 0.04/0.002 = 20 포인트입니다.
+    #   (버퍼에 20개의 point 가 찰 때까지 추종이 지연될 수 있습니다.)
 
-</div>
+    python3 main.py control \
+    --host 192.168.1.150 \
+    --port 49000 \
+    --major 1 \
+    --http-port 8888 \
+    --total-duration-sec 30.0 \
+    --dt-sec 0.002 \
+    --look-ahead-time 0.04 \
+    --amplitude-deg 1 \
+    --cycle-sec 5
+    ```
+
+    </div>
 
 ---
 
