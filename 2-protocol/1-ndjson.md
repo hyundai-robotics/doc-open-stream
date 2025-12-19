@@ -50,7 +50,7 @@ Open Stream은 메시지 프레이밍을 위해 **NDJSON(Newline Delimited JSON)
 
 <div style="max-width: fit-content;">
 
-{% hint style = "info" %}
+{% hint style="info" %}
 
 수신 시에는 TCP 스트림 특성상 “한 번의 recv가 한 줄”이 아닐 수 있으므로,  
 내부 버퍼에 누적하고, \n 기준으로 라인을 분리하여, 라인 단위로 JSON 파싱을 수행하는 구조를 권장합니다.
