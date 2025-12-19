@@ -70,18 +70,43 @@
 		"byte_ofs": 47306
 	},
 	{
+		"link": "5-examples/1-utils.md",
+		"char_ofs": 35609,
+		"byte_ofs": 49630
+	},
+	{
+		"link": "5-examples/2-handshake.md",
+		"char_ofs": 41120,
+		"byte_ofs": 55956
+	},
+	{
+		"link": "5-examples/3-monitor.md",
+		"char_ofs": 44411,
+		"byte_ofs": 59911
+	},
+	{
+		"link": "5-examples/4-control.md",
+		"char_ofs": 49755,
+		"byte_ofs": 66349
+	},
+	{
+		"link": "5-examples/5-stop.md",
+		"char_ofs": 55302,
+		"byte_ofs": 73319
+	},
+	{
 		"link": "9-faq/README.md",
-		"char_ofs": 34106,
-		"byte_ofs": 47320
+		"char_ofs": 55302,
+		"byte_ofs": 73322
 	},
 	{
 		"link": "10-release-notes/README.md",
-		"char_ofs": 34469,
-		"byte_ofs": 47927
+		"char_ofs": 55665,
+		"byte_ofs": 73929
 	},
 	{
 		"link": "10-release-notes/1-0-0.md",
-		"char_ofs": 36069,
-		"byte_ofs": 50312
+		"char_ofs": 57265,
+		"byte_ofs": 76314
 	}
 ]

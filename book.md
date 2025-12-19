@@ -1086,7 +1086,852 @@ STOP 요청 처리 중 발생하는 에러입니다.
 
 - 복구 가능 여부는 각 에러의 "Client Action"을 기준으로 판단하십시오.
 
-</div># 5. 예제# 9. FAQ
+</div># 5. 예제
+
+{% hint style="info" %}
+
+이 섹션은 Open Stream을 처음 사용하는 사용자가 <b>클라이언트 구조를 어떻게 설계해야 하는지</b>를 단계적으로 이해할 수 있도록 구성된 예제입니다. 각 예제는 "동작하는 코드"보다  <b>구조와 흐름을 이해하는 것</b>에 목적을 둡니다.
+
+{% endhint %}
+
+<h4 style="font-size:16px; font-weight:bold;">메뉴얼 예제 섹션 구조</h4>
+
+<div style="max-width:fit-content;">
+
+```text
+5. 예제
+├── 5.1 utils       # 공통 유틸리티 (송수신, 파싱, 이벤트 분기)
+├── 5.2 handshake   # HANDSHAKE 단독 예제
+├── 5.3 monitor     # MONITOR 스트리밍 예제
+├── 5.4 control     # CONTROL 단발 요청 예제
+└── 5.5 stop        # STOP 및 정상 종료 예제
+```
+</div>
+
+<br>
+<h4 style="font-size:16px; font-weight:bold;">클라이언트가 생성할 디렉토리 구조</h4>
+
+아래는 Open Stream을 사용하는 클라이언트 애플리케이션에서  
+권장하는 최소 디렉토리 구조 예시입니다.
+
+<div style="max-width:fit-content;">
+
+```text
+OpenStreamClient/
+├── utils/
+│   ├── net.py            # TCP 소켓 연결 및 송수신
+│   ├── parser.py         # NDJSON 스트림 파싱
+│   ├── dispatcher.py     # type / error 기반 이벤트 분기
+│   └── api.py            # HANDSHAKE / MONITOR / CONTROL / STOP 래퍼
+│
+├── scenarios/
+│   ├── handshake.py      # HANDSHAKE 단독 실행 시나리오
+│   ├── monitor.py        # MONITOR 스트리밍 시나리오
+│   ├── control.py        # CONTROL 단발 요청 시나리오
+│   └── stop.py           # STOP 및 정상 종료 시나리오
+│
+└── main.py               # 클라이언트 엔트리 포인트
+```
+</div>
+
+
+
+<br>
+<h4 style="font-size:16px; font-weight:bold;">실행 환경</h4>
+
+<div style="max-width:fit-content;">
+
+| 항목 | 내용 |
+|------|------|
+| Language | Python 3.8.0 |
+| OS | Linux / macOS / Windows (TCP 소켓 사용 가능 환경) |
+| Libraries | 표준 라이브러리만 사용 |
+
+</div>
+
+- 본 예제는 Open Stream 프로토콜의 이해를 돕기 위해  
+의도적으로 외부 의존성을 최소화했습니다.
+# 5.1 공통 유틸리티 (utils)
+
+이 문서에서는 이후 모든 예제에서 공통으로 사용되는  
+**Open Stream 클라이언트 유틸리티 코드**를 제공합니다.
+
+아래 코드는 **설명용 샘플이 아니라 실제로 동작하는 코드**이며,  
+사용자는 이를 그대로 복사하여 자신의 프로젝트에 사용할 수 있습니다.
+
+※ 본 예제는 이해와 재현성을 위해 "수신 스레드 + 블로킹 소켓(timeout)" 방식으로 구성했습니다.  
+
+
+## 디렉토리 구성
+
+아래와 같이 `utils/` 디렉토리를 생성하고,
+각 파일을 그대로 복사하여 저장하십시오.
+
+<div style="max-width:fit-content;">
+
+```text
+OpenStreamClient/
+└── utils/
+    ├── net.py
+    ├── parser.py
+    ├── dispatcher.py
+    └── api.py
+```
+
+</div>
+
+## utils/net.py
+
+TCP 소켓 연결 및 송수신 담당
+
+```python
+# utils/net.py
+import socket
+import threading
+from typing import Callable, Optional
+
+
+class NetClient:
+    def __init__(self, host: str, port: int):
+        self.host = host
+        self.port = port
+        self.sock: Optional[socket.socket] = None
+        self._rx_thread: Optional[threading.Thread] = None
+        self._running = False
+
+    def connect(self) -> None:
+        self.sock = socket.create_connection((self.host, self.port))
+
+        # --- socket options (recommended defaults) ---
+        # 1) Nagle OFF: reduce latency for small NDJSON lines (ACK/STOP/etc.)
+        try:
+            self.sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
+        except OSError:
+            pass
+
+        # 2) Keep-Alive ON: detect half-open TCP connections at OS level
+        try:
+            self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_KEEPALIVE, 1)
+        except OSError:
+            pass
+
+        # recv loop responsiveness
+        self.sock.settimeout(1.0)
+
+        self._running = True
+        print(f"[net] connected to {self.host}:{self.port}")
+
+    def close(self) -> None:
+        self._running = False
+        if self.sock:
+            try:
+                self.sock.close()
+            except Exception:
+                pass
+        print("[net] connection closed")
+
+    def send_line(self, line: str) -> None:
+        if not self.sock:
+            raise RuntimeError("socket not connected")
+        self.sock.sendall((line + "\n").encode("utf-8"))
+        print(f"[tx] {line}")
+
+    def start_recv_loop(self, on_bytes: Callable[[bytes], None]) -> None:
+        if not self.sock:
+            raise RuntimeError("socket not connected")
+
+        def loop():
+            while self._running:
+                try:
+                    chunk = self.sock.recv(4096)
+                    if not chunk:
+                        break
+                    on_bytes(chunk)
+                except socket.timeout:
+                    continue
+                except OSError:
+                    break
+
+        self._rx_thread = threading.Thread(target=loop, daemon=True)
+        self._rx_thread.start()
+```
+
+---
+
+## utils/parser.py
+
+NDJSON 스트림 파서 (`\n` 기준)
+
+```python
+# utils/parser.py
+import json
+from typing import Callable
+
+
+class NDJSONParser:
+    def __init__(self):
+        self._buffer = b""
+
+    def feed(self, data: bytes, on_message: Callable[[dict], None]) -> None:
+        self._buffer += data
+
+        while b"\n" in self._buffer:
+            line, self._buffer = self._buffer.split(b"\n", 1)
+            if not line:
+                continue
+
+            try:
+                msg = json.loads(line.decode("utf-8"))
+                on_message(msg)
+            except json.JSONDecodeError as e:
+                print(f"[parser] json decode error: {e}")
+```
+
+---
+
+## utils/dispatcher.py
+
+type / error 기반 이벤트 분기
+
+```python
+# utils/dispatcher.py
+from typing import Callable, Dict, Optional
+
+
+class Dispatcher:
+    def __init__(self):
+        self.on_type: Dict[str, Callable[[dict], None]] = {}
+        self.on_error: Optional[Callable[[dict], None]] = None
+
+    def dispatch(self, msg: dict) -> None:
+        if "error" in msg:
+            if self.on_error:
+                self.on_error(msg)
+            else:
+                print(f"[error] {msg}")
+            return
+
+        msg_type = msg.get("type")
+        if msg_type and msg_type in self.on_type:
+            self.on_type[msg_type](msg)
+        else:
+            print(f"[event] {msg}")
+```
+
+---
+
+## utils/api.py
+
+레시피 명령 래퍼 (HANDSHAKE / MONITOR / CONTROL / STOP)
+
+```python
+# utils/api.py
+import json
+from typing import Any, Dict, Optional
+
+from utils.net import NetClient
+
+
+class OpenStreamAPI:
+    def __init__(self, net: NetClient):
+        self.net = net
+
+    def handshake(self, major: int) -> None:
+        self._send_cmd("HANDSHAKE", {"major": major})
+
+    def monitor(self, *, url: str, period_ms: int, args: Dict[str, Any]) -> None:
+        payload = {
+            "method": "GET",
+            "url": url,
+            "period_ms": period_ms,
+            "id": 1, # this required field is only for the initial version.
+            "args": args,
+        }
+        self._send_cmd("MONITOR", payload)
+
+    def control(
+        self,
+        *,
+        method: str,
+        url: str,
+        args: Dict[str, Any],
+        body: Optional[Any] = None,
+    ) -> None:
+        payload = {
+            "method": method,
+            "url": url,
+            "args": args,
+        }
+        if body is not None:
+            payload["body"] = body
+
+        self._send_cmd("CONTROL", payload)
+
+    def stop(self, target: str) -> None:
+        self._send_cmd("STOP", {"target": target})
+
+    def _send_cmd(self, cmd: str, payload: dict) -> None:
+        line = json.dumps({"cmd": cmd, "payload": payload}, separators=(",", ":"))
+        self.net.send_line(line)
+```
+
+---
+
+## 요약
+
+* 위 `utils` 코드는 **이후 모든 예제에서 그대로 재사용**됩니다.
+* 수정 없이 복사하여 사용해도 정상 동작합니다.
+* 다음 예제부터는 이 유틸리티를 기반으로  
+  HANDSHAKE, MONITOR, CONTROL, STOP 시나리오를 단계적으로 실행합니다.
+## 5.2 HANDSHAKE 예제
+
+이 예제는 Open Stream 세션을 시작하기 위한 가장 기본적인 흐름을 제공합니다.
+
+
+<h4 style="font-size:16px; font-weight:bold;">수행 시나리오</h4>
+
+1. TCP 연결 생성
+2. NDJSON 수신 루프 시작 (parser + dispatcher 연결)
+3. HANDSHAKE 전송
+4. `handshake_ack` 수신 확인
+5. 연결 종료
+
+<br>
+<h4 style="font-size:16px; font-weight:bold;">준비물</h4>
+
+- `utils/` 디렉토리 (net.py / parser.py / dispatcher.py / api.py)
+- 서버 주소, 포트(`49000`)
+
+
+<br>
+<h4 style="font-size:16px; font-weight:bold;">예제 코드</h4>
+
+이 예제를 실행하려면 아래 파일들이 프로젝트에 존재해야 합니다.
+
+
+<div style="max-width:fit-content;">
+
+```text
+OpenStreamClient/
+├── utils/
+│   ├── net.py
+│   ├── parser.py
+│   ├── dispatcher.py
+│   └── api.py
+│
+├── scenarios/
+│   └── handshake.py      # (이 문서에서 제공하는 시나리오 코드)
+│
+└── main.py               # 시나리오 런처(엔트리 포인트)
+```
+
+</div>
+
+<br>
+<h4 style="font-size:16px; font-weight:bold;">scenarios/handshake.py</h4>
+
+<div style="max-width:fit-content;">
+
+```python
+# scenarios/handshake.py
+import time
+from utils.net import NetClient
+from utils.parser import NDJSONParser
+from utils.dispatcher import Dispatcher
+from utils.api import OpenStreamAPI
+
+
+def run(host: str, port: int, major: int) -> None:
+    net = NetClient(host, port)
+    parser = NDJSONParser()
+    dispatcher = Dispatcher()
+    api = OpenStreamAPI(net)
+
+    # 이벤트 핸들러 등록
+    dispatcher.on_type["handshake_ack"] = lambda m: print(
+        f"[ack] handshake_ack ok={m.get('ok')} version={m.get('version')}"
+    )
+    dispatcher.on_error = lambda e: print(
+        f"[ERR] code={e.get('error')} message={e.get('message')} hint={e.get('hint')}"
+    )
+
+    # 연결 및 수신 루프 시작
+    net.connect()
+    net.start_recv_loop(lambda b: parser.feed(b, dispatcher.dispatch))
+
+    # HANDSHAKE 송신
+    api.handshake(major=major)
+
+    # ACK 수신을 위해 잠시 대기 후 종료
+    time.sleep(0.5)
+    net.close()
+```
+
+</div>
+
+<div style="max-width:fit-content;">
+  &rightarrow; HANDSHAKE 요청을 전송하고 handshake_ack 수신을 확인하는 실행 가능한 시나리오 코드입니다.
+
+
+
+<br>
+<h4 style="font-size:16px; font-weight:bold;">main.py</h4>
+
+<div style="max-width:fit-content;">
+
+```python
+# main.py
+import argparse
+
+from scenarios import handshake as sc_handshake
+
+def main() -> None:
+    p = argparse.ArgumentParser(description="Open Stream Examples")
+    p.add_argument("scenario", choices=["handshake", "monitor", "control", "stop"])
+    p.add_argument("--host", default="192.168.1.150")
+    p.add_argument("--port", type=int, default=49000)
+
+    # common options
+    p.add_argument("--major", type=int, default=1)
+    p.add_argument("--period-ms", type=int, default=10)
+    p.add_argument("--target", choices=["session", "control", "monitor"], default="session")
+
+    args = p.parse_args()
+
+    if args.scenario == "handshake":
+        sc_handshake.run(args.host, args.port, args.major)
+
+
+if __name__ == "__main__":
+    main()
+```
+</div>
+
+<br>
+<h4 style="font-size:16px; font-weight:bold;">실행 방법</h4>
+
+프로젝트 루트에서 아래 명령을 실행합니다.
+
+
+<div style="max-width:fit-content;">
+
+```bash
+$python3 main.py handshake --host 192.168.1.150 --port 49000 --major 1
+````
+
+<h4 style="font-size:16px; font-weight:bold;">Expected Output</h4>
+
+```text
+[net] connected to 192.168.1.150:49000
+[tx] {"cmd":"HANDSHAKE","payload":{"major":1}}
+[ack] handshake_ack ok=True version=1.0.0
+[net] connection closed
+```
+</div>
+
+- 참고 : 에러가 발생하면 `{ "error": "...", "message": "...", "hint": "..." }` 형태로 수신됩니다.
+## 5.3 MONITOR 예제
+
+이 예제는 Open Stream 세션에서 **MONITOR 스트리밍**을 시작하고,
+주기적으로 수신되는 데이터를 처리하는 기본 흐름을 제공합니다.
+
+<h4 style="font-size:16px; font-weight:bold;">수행 시나리오</h4>
+
+1. TCP 연결 생성
+2. NDJSON 수신 루프 시작 (parser + dispatcher 연결)
+3. MONITOR 전송 (method/url/period_ms/args)
+4. `monitor_ack` 수신 확인 (또는 서버가 정의한 ACK 타입)
+5. `monitor_data`(스트림 데이터) 수신 처리
+6. 예제 종료 (연결 종료)
+
+※ 실제 운용에서는 스트리밍 종료 시 `STOP target=monitor`를 전송하는 것이 권장됩니다. (STOP 예제에서 다룹니다)
+
+<br>
+<h4 style="font-size:16px; font-weight:bold;">준비물</h4>
+
+* `utils/` 디렉토리 (net.py / parser.py / dispatcher.py / api.py) 
+* 서버 주소, 포트(`49000`)
+* MONITOR 대상 REST URL, period_ms, args
+
+<br>
+<h4 style="font-size:16px; font-weight:bold;">예제 코드</h4>
+
+이 예제를 실행하려면 아래 파일들이 프로젝트에 존재해야 합니다.
+
+<div style="max-width:fit-content;">
+
+```text
+OpenStreamClient/
+├── utils/
+│   ├── net.py
+│   ├── parser.py
+│   ├── dispatcher.py
+│   └── api.py
+│
+├── scenarios/
+│   └── monitor.py        # (이 문서에서 제공하는 시나리오 코드)
+│
+└── main.py               # 시나리오 런처(엔트리 포인트)
+```
+
+</div>
+
+<br>
+<h4 style="font-size:16px; font-weight:bold;">scenarios/monitor.py</h4>
+
+<div style="max-width:fit-content;">
+
+```python
+# scenarios/monitor.py
+import time
+import threading
+
+from utils.net import NetClient
+from utils.parser import NDJSONParser
+from utils.dispatcher import Dispatcher
+from utils.api import OpenStreamAPI
+
+
+def run(host: str, port: int, *, major: int, url: str, period_ms: int) -> None:
+    net = NetClient(host, port)
+    parser = NDJSONParser()
+    dispatcher = Dispatcher()
+    api = OpenStreamAPI(net)
+
+    # --- 동기화용 이벤트 (ACK 대기) ---
+    handshake_ok = threading.Event()
+
+    # 이벤트 핸들러 등록
+    def _on_handshake_ack(m: dict) -> None:
+        ok = bool(m.get("ok"))
+        print(f"[ack] handshake_ack ok={ok} version={m.get('version')}")
+        if ok:
+            handshake_ok.set()
+
+    dispatcher.on_type["handshake_ack"] = _on_handshake_ack
+
+    # MONITOR ACK / DATA (서버 구현에 맞게 type명은 조정 가능)
+    dispatcher.on_type["monitor_ack"] = lambda m: print(
+        f"[ack] monitor_ack ok={m.get('ok')} url={m.get('url')} period_ms={m.get('period_ms')}"
+    )
+    dispatcher.on_type["monitor_data"] = lambda m: print(
+        f"[data] {m}"
+    )
+
+    dispatcher.on_error = lambda e: print(
+        f"[ERR] code={e.get('error')} message={e.get('message')} hint={e.get('hint')}"
+    )
+
+    # 연결 및 수신 루프 시작
+    net.connect()
+    net.start_recv_loop(lambda b: parser.feed(b, dispatcher.dispatch))
+
+    # 1) HANDSHAKE 선행
+    api.handshake(major=major)
+
+    # 2) handshake_ack 수신 대기 (타임아웃은 환경에 맞게 조정)
+    if not handshake_ok.wait(timeout=1.0):
+        print("[ERR] handshake_ack timeout; MONITOR will not be sent.")
+        net.close()
+        return
+
+    # 3) MONITOR 송신
+    api.monitor(url=url, period_ms=period_ms, args={})
+
+    # 스트림 수신을 위해 잠시 대기 후 종료
+    # (정상 종료 시에는 STOP 예제에서처럼 STOP target=monitor 권장)
+    time.sleep(2.0)
+    net.close()
+```
+
+</div>
+
+<div style="max-width:fit-content;">
+  &rightarrow; MONITOR 요청을 전송하고, ACK 및 스트리밍 데이터를 수신해 출력하는 실행 가능한 시나리오 코드입니다.
+</div>
+
+<br>
+<h4 style="font-size:16px; font-weight:bold;">main.py</h4>
+
+<div style="max-width:fit-content;">
+
+```python
+# main.py
+import argparse
+
+from scenarios import handshake as sc_handshake
+from scenarios import monitor as sc_monitor
+
+
+def main() -> None:
+    p = argparse.ArgumentParser(description="Open Stream Examples")
+    p.add_argument("scenario", choices=["handshake", "monitor", "control", "stop"])
+    p.add_argument("--host", default="192.168.1.150")
+    p.add_argument("--port", type=int, default=49000)
+
+    # common options
+    p.add_argument("--major", type=int, default=1)
+    p.add_argument("--period-ms", type=int, default=10)
+    p.add_argument("--target", choices=["session", "control", "monitor"], default="session")
+
+    # monitor options
+    p.add_argument("--url", default="/api/health")
+
+    args = p.parse_args()
+
+    if args.scenario == "handshake":
+        sc_handshake.run(args.host, args.port, args.major)
+
+    elif args.scenario == "monitor":
+        sc_monitor.run(
+            args.host,
+            args.port,
+            major=args.major,
+            url=args.url,
+            period_ms=args.period_ms,
+        )
+
+
+if __name__ == "__main__":
+    main()
+```
+
+</div>
+
+<br>
+<h4 style="font-size:16px; font-weight:bold;">실행 방법</h4>
+
+프로젝트 루트에서 아래 명령을 실행합니다.
+
+<div style="max-width:fit-content;">
+
+```bash
+python3 main.py monitor --host 192.168.1.150 --port 49000 --major 1 --url /project/robot/joints/joint_states --period-ms 1000
+```
+
+<h4 style="font-size:16px; font-weight:bold;">Expected Output</h4>
+
+```text
+[net] connected to 192.168.1.150:49000
+[tx] {"cmd":"HANDSHAKE","payload":{"major":1}}
+[ack] handshake_ack ok=True version=1.0.0
+[tx] {"cmd":"MONITOR","payload":{"method":"GET","url":"/project/robot/joints/joint_states","period_ms":1000,"id":1,"args":{}}}
+[ack] monitor_ack ok=None url=None period_ms=None
+[event] {'type': 'data', 'id': 1, 'ts': 1000, 'svc_dur_ms': 0.224, 'result': {'_type': 'JObject', 'position': [2.870257, 92.870159, 2.869597, 2.86937, -87.129492, 2.868506], 'effort': [0.0, 83.719222, 92.270308, 0.773519, -4.086226, 0.336679], 'velocity': [-0.0, -0.0, 0.0, 0.0, -0.0, 0.0]}}
+[net] connection closed
+```
+
+</div>
+
+* 참고 : 에러가 발생하면 `{ "error": "...", "message": "...", "hint": "..." }` 형태로 수신됩니다.
+* 참고 : `monitor_data`의 payload 스키마(`ts`, `value` 등)는 서버 구현에 따라 달라질 수 있으므로, 실제 메시지 구조에 맞게 출력/파싱 로직을 조정하십시오.
+## 5.4 CONTROL 예제
+
+이 예제는 Open Stream 세션에서 **HANDSHAKE를 선행 수행한 뒤 CONTROL 스트리밍**을 시작하고,
+주기적으로 수신되는 데이터를 처리하는 기본 흐름을 제공합니다.
+
+<br>
+<h4 style="font-size:16px; font-weight:bold;">수행 시나리오</h4>
+
+1. TCP 연결 생성
+2. NDJSON 수신 루프 시작 (parser + dispatcher 연결)
+3. HANDSHAKE 전송 (major)
+4. `handshake_ack` 수신 확인 (성공 시에만 다음 단계 진행)
+5. CONTROL 전송 (method/url/period_ms/args)
+6. `control_ack` 수신 확인 (또는 서버가 정의한 ACK 타입)
+7. `control_data`(스트림 데이터) 수신 처리
+8. 예제 종료 (연결 종료)
+
+※ 실제 운용에서는 스트리밍 종료 시 `STOP target=control`을 전송하는 것이 권장됩니다. (STOP 예제에서 다룹니다)
+
+<br>
+<h4 style="font-size:16px; font-weight:bold;">준비물</h4>
+
+* `utils/` 디렉토리 (net.py / parser.py / dispatcher.py / api.py)
+* 서버 주소, 포트(`49000`)
+* CONTROL 대상 REST URL, period_ms, args
+* HANDSHAKE 버전(`major`)
+
+<br>
+<h4 style="font-size:16px; font-weight:bold;">예제 코드</h4>
+
+이 예제를 실행하려면 아래 파일들이 프로젝트에 존재해야 합니다.
+
+<div style="max-width:fit-content;">
+
+```text
+OpenStreamClient/
+├── utils/
+│   ├── net.py
+│   ├── parser.py
+│   ├── dispatcher.py
+│   └── api.py
+│
+├── scenarios/
+│   └── control.py        # (이 문서에서 제공하는 시나리오 코드)
+│
+└── main.py               # 시나리오 런처(엔트리 포인트)
+```
+
+</div>
+
+<br>
+<h4 style="font-size:16px; font-weight:bold;">scenarios/control.py</h4>
+
+<div style="max-width:fit-content;">
+
+```python
+# scenarios/control.py
+import time
+import threading
+
+from utils.net import NetClient
+from utils.parser import NDJSONParser
+from utils.dispatcher import Dispatcher
+from utils.api import OpenStreamAPI
+
+
+def run(host: str, port: int, *, major: int, url: str, period_ms: int) -> None:
+    net = NetClient(host, port)
+    parser = NDJSONParser()
+    dispatcher = Dispatcher()
+    api = OpenStreamAPI(net)
+
+    # --- HANDSHAKE ACK 대기용 ---
+    handshake_ok = threading.Event()
+
+    def _on_handshake_ack(m: dict) -> None:
+        ok = bool(m.get("ok"))
+        print(f"[ack] handshake_ack ok={ok} version={m.get('version')}")
+        if ok:
+            handshake_ok.set()
+
+    dispatcher.on_type["handshake_ack"] = _on_handshake_ack
+
+    # CONTROL ACK / DATA (서버 구현에 맞게 type 명칭은 조정 가능)
+    dispatcher.on_type["control_ack"] = lambda m: print(
+        f"[ack] control_ack ok={m.get('ok')} url={m.get('url')} period_ms={m.get('period_ms')}"
+    )
+
+    # CONTROL 스트리밍 데이터
+    # payload 스키마는 서버 구현에 따라 다를 수 있어, 예제에서는 raw 출력 형태로 둡니다.
+    dispatcher.on_type["control_data"] = lambda m: print(
+        f"[data] {m}"
+    )
+
+    # 에러 공통 처리
+    dispatcher.on_error = lambda e: print(
+        f"[ERR] code={e.get('error')} message={e.get('message')} hint={e.get('hint')}"
+    )
+
+    # 연결 및 수신 루프 시작
+    net.connect()
+    net.start_recv_loop(lambda b: parser.feed(b, dispatcher.dispatch))
+
+    # 1) HANDSHAKE 선행
+    api.handshake(major=major)
+
+    # 2) handshake_ack 수신 대기 (환경에 맞게 timeout 조정)
+    if not handshake_ok.wait(timeout=1.0):
+        print("[ERR] handshake_ack timeout; CONTROL will not be sent.")
+        net.close()
+        return
+
+    # 3) CONTROL 송신
+    # args는 REST 쿼리 파라미터 등에 대응하는 구조로 사용됩니다.
+    api.control(url=url, period_ms=period_ms, args={})
+
+    # 스트림 수신을 위해 잠시 대기 후 종료
+    # (정상 종료는 STOP 예제에서 STOP target=control 권장)
+    time.sleep(2.0)
+    net.close()
+```
+
+</div>
+
+<div style="max-width:fit-content;">
+  &rightarrow; HANDSHAKE 성공을 확인한 뒤 CONTROL 요청을 전송하고, ACK 및 스트리밍 데이터를 수신해 출력하는 실행 가능한 시나리오 코드입니다.
+</div>
+
+<br>
+<h4 style="font-size:16px; font-weight:bold;">main.py</h4>
+
+<div style="max-width:fit-content;">
+
+```python
+# main.py
+import argparse
+
+from scenarios import handshake as sc_handshake
+from scenarios import monitor as sc_monitor
+from scenarios import control as sc_control
+
+
+def main() -> None:
+    p = argparse.ArgumentParser(description="Open Stream Examples")
+    p.add_argument("scenario", choices=["handshake", "monitor", "control", "stop"])
+    p.add_argument("--host", default="192.168.1.150")
+    p.add_argument("--port", type=int, default=49000)
+
+    # common options
+    p.add_argument("--major", type=int, default=1)
+    p.add_argument("--period-ms", type=int, default=10)
+    p.add_argument("--target", choices=["session", "control", "monitor"], default="session")
+
+    # stream options
+    p.add_argument("--url", default="/api/health")
+
+    args = p.parse_args()
+
+    if args.scenario == "handshake":
+        sc_handshake.run(args.host, args.port, args.major)
+
+    elif args.scenario == "monitor":
+        sc_monitor.run(args.host, args.port, major=args.major, url=args.url, period_ms=args.period_ms)
+
+    elif args.scenario == "control":
+        sc_control.run(args.host, args.port, major=args.major, url=args.url, period_ms=args.period_ms)
+
+
+if __name__ == "__main__":
+    main()
+```
+
+</div>
+
+<br>
+<h4 style="font-size:16px; font-weight:bold;">실행 방법</h4>
+
+프로젝트 루트에서 아래 명령을 실행합니다.
+
+<div style="max-width:fit-content;">
+
+```bash
+$python3 main.py control --host 192.168.1.150 --port 49000 --major 1 --url /api/control --period-ms 10
+```
+
+<h4 style="font-size:16px; font-weight:bold;">Expected Output</h4>
+
+```text
+[net] connected to 192.168.1.150:49000
+[tx] {"cmd":"HANDSHAKE","payload":{"major":1}}
+[ack] handshake_ack ok=True version=1
+[tx] {"cmd":"CONTROL","payload":{"method":"GET","url":"/api/control","period_ms":10,"args":{}}}
+[ack] control_ack ok=True url=/api/control period_ms=10
+[data] {...}
+[data] {...}
+[net] connection closed
+```
+
+</div>
+
+* 참고 : 에러가 발생하면 `{ "error": "...", "message": "...", "hint": "..." }` 형태로 수신됩니다.
+* 참고 : `control_data`의 payload 스키마는 서버 구현에 따라 달라질 수 있으므로, 실제 메시지 구조에 맞게 출력/파싱 로직을 조정하십시오.
+
+---
+
+원하시면, 만료된 파일을 다시 업로드해 주시는 즉시 `handshake.md`의 표현/섹션 제목/들여쓰기/문장부호까지 포함해 **완전 동일 톤으로 리라이트**해 드릴 수 있습니다. 또한 `stop.md`도 같은 방식(선행 handshake 요구 여부 포함)으로 바로 작성 가능합니다.
+# 9. FAQ
 
 ## Q1. 왜 HANDSHAKE를 먼저 해야 하나요?
 A. 서버는 handshake_ok 상태가 아니면 MONITOR/CONTROL/STOP에 대해 412(handshake_required)를 반환합니다.
