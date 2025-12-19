@@ -17,7 +17,7 @@ def http_get_joint_states(host: str, *, http_port: int = 8888, timeout_sec: floa
     """
     /project/robot/joints/joint_states 를 HTTP GET으로 조회해 joint positions(deg) 리스트를 반환한다.
 
-    (서버 C++ 구현 기준)
+    (서버 구현 기준)
     - position: deg 단위로 내려옴
     - velocity: deg/s
     - effort: Nm
@@ -39,7 +39,7 @@ def http_get_joint_states(host: str, *, http_port: int = 8888, timeout_sec: floa
         q = [float(v) for v in data if isinstance(v, (int, float))]
 
     elif isinstance(data, dict):
-        # C++ 구현은 {"position":[deg...], "velocity":[deg/s...], "effort":[Nm...]} 형태
+        # 서버 구현은 {"position":[deg...], "velocity":[deg/s...], "effort":[Nm...]} 형태
         if "position" in data and isinstance(data["position"], list):
             q = [float(v) for v in data["position"] if isinstance(v, (int, float))]
         else:
