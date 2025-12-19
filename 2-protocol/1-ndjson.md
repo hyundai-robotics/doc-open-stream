@@ -57,22 +57,22 @@ Open Stream은 메시지 프레이밍을 위해 **NDJSON(Newline Delimited JSON)
 
 {% endhint %}
 
-- python 예제 코드
+python 예제 코드
 
-    ```py
-    def recv_lines(sock):
-        buf = b""
-        while True:
-            chunk = sock.recv(4096)
-            if not chunk:
-                return
-            buf += chunk
-            while b"\n" in buf:
-                line, buf = buf.split(b"\n", 1)
-                if line:
-                    yield line.decode("utf-8", errors="replace")
+```py
+def recv_lines(sock):
+    buf = b""
+    while True:
+        chunk = sock.recv(4096)
+        if not chunk:
+            return
+        buf += chunk
+        while b"\n" in buf:
+            line, buf = buf.split(b"\n", 1)
+            if line:
+                yield line.decode("utf-8", errors="replace")
 
-    ```
+```
 
 </div>
 
