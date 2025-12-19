@@ -16,10 +16,9 @@
 
 </div>
 
-Payload Fields
 <div style="max-width:fit-content;">
 
-| Field   | Required | Type | Rules    |
+| Payload Field   | Required | Type | Rules    |
 | ------- | -------- | ---- | -------- |
 | `major` | Yes      | int  | 0 이상의 정수 |
 
