@@ -28,26 +28,53 @@ Open Stream은 짧은 주기로 제어 명령과 상태 수신을 하나의 연�
 <b> 전체 동작 개요 </b>
 
 Open Stream의 기본 동작 흐름은 다음과 같습니다.
+<div style="display:flex; flex-wrap:wrap; align-items:flex-start;">
 
-<div style="display:flex; gap:24px; align-items:center;">
-  <div style="flex:0 0 190px;">
-    <img src="../_assets/image.png"
-         alt="Open Stream Flow"
-         style="width:100%; height:auto; border-radius:6px;" />
-  </div>
-
-  <div style="flex:1;">
-    <ol>
-      <li>클라이언트가 서버에 TCP로 접속합니다</li><br>
-      <li>클라이언트가 HANDSHAKE 명령을 송신합니다</li><br>
-      <li>서버가 프로토콜 버전을 확인합니다</li><br>
-      <li>클라이언트가 MONITOR* 또는 CONTROL* 명령을 송신합니다</li><br>
-      <li>서버가 주기 데이터 또는 처리 결과를 송신합니다</li><br>
-      <li>필요 시 STOP 명령으로 동작을 종료합니다</li>
-    </ol>
-  </div>
+<!-- Left: Image -->
+<div style="flex:1 1 420px; min-width:420px; max-width:420px;">
+  <img
+    src="../_assets/1-open_stream_concept.png"
+    alt="Open Stream Flow"
+    style="width:100%; height:auto; border-radius:6px;"
+  />
 </div>
+
+<!-- Right: Ordered List -->
+<div style="flex:1 1 280px; min-width:280px; max-width:fit-content;">
+  <ol style="line-height:1.5; ">
+
+  <li>클라이언트가 서버에 TCP로 접속하여 세션을 생성합니다.</li><br>
+
+  <li>클라이언트는 연결 직후 <code>HANDSHAKE</code> 명령을 송신하여<br>
+    서버와 프로토콜 버전 호환성을 확인합니다.</li><br>
+
+  <li>서버는 <code>HANDSHAKE</code> 요청을 처리한 뒤, 프로토콜 버전이 일치하는 경우 <code>handshake_ack</code> 이벤트를 송신합니다.</li><br>
+
+  <li>클라이언트는 <code>HANDSHAKE</code> 이후
+    <code>MONITOR</code> 명령을 통해 주기적 데이터 스트리밍을 요청하거나,
+    <code>CONTROL</code> 명령을 통해 단발성 요청을 수행할 수 있습니다.
+    <small>(MONITOR가 활성화된 상태에서도 CONTROL 명령을 송신할 수 있습니다.)</small>
+  </li><br>
+
+  <li><code>MONITOR</code>가 활성화되면 서버는 클라이언트의 추가 요청과 무관하게
+    주기적으로 <code>data</code> 이벤트를 비동기적으로 송신합니다.</li><br>
+    
+  <li><code>CONTROL</code> 명령은 성공 시 별도의 ACK를 송신하지 않으며,<br>
+    실패한 경우에만 <code>error</code> 또는 <code>control_err</code>
+    이벤트가 전달될 수 있습니다.</li><br>
+
+  <li>작업이 완료되면 클라이언트는 <code>STOP</code> 명령을 송신하여
+    활성 동작 또는 세션 종료 의도를 전달하고,
+    서버의 <code>stop_ack</code> 이후 TCP 연결을 종료합니다.
+  </li>
+
+  </ol>
+</div>
+
+</div>
+
 <br>
+
 
 {% hint style="info" %}
 
