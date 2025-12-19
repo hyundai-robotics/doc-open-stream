@@ -15,22 +15,19 @@ class NetClient:
     def connect(self) -> None:
         self.sock = socket.create_connection((self.host, self.port))
 
-        # --- socket options (recommended defaults) ---
-        # 1) Nagle OFF: reduce latency for small NDJSON lines (ACK/STOP/etc.)
+        # Nagle OFF (low latency)
         try:
             self.sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
         except OSError:
             pass
 
-        # 2) Keep-Alive ON: detect half-open TCP connections at OS level
+        # TCP keepalive
         try:
             self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_KEEPALIVE, 1)
         except OSError:
             pass
 
-        # recv loop responsiveness
         self.sock.settimeout(1.0)
-
         self._running = True
         print(f"[net] connected to {self.host}:{self.port}")
 

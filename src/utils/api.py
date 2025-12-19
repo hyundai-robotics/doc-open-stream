@@ -2,47 +2,105 @@
 import json
 from typing import Any, Dict, Optional
 
-from utils.net import NetClient
-
 
 class OpenStreamAPI:
-    def __init__(self, net: NetClient):
+    def __init__(self, net):
         self.net = net
 
-    def handshake(self, major: int) -> None:
-        self._send_cmd("HANDSHAKE", {"major": major})
+    def _send(self, msg: dict) -> None:
+        line = json.dumps(msg, separators=(",", ":"))
+        self.net.send_line(line)
 
-    def monitor(self, *, url: str, period_ms: int, args: Dict[str, Any]) -> None:
-        payload = {
-            "method": "GET",
-            "url": url,
-            "period_ms": period_ms,
-            "id": 1,
-            "args": args,
-        }
-        self._send_cmd("MONITOR", payload)
+    # -------------------------
+    # HANDSHAKE
+    # -------------------------
 
-    def control(
+    def handshake(self, major: int = 1) -> None:
+        self._send({
+            "cmd": "HANDSHAKE",
+            "payload": {
+                "major": major
+            },
+        })
+
+    # -------------------------
+    # MONITOR
+    # -------------------------
+
+    def monitor(
         self,
         *,
-        method: str,
         url: str,
-        args: Dict[str, Any],
-        body: Optional[Any] = None,
+        period_ms: int,
+        args: Optional[Dict[str, Any]] = None,
+        monitor_id: int = 1,
+        method: str = "GET",
     ) -> None:
-        payload = {
-            "method": method,
-            "url": url,
-            "args": args,
-        }
-        if body is not None:
-            payload["body"] = body
+        """
+        Start MONITOR stream.
 
-        self._send_cmd("CONTROL", payload)
+        - url        : target API path
+        - period_ms  : polling period in milliseconds
+        - args       : optional query/body args
+        - monitor_id : MONITOR stream id
+        - method     : HTTP method (default: GET)
+        """
+        if args is None:
+            args = {}
 
-    def stop(self, target: str) -> None:
-        self._send_cmd("STOP", {"target": target})
+        self._send({
+            "cmd": "MONITOR",
+            "payload": {
+                "method": method,
+                "url": url,
+                "args": args,
+                "id": monitor_id,
+                "period_ms": period_ms,
+            },
+        })
 
-    def _send_cmd(self, cmd: str, payload: dict) -> None:
-        line = json.dumps({"cmd": cmd, "payload": payload}, separators=(",", ":"))
-        self.net.send_line(line)
+    def monitor_stop(self) -> None:
+        self._send({
+            "cmd": "MONITOR",
+            "payload": {
+                "stop": True
+            },
+        })
+
+    # -------------------------
+    # STOP
+    # -------------------------
+
+    def stop(self, target: str = "session") -> None:
+        self._send({
+            "cmd": "STOP",
+            "payload": {
+                "target": target
+            },
+        })
+
+    # -------------------------
+    # CONTROL (joint trajectory)
+    # -------------------------
+
+    def joint_traject_init(self) -> None:
+        self._send({
+            "cmd": "CONTROL",
+            "payload": {
+                "method": "POST",
+                "url": "/project/robot/trajectory/joint_traject_init",
+                "args": {},
+                "body": {},
+            },
+        })
+
+    def joint_traject_insert_point(self, body: dict) -> None:
+        self._send({
+            "cmd": "CONTROL",
+            "payload": {
+                "method": "POST",
+                "url": "/project/robot/trajectory/joint_traject_insert_point",
+                "args": {},
+                "body": body,
+            },
+        })
