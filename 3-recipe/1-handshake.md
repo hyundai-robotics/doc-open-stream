@@ -23,7 +23,7 @@
 </div>
 
 <br>
-<h4 style="font-size:16px; font-weight:bold;">Response - Success</h4>
+<h4 style="font-size:16px; font-weight:bold;">Response - Success (<b><u><i>ACK</i></u></b>)</h4>
 
 <div style="max-width:fit-content;">
 
@@ -49,7 +49,10 @@
 ```
 
 </div>
-<br> <h4 style="font-size:16px; font-weight:bold;">Error Codes</h4> <div style="max-width:fit-content;">
+
+<br>
+<h4 style="font-size:16px; font-weight:bold;">Error Codes</h4>
+
 <div style="max-width:fit-content;">
 
 | Error Code            | HTTP Status | Description       | When it occurs                           |
@@ -61,7 +64,8 @@
 | `invalid_version`     | 400         | 값 범위 오류           | `major` 값이 음수                            |
 </div>
 
-<br> <h4 style="font-size:16px; font-weight:bold;">Payload Validation Rules</h4> 
+<br>
+<h4 style="font-size:16px; font-weight:bold;">Payload Validation Rules</h4> 
 
 <div style="max-width:fit-content;">
 
