@@ -1,7 +1,7 @@
-﻿# 1. 명령어
+﻿# 1. Recipe 명령어
 
-Open Stream에서 **클라이언트가 서버로 보내는 명령(Command) NDJSON 라인**을 의미합니다.  
-각 명령은 아래 형태로 전송됩니다.
+Recipe 는 Open Stream에서 **클라이언트가 서버로 보내는 NDJSON 라인**을 의미합니다.  
+각 라인은 아래 형태로 전송됩니다.
 
 <div style="max-width:fit-content;">
 

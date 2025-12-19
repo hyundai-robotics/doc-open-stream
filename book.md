@@ -480,10 +480,10 @@ Open Stream에서 사용되는 메시지는 <b>방향과 역할</b>에 따라 �
 - 수신 루프의 단일 책임  
   &rightarrow; `\n` 기준 라인 분리  
   &rightarrow; JSON 파싱  
-  &rightarrow; `type` / `error` 기반 이벤트 라우팅# 1. 명령어
+  &rightarrow; `type` / `error` 기반 이벤트 라우팅# 1. Recipe 명령어
 
-Open Stream에서 **클라이언트가 서버로 보내는 명령(Command) NDJSON 라인**을 의미합니다.  
-각 명령은 아래 형태로 전송됩니다.
+Recipe 는 Open Stream에서 **클라이언트가 서버로 보내는 NDJSON 라인**을 의미합니다.  
+각 라인은 아래 형태로 전송됩니다.
 
 <div style="max-width:fit-content;">
 
@@ -561,8 +561,6 @@ Open Stream에서 **클라이언트가 서버로 보내는 명령(Command) NDJSO
 `HANDSHAKE` 이전에 `MONITOR`/`CONTROL`을 호출하면 서버가 거부할 수 있습니다.
 
 
-
-<br>
 <h4 style="font-size:16px; font-weight:bold;">Request</h4>
 
 <div style="max-width:fit-content;">
@@ -573,17 +571,16 @@ Open Stream에서 **클라이언트가 서버로 보내는 명령(Command) NDJSO
 
 </div>
 
-Payload Fields
 <div style="max-width:fit-content;">
 
-| Field   | Required | Type | Rules    |
+| Payload Field   | Required | Type | Rules    |
 | ------- | -------- | ---- | -------- |
 | `major` | Yes      | int  | 0 이상의 정수 |
 
 </div>
 
 <br>
-<h4 style="font-size:16px; font-weight:bold;">Response - Success</h4>
+<h4 style="font-size:16px; font-weight:bold;">Response - Success (<b><u><i>ACK</i></u></b>)</h4>
 
 <div style="max-width:fit-content;">
 
@@ -609,7 +606,10 @@ Payload Fields
 ```
 
 </div>
-<br> <h4 style="font-size:16px; font-weight:bold;">Error Codes</h4> <div style="max-width:fit-content;">
+
+<br>
+<h4 style="font-size:16px; font-weight:bold;">Error Codes</h4>
+
 <div style="max-width:fit-content;">
 
 | Error Code            | HTTP Status | Description       | When it occurs                           |
@@ -621,7 +621,8 @@ Payload Fields
 | `invalid_version`     | 400         | 값 범위 오류           | `major` 값이 음수                            |
 </div>
 
-<br> <h4 style="font-size:16px; font-weight:bold;">Payload Validation Rules</h4> 
+<br>
+<h4 style="font-size:16px; font-weight:bold;">Payload Validation Rules</h4> 
 
 <div style="max-width:fit-content;">
 
@@ -640,74 +641,325 @@ Payload Fields
 - MINOR / PATCH 변경은 기존 클라이언트와의 호환성을 깨지 않습니다.
 - 버전 정책 관련 내용은 [릴리즈 노트 페이지](../10-release-notes/README.md)를 확인하십시오.
 
-</div># 3.2 MONITOR
+</div>## 3.2 MONITOR
 
-MONITOR는 서버가 주기적으로 REST GET을 호출하고, 그 결과를 NDJSON으로 스트리밍하는 기능입니다.
+클라이언트가 지정한 REST **GET** 서비스를 주기적으로 호출하고,  
+그 결과를 NDJSON 단일 라인 형태로 스트리밍하기 위한 명령입니다.
 
-## Request
+- 현재 구현에서는 **세션당 하나의 MONITOR만 유지**됩니다.
+- 새로운 `MONITOR` 명령이 들어오면, 기존 모니터 세션은 자동으로 폐기되고 새 세션으로 교체됩니다.
+- `MONITOR`는 반드시 **HANDSHAKE 성공 이후**에만 사용할 수 있습니다.<br>
+  &rightarrow; HANDSHAKE 이전에 호출하면 `handshake_required` 에러가 반환됩니다.
+
+<br>
+<h4 style="font-size:16px; font-weight:bold;">Request</h4>
+
+<div style="max-width:fit-content;">
 
 ```json
-{"cmd":"MONITOR","payload":{"period_ms":10,"method":"GET","url":"/project/robot","args":{}}}\n
-```
+{"cmd":"MONITOR","payload":{"method":"GET","period_ms":2,"url":"/project/robot/joints/joint_states","args":{"jno_start":1,"jno_n":6}}}\n
+````
 
-### payload fields
-- period_ms: number, 필수 (2~30000 범위 보정)
-- method: string, 필수, 반드시 "GET"
-- url: string, 필수
-  - '/'로 시작
-  - 공백 불가
-  - 최대 2048
-- args: object, 옵션(있으면 object여야 함)
+</div>
 
-## Response (ack)
+<div style="max-width:fit-content;">
+
+| Payload Field | Required | Type   | Rules                           |
+| ----------- | -------- | ------ | ------------------------------- |
+| `url`       | Yes      | string | `/`로 시작, 공백 불가, 최대 길이 2048      |
+| `method`    | Yes      | string | `"GET"`만 허용                     |
+| `period_ms` | Yes      | int    | 2 ~ 30000 (ms), 범위를 벗어나면 자동 클램프 |
+| `args`      | No       | object | 쿼리 파라미터용 객체 (JSON object만 허용)   |
+
+</div>
+
+<br>
+<h4 style="font-size:16px; font-weight:bold;">Response - Success (<b><u><i>ACK</i></u></b>)</h4>
+
+<div style="max-width:fit-content;">
 
 ```json
 {"type":"monitor_ack"}\n
 ```
 
-## Stream data
-MONITOR가 활성화되면 서버는 주기마다 NDJSON 라인을 전송합니다.  
-(데이터 라인의 정확한 스키마는 “해당 url의 REST 응답 스키마”에 의해 결정됩니다.)
-# 3.3 CONTROL
+</div>
 
-CONTROL은 REST API를 단발로 호출하는 제어 커맨드입니다.
+* `monitor_ack` 는 MONITOR 요청이 수락되었음을 의미합니다.
+* `monitor_ack` 와 첫 `data` 이벤트의 **도착 순서는 보장되지 않습니다.**
 
-## Request
+<br>
+<h4 style="font-size:16px; font-weight:bold;">Response - Success (<b><u><i>Streaming</i></u></b>)</h4>
+
+MONITOR가 활성화되면 서버는 지정된 주기(`period_ms`)에 따라
+REST API(GET)를 반복 호출하고, 그 결과를 `data` 이벤트로 전송합니다.
+
+<div style="max-width:fit-content;">
 
 ```json
-{"cmd":"CONTROL","payload":{"method":"POST","url":"/robot/start","args":{},"body":{"speed":10}}}\n
+{"type":"data","ts":402,"svc_dur_ms":2.960000,"result":{"_type":"JObject","position":[0.0,90.0,0.0,0.0,-90.0,0.0],"effort":[-0.0,98.923641,94.599385,-0.110933,-5.895076,0.0],"velocity":[-0.0,-0.0,0.0,0.0,-0.0,0.0]}}\n
 ```
 
-### payload fields
-- method: string, 필수, POST|PUT|DELETE 중 하나
-- url: string, 필수 (MONITOR와 동일 규칙)
-- args: object, 옵션(있으면 object)
-- body: object|array, 옵션(없으면 {}로 처리)
+</div>
 
-## Response
-- 성공(HTTP 200) 시: **응답 바디를 보내지 않습니다. (no response line)**
-- 실패 시:
+<div style="max-width:fit-content;">
+
+| Response Field | Type | Description |
+|------|------|-------------|
+| `type` | string | 이벤트 타입 (`data`) |
+| `ts` | number | 서버 기준 타임스탬프 (ms) |
+| `svc_dur_ms` | number | REST 호출 및 처리에 소요된 시간 (ms) |
+| `result` | any | REST 응답 본문 (본문이 존재하는 경우) |
+| `status` | number | REST 응답 본문이 비어 있는 경우 반환되는 HTTP 상태 코드 |
+
+</div>
+
+
+<br>
+<h4 style="font-size:16px; font-weight:bold;">Response - Error</h4>
+
+모든 에러 응답은 공통 NDJSON 에러 스키마를 따릅니다.
+
+<div style="max-width:fit-content;">
+
+```json
+{"error":"<code>","message":"<msg>","hint":"<optional hint>"}\n
+```
+
+</div>
+
+<br>
+<h4 style="font-size:16px; font-weight:bold;">Error Codes</h4>
+
+<div style="max-width:fit-content;">
+
+| Error Code           | HTTP Status | Description   | When it occurs           |
+| -------------------- | ----------- | ------------- | ------------------------ |
+| `handshake_required` | 412         | HANDSHAKE 미수행 | HANDSHAKE 이전에 MONITOR 호출 |
+| `missing_url`        | 400         | 필수 필드 누락      | `url` 키가 없음              |
+| `invalid_url`        | 400         | URL 형식 오류     | `/`로 시작하지 않거나 공백 포함      |
+| `url_too_long`       | 400         | URL 길이 초과     | URL 길이가 2048 초과          |
+| `missing_method`     | 400         | 필수 필드 누락      | `method` 키가 없음           |
+| `invalid_method`     | 400         | 메서드 오류        | `"GET"`이 아님              |
+| `missing_period_ms`  | 400         | 필수 필드 누락      | `period_ms` 키가 없음        |
+| `invalid_period`     | 400         | 타입 오류         | `period_ms`가 int가 아님     |
+| `invalid_args`       | 400         | 타입 오류         | `args`가 object가 아님       |
+
+</div>
+
+<br>
+<h4 style="font-size:16px; font-weight:bold;">Payload Validation Rules</h4>
+
+<div style="max-width:fit-content;">
+
+| Field       | Attribute | Type   | Validation Rule      | Error Code                            |
+| ----------- | --------- | ------ | -------------------- | ------------------------------------- |
+| `url`       | 필수        | string | payload에 반드시 존재      | `missing_url`                         |
+| `url`       | 형식        | string | `/`로 시작, 공백 불가       | `invalid_url`                         |
+| `url`       | 길이        | string | 최대 2048              | `url_too_long`                        |
+| `method`    | 필수        | string | 반드시 `"GET"`          | `missing_method`, `invalid_method`    |
+| `period_ms` | 필수        | int    | int 타입               | `missing_period_ms`, `invalid_period` |
+| `period_ms` | 범위        | int    | 2~30000, 범위 초과 시 클램프 | —                                     |
+| `args`      | 타입        | object | JSON object만 허용      | `invalid_args`                        |
+
+</div>
+
+<br>
+<h4 style="font-size:16px; font-weight:bold;">Watchdog Behavior</h4>
+
+* MONITOR가 활성화되면 워치독은 **ARM 상태**로 전환됩니다.
+* 이 상태에서는 세션 유휴 시간 제한이 기존 **180초 → 5초**로 줄어듭니다.
+* 모니터링 도중 TCP 연결이 끊기거나,
+  일정 시간 동안 서버 측으로 유의미한 명령어를 호출하지 않는 경우  
+  워치독이 이를 감지하고 세션을 자동으로 정리합니다.
+
+<br>
+<h4 style="font-size:16px; font-weight:bold;">Note</h4>
+
+* MONITOR는 서버 주도형 스트리밍 메커니즘입니다.
+* `monitor_ack` 수신 여부와 관계없이 `data` 이벤트는 언제든 도착할 수 있습니다.
+* 클라이언트는 항상 수신 루프를 유지하고, `type` 기반으로 이벤트를 처리해야 합니다.## 3.3 CONTROL
+
+CONTROL은 클라이언트가 로봇을 제어하거나 제어기 내부 데이터를 갱신하기 위해 사용하는 레시피 명령입니다.  
+내부적으로는 <b>POST / PUT / DELETE 기반의 Hi6 OpenAPI</b>를 호출하며,  
+Stream 환경에서도 기존 OpenAPI와 <b>동일한 REST 호출 경로와 유효성 검사 로직</b>이 적용됩니다.
+
+- CONTROL은 반드시 <b>HANDSHAKE 성공 이후</b>에만 사용할 수 있습니다.<br>
+  &rightarrow; HANDSHAKE 이전에 호출하면 `handshake_required` 에러로 즉시 거부됩니다.
+- CONTROL은 <b>단발성 명령</b>이며, <b style="color:#ec1249;">성공 시 응답 NDJSON 라인을 전송하지 않습니다.</b>
+- MONITOR가 활성화된 상태에서도 CONTROL을 수행할 수 있습니다.
+
+<br>
+<h4 style="font-size:16px; font-weight:bold;">Request</h4>
+
+<div style="max-width:fit-content;">
+
+```json
+{"cmd":"CONTROL","payload":{"method":"POST","url":"/project/robot/trajectory/joint_traject_insert_point","args":{},"body":{"interval":0.005,"time_from_start":-1,"look_ahead_time":0.004,"point":[1.014532178568314,91.01453217856832,1.014532178568314,1.014532178568314,1.014532178568314,0.013294178568314]}}}\n
+````
+</div>
+
+<div style="max-width:fit-content;">
+
+| Payload Field    | Required | Type           | Rules                        |
+| -------- | -------- | -------------- | ---------------------------- |
+| `url`    | Yes      | string         | `/`로 시작, 공백 불가               |
+| `method` | Yes      | string         | `POST`, `PUT`, `DELETE` 중 하나 |
+| `args`   | No       | object         | REST 쿼리 파라미터용 객체             |
+| `body`   | No       | object | array | REST 요청 본문                   |
+
+</div>
+
+<br>
+<h4 style="font-size:16px; font-weight:bold;">Response - Success (<b><u><i>no response line</i></u></b>)</h4>
+
+CONTROL 명령이 성공적으로 처리된 경우,
+<b>서버는 응답 NDJSON 라인을 전송하지 않습니다.<b>  
+클라이언트 측에서는 해당 명령어를 호출만하고 반환값을 돌려받지 않는 구조로 구현해야 합니다.
+
+* 이는 Stream 프로토콜의 설계 특성에 따른 동작입니다.
+* CONTROL 성공 여부는 ACK 수신이 아니라 <b>상태 변화 또는 MONITOR 결과</b>를 통해 확인해야 합니다.
+
+<br>
+<h4 style="font-size:16px; font-weight:bold;">Response - Error</h4>
+
+오류가 발생한 경우, 서버는 현재 세션으로 `control_err` 이벤트를 전송합니다.
+
+<div style="max-width:fit-content;">
+
+```json
 {"type":"control_err","status":<http_status>,"body":<optional_json>}\n
-# 3.4 STOP
-
-STOP은 대상(target)에 따라 monitor/control/session을 중단합니다.
-
-## Request
-
-```json
-{"cmd":"STOP","payload":{"target":"monitor"}}\n
 ```
 
-- target: string 필수
-  - "session": TCP 세션 종료
-  - "control": control 상태 리셋
-  - "monitor": monitor 중지
+</div>
 
-## Response (ack)
+<div style="max-width:fit-content;">
+
+| Error Code           | HTTP Status | Description   | When it occurs              |
+| -------------------- | ----------- | ------------- | --------------------------- |
+| `handshake_required` | 412         | HANDSHAKE 미수행 | HANDSHAKE 이전에 CONTROL 호출    |
+| `missing_url`        | 400         | 필수 필드 누락      | `url` 키가 없음                 |
+| `invalid_url`        | 400         | URL 형식 오류     | `/`로 시작하지 않거나 공백 포함         |
+| `missing_method`     | 400         | 필수 필드 누락      | `method` 키가 없음              |
+| `invalid_method`     | 400         | 메서드 오류        | `POST/PUT/DELETE`가 아님       |
+| `invalid_args`       | 400         | 타입 오류         | `args`가 object가 아님          |
+| `invalid_body`       | 400         | 타입 오류         | `body`가 object 또는 array가 아님 |
+
+</div>
+
+<br>
+<h4 style="font-size:16px; font-weight:bold;">Payload Validation Rules</h4>
+
+<div style="max-width:fit-content;">
+
+| Field    | Attribute | Type           | Validation Rule        | Error Code                         |
+| -------- | --------- | -------------- | ---------------------- | ---------------------------------- |
+| `url`    | 필수        | string         | payload에 반드시 존재        | `missing_url`                      |
+| `url`    | 형식        | string         | `/`로 시작, 공백 불가         | `invalid_url`                      |
+| `method` | 필수        | string         | `POST/PUT/DELETE` 중 하나 | `missing_method`, `invalid_method` |
+| `args`   | 타입        | object         | JSON object만 허용        | `invalid_args`                     |
+| `body`   | 타입        | object | array | object 또는 array만 허용    | `invalid_body`                     |
+
+</div>
+
+<br>
+<h4 style="font-size:16px; font-weight:bold;">Watchdog Interaction</h4>
+
+- CONTROL 명령이 성공적으로 수행되면 워치독이 감시하는 최근 활동 시간이 갱신됩니다.## 3.4 STOP
+
+STOP은 현재 세션에서 수행 중인 동작을 중단하거나,  
+세션 종료 의도를 서버에 명시적으로 전달하기 위한 레시피 명령입니다.
+
+- STOP은 반드시 **HANDSHAKE 성공 이후**에만 사용할 수 있습니다.
+- `target` 값에 따라 `monitor`, `control`, `session` 중 하나를 중단합니다.
+- `target=session`은 정상 종료 의도를 명시하는 용도로 사용되며,  
+  이후 클라이언트가 TCP 연결을 종료하는 구조를 권장합니다.
+
+<br>
+<h4 style="font-size:16px; font-weight:bold;">Request</h4>
+
+<div style="max-width:fit-content;">
 
 ```json
-{"type":"stop_ack","target":"session|control|monitor"}\n
+{"cmd":"STOP","payload":{"target":"session"}}\n
+````
+
+</div>
+<div style="max-width:fit-content;">
+
+| Payload Field    | Required | Type   | Rules                                      |
+| -------- | -------- | ------ | ------------------------------------------ |
+| `target` | Yes      | string | `"session"`, `"control"`, `"monitor"` 중 하나 |
+
+</div>
+
+<br>
+<h4 style="font-size:16px; font-weight:bold;">Response - Success (<b><u><i>ACK</i></u></b>)</h4>
+
+<div style="max-width:fit-content;">
+
+```json
+{"type":"stop_ack","target":"session"}\n
 ```
+
+</div>
+
+* `stop_ack.target` 값은 클라이언트가 요청한 `target` 값과 동일합니다.
+* STOP 요청이 정상적으로 수락되었음을 의미합니다.
+
+<br>
+<h4 style="font-size:16px; font-weight:bold;">Response - Error</h4>
+
+모든 에러 응답은 공통 NDJSON 에러 스키마를 따릅니다.
+
+<div style="max-width:fit-content;">
+
+```json
+{"error":"<code>","message":"<msg>","hint":"<optional hint>"}\n
+```
+
+</div>
+
+<div style="max-width:fit-content;">
+
+| Error Code           | HTTP Status | Description   | When it occurs        |
+| -------------------- | ----------- | ------------- | --------------------- |
+| `handshake_required` | 412         | HANDSHAKE 미수행 | HANDSHAKE 이전에 STOP 호출 |
+| `missing_target`     | 400         | 필수 필드 누락      | `target` 키가 없음        |
+| `invalid_target`     | 400         | target 값 오류   | 허용되지 않은 target 값      |
+
+</div>
+
+<br>
+<h4 style="font-size:16px; font-weight:bold;">Payload Validation Rules</h4>
+
+<div style="max-width:fit-content;">
+
+| Field    | Attribute | Type   | Validation Rule                            | Error Code       |
+| -------- | --------- | ------ | ------------------------------------------ | ---------------- |
+| `target` | 필수        | string | payload에 반드시 존재                            | `missing_target` |
+| `target` | 값         | string | `"session"`, `"control"`, `"monitor"` 중 하나 | `invalid_target` |
+
+</div>
+
+<br>
+<h4 style="font-size:16px; font-weight:bold;">Behavior Notes</h4>
+
+* `target=monitor`
+
+  * 활성화된 MONITOR 스트리밍을 중단합니다.
+* `target=control`
+
+  * CONTROL 수행 상태를 정리합니다.
+* `target=session`
+
+  * 세션 종료 의도를 서버에 명시적으로 전달합니다.
+  * `stop_ack` 수신 후 TCP 연결을 종료하는 것을 권장합니다.
+
+<br>
+<h4 style="font-size:16px; font-weight:bold;">Note</h4>
+
+* STOP은 서버 리소스를 안전하게 정리하기 위한 명령입니다.
+* 특히 `target=session` 사용은 정상 종료 시나리오에서 권장됩니다.
 # 4. 에러 코드
 
 이 문서는 Open Stream 서버가 반환할 수 있는 **에러 코드(error code)** 와 그 의미를 설명합니다.
