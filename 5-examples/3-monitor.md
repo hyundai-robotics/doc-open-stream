@@ -37,6 +37,7 @@ OpenStreamClient/
 │   └── api.py
 │
 ├── scenarios/
+│   ├── handshake.py
 │   └── monitor.py        # (이 문서에서 제공하는 시나리오 코드)
 │
 └── main.py               # 시나리오 런처(엔트리 포인트)

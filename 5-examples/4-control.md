@@ -48,6 +48,8 @@ OpenStreamClient/
 │   └── api.py
 │
 ├── scenarios/
+│   ├── handshake.py
+│   ├── monitor.py
 │   └── control.py
 │
 └── main.py

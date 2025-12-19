@@ -3,6 +3,7 @@
 from scenarios import handshake as sc_handshake
 from scenarios import monitor as sc_monitor
 from scenarios import control as sc_control
+from scenarios import stop as sc_stop
 
 
 def main():
@@ -29,6 +30,12 @@ def main():
     p.add_argument("--amplitude-deg", type=float, default=1.0)
     p.add_argument("--active-joint-count", type=int, default=6)
     p.add_argument("--look-ahead-time", type=float, default=0.04)
+
+    p.add_argument("--target", \
+                   choices=["session", "control", "monitor"], \
+                   default="session", \
+                   help="STOP target (session | control | monitor)")
+
 
     args = p.parse_args()
 
