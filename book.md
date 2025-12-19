@@ -113,22 +113,31 @@ Open Stream은 실시간 제어 및 상태 수신을 효율적으로 처리하�
 
 <b> MONITOR 및 CONTROL 운용 시 참고 성능 (시험 결과) </b>
 
-아래 결과는 동일한 시험 환경에서 MONITOR 단독 수행과
+아래 결과는 동일한 시험 환경에서 MONITOR 단독 수행과  
 CONTROL과 MONITOR를 동시에 수행한 경우의 주기 특성을 비교한 참고 자료입니다.
 
+
 시험 환경 
-- 서버: Hi6 COM
-- 클라이언트: Windows 11 기반 Python 클라이언트
-- 네트워크: TCP 연결
+- 서버 : Hi6 COM
+- 클라이언트 : Windows 11 기반 Python 클라이언트
+- 네트워크 : TCP 연결
+- 송/수신 주기 : MONITOR 명령으로 설정 가능한 최대 주기로 설정
 
 <br>
 
 시험 결과 요약
 
-| 구분                          | **시험 조건**                                                              | **주기 특성 요약**                                                                                                    |
-| --------------------------- | ---------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
-| **MONITOR 단독 수행**           | - MONITOR 주기: 2 ms (500 Hz)<br>- CONTROL 미사용<br>- 연속 실행: 10시간          | - <u><b>평균 수신 주기: 약 2.0 ms</b></u><br>- 수신 프레임 수: 약 1,800만<br>- 누락 프레임 비율: 약 0.001%                                           |
-| **CONTROL + MONITOR 동시 수행** | - CONTROL 주기: 2 ms<br>- MONITOR 주기: 2 ms<br>- CONTROL / MONITOR 동시 활성화 | - CONTROL(SEND): <u><b>평균 주기 약 2.0 ms</b></u>, 최대 지연 약 30~40 ms<br>- MONITOR(RECV): <b><u>평균 주기 약 2.1~2.2 ms</b></u>, 최대 지연 수십 ms~100 ms 이상 |
+1. MONITOR 단독 수행
+
+    | **시험 조건**                                                              | **주기 특성 요약**                                                                                                    |
+    | ---------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
+    | - MONITOR 주기: 2 ms (500 Hz)<br>- CONTROL 미사용<br>- 연속 실행: 10시간          | - <u><b>평균 수신 주기: 약 2.0 ms</b></u><br>- 수신 프레임 수: 약 1,800만<br>- 누락 프레임 비율: 약 0.001%                                           |
+
+2. CONTROL + MONITOR 동시 수행
+
+    | **시험 조건**                                                              | **주기 특성 요약**                                                                                                    |
+    | ---------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
+    | - CONTROL 주기: 2 ms<br>- MONITOR 주기: 2 ms<br>- CONTROL / MONITOR 동시 활성화 | - CONTROL(SEND): <u><b>평균 주기 약 2.0 ms</b></u>, 최대 지연 약 30~40 ms<br>- MONITOR(RECV): <b><u>평균 주기 약 2.1~2.2 ms</b></u>, 최대 지연 수십 ms~100 ms 이상 |
 
 <br><br>
 
@@ -142,9 +151,95 @@ CONTROL과 MONITOR를 동시에 수행한 경우의 주기 특성을 비교한 �
 MONITOR 수신 주기는 평균 증가 및 간헐적인 지연이 발생할 수 있습니다.  
 
 - CONTROL과 MONITOR를 동시에 사용하는 환경에서는  
-MONITOR 데이터의 정주기성 저하 및 지연 발생을 전제로 시스템을 설계해야 합니다.  # 2. 프로토콜 관련
+MONITOR 데이터의 정주기성 저하 및 지연 발생을 전제로 시스템을 설계해야 합니다.  # Protocol
 
-이 장은 Open Stream 에서 사용하는 데이터 프로콜과 관련하여 설명을 진행합니다.# 3.1 HANDSHAKE
+이 섹션에서는 Open Stream이 사용하는 전송 규약(Transport)과 메시지 프레이밍 규칙을 설명합니다.
+
+- Open Stream은 **TCP 소켓** 기반의 단일 세션 통신을 사용합니다.
+- 클라이언트/서버 간 메시지는 **NDJSON(Newline Delimited JSON)** 형태로 교환합니다.
+- 각 메시지는 **JSON 1개를 1줄로 직렬화한 뒤, 줄 끝에 `\n`을 붙여 전송**합니다.
+
+세부 NDJSON 규칙은 아래 문서를 참고하세요.
+
+- [NDJSON 규칙](./1-ndjson.md)# NDJSON 규칙
+
+Open Stream은 메시지 프레이밍을 위해 **NDJSON(Newline Delimited JSON)** 을 사용합니다.  
+즉, “한 줄 = 하나의 JSON 메시지” 입니다.
+
+<h4 style="font-size:15px; font-weight:bold;">1. 메시지 프레이밍</h4>
+
+<div style = "max-width:fit-content">
+
+- 클라이언트는 요청을 아래처럼 전송합니다.
+
+    ```json
+    {"cmd":"HANDSHAKE","payload":{"major":1}}\n
+    {"cmd":"MONITOR","payload":{"period_ms":10,"method":"GET","url":"/project/robot"}}\n
+    ```
+
+- 서버 또한 응답/이벤트를 동일한 방식으로 전송합니다.
+
+    ```json
+    {"type":"handshake_ack","ok":true,"version":"1.0.0"}\n
+    {"type":"data","ts":1730000000000,"svc_dur_ms":0.42,"result":{"status":"ok"}}\n
+    ```
+
+</div>
+
+<br>
+
+
+<h4 style="font-size:15px; font-weight:bold;">2. 반드시 지켜야 할 규칙</h4>
+
+1. JSON은 반드시 1줄이어야 합니다.
+    - JSON 문자열 내부에 줄바꿈(개행)이 들어가면 프레이밍이 깨집니다.
+
+2. 각 메시지 끝에는 \n이 반드시 있어야 합니다.
+    - 권장: json.dumps(obj) + "\n" 형태로 전송
+
+3. (권장) 공백 없는 직렬화
+    - 메시지 크기를 줄이기 위해 아래 형태를 권장합니다.
+        <div style="max-width:fit-content;">
+
+        ```py
+        json.dumps(obj, separators=(",", ":")) + "\n"
+        ```
+
+        </div>
+
+<br>
+
+<h4 style="font-size:15px; font-weight:bold;">3. 클라이언트 구현 팁</h4>
+
+<div style="max-width: fit-content;">
+
+{% hint style = "info" %}
+
+수신 시에는 TCP 스트림 특성상 “한 번의 recv가 한 줄”이 아닐 수 있으므로,  
+내부 버퍼에 누적하고, \n 기준으로 라인을 분리하여, 라인 단위로 JSON 파싱을 수행하는 구조를 권장합니다.
+
+{% endhint %}
+
+- python 예제 코드
+
+    ```py
+    def recv_lines(sock):
+        buf = b""
+        while True:
+            chunk = sock.recv(4096)
+            if not chunk:
+                return
+            buf += chunk
+            while b"\n" in buf:
+                line, buf = buf.split(b"\n", 1)
+                if line:
+                    yield line.decode("utf-8", errors="replace")
+
+    ```
+
+</div>
+
+# 3.1 HANDSHAKE
 
 ## Request
 ```json 
@@ -229,7 +324,133 @@ STOP은 대상(target)에 따라 monitor/control/session을 중단합니다.
 ```json
 {"type":"stop_ack","target":"session|control|monitor"}\n
 ```
-# 9. FAQ
+# Error Codes
+
+이 문서는 Open Stream 서버가 반환할 수 있는 **에러 코드(error code)** 와 그 의미를 설명합니다.
+
+에러는 일반적으로 다음과 같은 **NDJSON 단일 라인 메시지** 형태로 전달됩니다.
+
+<div style="max-width: fit-content;">
+
+```json
+{"error":"<error_code>","message":"...","hint":"..."}
+```
+
+| Field   | Description            |
+| ------- | ---------------------- |
+| error   | 기계 판독용 에러 코드           |
+| message | 사람이 읽을 수 있는 간단한 설명     |
+| hint    | 선택 필드. 문제 해결을 위한 추가 힌트 |
+
+- (주의) 모든 에러가 `hint` 필드를 포함하는 것은 아닙니다.
+
+</div>
+
+<br>
+
+<div style="max-width: fit-content;">
+
+<h4 style="font-size:15px; font-weight:bold;">1. Protocol / Session Errors</h4>
+
+프로토콜 파싱, 세션 상태, 초기 절차 위반 시 발생하는 에러입니다.  
+
+| Error Code          | Description   | Typical Cause         | Client Action         |
+| ------------------- | ------------- | --------------------- | --------------------- |
+| invalid_ndjson      | NDJSON 파싱 실패  | JSON 깨짐, 개행(`\n`) 누락  | JSON 1줄 + 개행 규칙 준수    |
+| rx_buf_overflow     | 수신 버퍼 초과      | 너무 큰 메시지 또는 과도한 burst | 메시지 크기 축소, 전송 rate 제한 |
+| handshake_required  | HANDSHAKE 미수행 | 초기 핸드셰이크 누락           | 연결 직후 HANDSHAKE 수행    |
+| version_mismatch    | 프로토콜 버전 불일치   | major 값 불일치           | 서버 MAJOR에 맞게 수정       |
+| busy_session_active | 세션이 이미 사용 중   | MONITOR/CONTROL 활성 상태 | STOP 후 재시도            |
+| session_timeout     | 세션 유휴 타임아웃    | watchdog 시간 초과        | 주기적 활동 유지 또는 재연결      |
+
+<br>
+
+<h4 style="font-size:15px; font-weight:bold;">2. Command / Payload Validation Errors</h4>
+
+요청 메시지 구조 또는 필드 검증 단계에서 발생하는 에러입니다.  
+
+| Error Code      | Description   | Typical Cause      | Client Action       |
+| --------------- | ------------- | ------------------ | ------------------- |
+| invalid_cmd     | 지원하지 않는 cmd   | 오타 또는 미지원 명령       | cmd 값 확인            |
+| invalid_payload | payload 형식 오류 | object 아님          | payload를 object로 수정 |
+| missing_field   | 필수 필드 누락      | url, method 등 누락   | 필수 필드 추가            |
+| invalid_type    | 필드 타입 오류      | number ↔ string 혼동 | 타입 수정               |
+| invalid_value   | 허용되지 않은 값     | enum 범위 벗어남        | 허용 값 사용             |
+
+<br>
+
+<h4 style="font-size:15px; font-weight:bold;">3. HANDSHAKE Errors</h4>
+
+HANDSHAKE 처리 중 발생하는 에러입니다.
+
+| Error Code         | Description    | Typical Cause          | Client Action  |
+| ------------------ | -------------- | ---------------------- | -------------- |
+| version_mismatch   | 프로토콜 MAJOR 불일치 | client/server major 다름 | 서버 기준 major 사용 |
+| handshake_rejected | 핸드셰이크 거부       | 세션 상태 부적합              | 기존 세션 종료 후 재시도 |
+
+<br>
+
+<h4 style="font-size:15px; font-weight:bold;">4. MONITOR Errors</h4>
+
+MONITOR 설정 또는 실행 중 발생하는 에러입니다.  
+주기적 REST 호출 설정 검증 단계에서 주로 발생합니다.
+
+| Error Code             | Description        | Typical Cause  | Client Action    |
+| ---------------------- | ------------------ | -------------- | ---------------- |
+| invalid_method         | MONITOR에서 GET 외 사용 | POST/PUT 사용    | method를 GET으로 수정 |
+| invalid_url            | url 형식 오류          | `/` 미시작, 공백 포함 | url 규칙 준수        |
+| invalid_period         | period_ms 범위 오류    | 너무 작거나 큼       | 허용 범위로 조정        |
+| monitor_already_active | MONITOR 중복 요청      | 이미 활성 상태       | STOP 후 재요청       |
+| monitor_internal_error | 내부 REST 호출 실패      | 내부 서버 오류       | 서버 로그 확인         |
+
+<br>
+
+<h4 style="font-size:15px; font-weight:bold;">5. CONTROL Errors</h4>
+
+CONTROL 요청 처리 중 발생하는 에러입니다.  
+REST 명령 실행 결과에 따라 동기 또는 비동기로 보고될 수 있습니다.
+
+| Error Code         | Description    | Typical Cause | Client Action      |
+| ------------------ | -------------- | ------------- | ------------------ |
+| control_err        | CONTROL 실행 실패  | REST 4xx/5xx  | status/body 확인     |
+| invalid_body       | body JSON 오류   | 직렬화 실패        | body 구조 점검         |
+| method_not_allowed | 허용되지 않은 method | GET 사용 등      | POST/PUT/DELETE 사용 |
+| control_busy       | 제어 불가 상태       | 다른 제어 수행 중    | 잠시 후 재시도           |
+
+{% hint style="warning" %}
+
+CONTROL은 성공 시 응답이 없습니다.  
+실패 시에만 control_err 또는 공통 에러 메시지가 전달될 수 있습니다.
+
+{% endhint %}
+
+<br>
+
+<h4 style="font-size:15px; font-weight:bold;">6. STOP Errors</h4>
+
+STOP 요청 처리 중 발생하는 에러입니다.
+
+| Error Code      | Description | Typical Cause | Client Action                    |
+| --------------- | ----------- | ------------- | -------------------------------- |
+| invalid_target  | STOP 대상 오류  | target 오타     | monitor / control / session 중 선택 |
+| nothing_to_stop | 중지할 대상 없음   | 이미 종료됨        | 무시 가능                            |
+| stop_failed     | 내부 정리 실패    | 내부 상태 오류      | 재연결 권장                           |
+
+<br>
+
+<h4 style="font-size:15px; font-weight:bold;">7. Error Handling Guidelines</h4>
+
+에러 메시지는 항상 NDJSON 단일 라인으로 수신됩니다.
+
+클라이언트는
+- 수신 루프에서 error 필드 존재 여부를 먼저 검사하고  
+에러 발생 시 세션 상태를 명확히 정리(STOP 또는 재연결) 하는 것을 권장합니다.
+
+- 일부 에러는 복구 가능(recoverable) 하며, 일부는 재연결이 필요(fatal) 할 수 있습니다.
+
+- 복구 가능 여부는 각 에러의 "Client Action"을 기준으로 판단하십시오.
+
+</div># 9. FAQ
 
 ## Q1. 왜 HANDSHAKE를 먼저 해야 하나요?
 A. 서버는 handshake_ok 상태가 아니면 MONITOR/CONTROL/STOP에 대해 412(handshake_required)를 반환합니다.
@@ -242,40 +463,52 @@ A. 불가합니다. MONITOR payload의 method는 반드시 "GET" 이어야 합�
 
 ## Q4. url에 공백이 있으면?
 A. 거부됩니다. url은 공백을 포함할 수 없습니다.
-# 10. 릴리즈 노트
+<h2 style="display:flex; align-items:center; gap:8px;">
+  10. 릴리즈 노트
+</h2>
 
-본 섹션은 Open Stream 인터페이스의 버전별 변경 이력을 정리한 릴리즈 노트입니다.  
+본 섹션은 Open Stream 인터페이스의 버전별 변경 이력을 정리한 릴리즈 노트입니다.<br>
 각 버전에서는 기능 추가, 동작 변경, 수정 사항 및 호환성 관련 정보를 제공합니다.
 
-- Added: 신규 기능 또는 필드가 추가된 경우
 
-- Changed: 기존 동작이나 사양이 변경된 경우
+<h4 style="font-size:15px; font-weight:bold;">릴리즈 정보</h4>
 
-- Fixed: 오류 수정 또는 안정성 개선
+<div style="max-width:fit-content;">
 
-- Deprecated: 향후 제거 예정이거나 사용이 권장되지 않는 기능
+|Version|Release Schedule|Link|
+|:--:|:--:|:--:|
+|1.0.0|2026.03 예정|[🔗](1-0-0.md)|
 
-각 릴리즈 문서에서는 해당 버전에서 변경된 내용만을 간결하게 기술하며,  
-상세한 사용 방법이나 프로토콜 설명은 본 문서의 각 레퍼런스 섹션을 따릅니다.  
-
-주의  
-릴리즈 간 동작 변경 사항이 있는 경우, 기존 시스템에 영향을 줄 수 있으므로
-업데이트 전 반드시 해당 버전의 릴리즈 노트를 확인하시기 바랍니다.
+</div>
 
 
-- 릴리즈 정보
+<br>
 
-    <div style="max-width:31vw;">
 
-    |Version|Release Schedule|Link|
-    |:--:|:--:|:--:|
-    |1.0.0| Scheduled March 2026 _(TBD)_|[🔗](1-0-0.md)|
+<h4 style="font-size:15px; font-weight:bold;">릴리즈 노트 분류 기준</h4>
 
-    </div>
-<h2 style="display:flex; align-items:center; gap:8px;">
+<div style="max-width:fit-content;">
+
+|구분|설명|
+|:--|:--|
+|<span style="border-left:4px solid rgb(255,140,0); padding-left:6px;"><b>✨ Added</b></span>|신규 기능, 명령어, 필드 또는 옵션이 추가된 경우|
+|<span style="border-left:4px solid #3F51B5; padding-left:6px;"><b>🔧 Changed</b></span>|기존 동작 방식, 사양, 기본값이 변경된 경우|
+|<span style="border-left:4px solid #2E7D32; padding-left:6px;"><b>🛠 Fixed</b></span>|오류 수정, 안정성 개선, 비정상 동작 보완|
+|<span style="border-left:4px solid #B71C1C; padding-left:6px;"><b>❌ Deprecated</b></span>|향후 제거 예정이거나 사용이 권장되지 않는 기능|
+|<span style="border-left:4px solid #9E9E9E; padding-left:6px;"><b>⚠ Caution</b></span>|해당 버전 사용 시 반드시 인지해야 할 주의 사항|
+
+</div>
+
+<br>
+
+각 릴리즈 문서에서는 <b>해당 버전에서 변경된 내용만</b>을 위 기준에 따라 기술합니다.<br>
+상세한 사용 방법이나 프로토콜 설명은 본 문서의 각 레퍼런스 섹션을 따릅니다.
+
+릴리즈 간 동작 변경 사항이 있는 경우, 기존 시스템에 영향을 줄 수 있으므로<br>
+업데이트 전 반드시 해당 버전의 릴리즈 노트를 확인하시기 바랍니다.<h2 style="display:flex; align-items:center; gap:8px;">
   Release Notes – v1.0.0
   <span style="
-    font-size:12px;
+    font-size:14px;
     font-weight:bold;
     padding:2px 6px;
     border-radius:4px;
@@ -286,41 +519,39 @@ A. 거부됩니다. url은 공백을 포함할 수 없습니다.
   </span>
 </h2>
 
-<p>
-  <b>Status</b>: Initial Release<br>
-  본 버전은 Open Stream 인터페이스의 최초 공개 버전입니다.
-</p>
 
-<p>
-  <b>Release Schedule</b>: 2026년 3월 (예정)
-</p>
+{% hint style="warning" %}
 
-<br>
+<h4 style="font-size:15px; font-weight:bold;">Status</h4>
 
-<h3>Overview</h3>
+- 본 버전은 Open Stream 인터페이스의 최초 공개 버전입니다.
+- 정식 배포 : 2026년 3월 (예정)
 
-<p>
-  Open Stream은 로봇 제어 및 상태 수신을 위해 설계된
-  실시간 스트리밍 기반 인터페이스입니다.<br>
-  본 릴리즈에서는 Open Stream의 기본 프로토콜,
-  MONITOR 및 CONTROL 레시피, 그리고 이를 위한 통신 규칙을 제공합니다.
-</p>
+{% endhint %}
+
+{% hint style="info" %}
+
+<h4 style="font-size:15px; font-weight:bold;">Overview</h4>
+
+- Open Stream은 로봇 제어 및 상태 수신을 위해 설계된 실시간 스트리밍 기반 인터페이스입니다.
+- 본 릴리즈에서는 Open Stream의 기본 프로토콜, 레시피 명령어, 그리고 이를 위한 통신 규칙을 제공합니다.
+
+{% endhint %}
 
 <br>
 
 <h4 style="
   display:inline-block;
   padding:2px 8px;
-  border-left:4px solid #2E7D32;
-  background:#FAFAFA;
-  font-size:14px;
+  border-left:4px solid rgb(255, 140, 0);
+  font-size:15px;
   font-weight:bold;
 ">
   ✨ Added
 </h4>
 
 <ul>
-  <li><b>Protocol</b>
+  <li>프로토콜
     <ul>
       <li>NDJSON 기반의 경량 스트리밍 프로토콜</li>
       <li>단일 TCP 연결 기반 양방향 통신</li>
@@ -328,12 +559,12 @@ A. 거부됩니다. url은 공백을 포함할 수 없습니다.
     </ul>
   </li>
 
-  <li><b>Recipe Commands</b>
+  <li>Recipe 명령어
     <ul>
-      <li><b>HANDSHAKE</b> – 프로토콜 버전 협상</li>
-      <li><b>MONITOR</b> – 주기적인 상태 데이터 수신 (ms 단위 주기 설정)</li>
-      <li><b>CONTROL</b> – 실시간 제어 명령 전송 (우선순위 높음)</li>
-      <li><b>STOP</b> – 활성 세션 또는 레시피 종료</li>
+      <li>HANDSHAKE : 프로토콜 버전 협상</li>
+      <li>MONITOR : 주기적인 상태 데이터 수신 (ms 단위 주기 설정)</li>
+      <li>CONTROL : 실시간 제어 명령 전송 (우선순위 높음)</li>
+      <li>STOP : 활성 세션 또는 레시피 종료</li>
     </ul>
   </li>
 </ul>
@@ -344,8 +575,7 @@ A. 거부됩니다. url은 공백을 포함할 수 없습니다.
   display:inline-block;
   padding:2px 6px;
   border-left:4px solid #3F51B5;
-  background:#F5F6FA;
-  font-size:14px;
+  font-size:15px;
   font-weight:bold;
 ">
   🔧 Changed
@@ -353,8 +583,6 @@ A. 거부됩니다. url은 공백을 포함할 수 없습니다.
 
 <ul>
   <li>본 버전은 최초 공개 버전으로, 이전 버전 대비 변경 사항은 없습니다.</li>
-  <li>CONTROL과 MONITOR를 동시에 수행하는 경우 CONTROL 세션의 실시간성이 우선 보장됩니다.</li>
-  <li>운영체제 스케줄링 및 네트워크 환경에 따라 주기 지연이 발생할 수 있습니다.</li>
 </ul>
 
 <br>
@@ -362,9 +590,8 @@ A. 거부됩니다. url은 공백을 포함할 수 없습니다.
 <h4 style="
   display:inline-block;
   padding:2px 8px;
-  border-left:4px solid rgb(255, 140, 0);
-  background:#FAFAFA;
-  font-size:14px;
+  border-left:4px solid #2E7D32;
+  font-size:15px;
   font-weight:bold;
 ">
   🛠 Fixed
@@ -380,8 +607,7 @@ A. 거부됩니다. url은 공백을 포함할 수 없습니다.
   display:inline-block;
   padding:2px 8px;
   border-left:4px solid #B71C1C;
-  background:#FAFAFA;
-  font-size:14px;
+  font-size:15px;
   font-weight:bold;
 ">
   ❌ Deprecated
@@ -397,14 +623,15 @@ A. 거부됩니다. url은 공백을 포함할 수 없습니다.
   display:inline-block;
   padding:2px 8px;
   border-left:4px solid #9E9E9E;
-  background:#FAFAFA;
-  font-size:14px;
+  font-size:15px;
   font-weight:bold;
 ">
-  ⚠ Known Limitations
+  ⚠ Caution
 </h4>
 
 <ul>
+  <li>CONTROL과 MONITOR를 동시에 수행하는 경우 CONTROL 세션의 실시간성이 우선 보장됩니다.</li>
+  <li>운영체제 스케줄링 및 네트워크 환경에 따라 주기 지연이 발생할 수 있습니다.</li>
   <li>하나의 TCP 연결에서는 하나의 MONITOR 세션만 활성화할 수 있습니다.</li>
   <li>MONITOR 데이터는 실시간 제어 판단 용도로 적합하지 않습니다.</li>
   <li>네트워크 및 클라이언트 성능에 따라 지연 및 지터가 발생할 수 있습니다.</li>
@@ -412,7 +639,7 @@ A. 거부됩니다. url은 공백을 포함할 수 없습니다.
 
 <br>
 
-<h3>Related Documentation</h3>
+<h4 style="font-size:15px; font-weight:bold;">Related Documentation</h4>
 
 <ul>
   <li><a href="../1-overview/README.md">Open Stream 개요</a></li>
