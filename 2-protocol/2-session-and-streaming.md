@@ -1,4 +1,4 @@
-﻿# Session & Streaming
+﻿## 2. 세션 및 스트리밍 동작 규칙
 
 <div style="fit-content;">
 
@@ -181,11 +181,11 @@ Open Stream에서 사용되는 메시지는 <b>방향과 역할</b>에 따라 �
 
 실전 구현에서는 다음 구조를 권장합니다.
 
-- 송신(Command)과 수신(Event)을 분리
-  - 송신: 명령 생성 + sendall
-  - 수신: NDJSON 라인 파서 + 디스패처
+- 송신(Command)과 수신(Event)을 분리  
+  &rightarrow; 송신: 명령 생성 + sendall  
+  &rightarrow; 수신: NDJSON 라인 파서 + 디스패처
 
-- 수신 루프의 단일 책임
-  - `\n` 기준 라인 분리
-  - JSON 파싱
-  - `type` / `error` 기반 이벤트 라우팅
+- 수신 루프의 단일 책임  
+  &rightarrow; `\n` 기준 라인 분리  
+  &rightarrow; JSON 파싱  
+  &rightarrow; `type` / `error` 기반 이벤트 라우팅

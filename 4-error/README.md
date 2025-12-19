@@ -1,4 +1,4 @@
-﻿# Error Codes
+﻿# 4. 에러 코드
 
 이 문서는 Open Stream 서버가 반환할 수 있는 **에러 코드(error code)** 와 그 의미를 설명합니다.
 

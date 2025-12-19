@@ -154,6 +154,8 @@ CONTROL과 MONITOR를 동시에 수행한 경우의 주기 특성을 비교한 �
 
 시험 결과 요약
 
+<div style="max-width:fit-content;">
+
 1. MONITOR 단독 수행
 
     | **시험 조건**                                                              | **주기 특성 요약**                                                                                                    |
@@ -165,6 +167,8 @@ CONTROL과 MONITOR를 동시에 수행한 경우의 주기 특성을 비교한 �
     | **시험 조건**                                                              | **주기 특성 요약**                                                                                                    |
     | ---------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
     | - CONTROL 주기: 2 ms<br>- MONITOR 주기: 2 ms<br>- CONTROL / MONITOR 동시 활성화 | - CONTROL(SEND): <u><b>평균 주기 약 2.0 ms</b></u>, 최대 지연 약 30~40 ms<br>- MONITOR(RECV): <b><u>평균 주기 약 2.1~2.2 ms</b></u>, 최대 지연 수십 ms~100 ms 이상 |
+
+</div>
 
 <br><br>
 
@@ -178,17 +182,33 @@ CONTROL과 MONITOR를 동시에 수행한 경우의 주기 특성을 비교한 �
 MONITOR 수신 주기는 평균 증가 및 간헐적인 지연이 발생할 수 있습니다.  
 
 - CONTROL과 MONITOR를 동시에 사용하는 환경에서는  
-MONITOR 데이터의 정주기성 저하 및 지연 발생을 전제로 시스템을 설계해야 합니다.  # Protocol
+MONITOR 데이터의 정주기성 저하 및 지연 발생을 전제로 시스템을 설계해야 합니다.  # 2. 프로토콜
 
 이 섹션에서는 Open Stream이 사용하는 전송 규약(Transport)과 메시지 프레이밍 규칙을 설명합니다.
+
+{% hint style="warning" %}
+
+Open Stream은 요청–응답형 프로토콜이 아닌 **비동기 이벤트 스트림**입니다.  
+서버 이벤트(`data`, `*_ack`, `error`)는 클라이언트 요청과 무관하게 언제든 도착할 수 있으므로,  
+순서 의존 로직 없이 처리해야 합니다.
+
+{% endhint %}
 
 - Open Stream은 **TCP 소켓** 기반의 단일 세션 통신을 사용합니다.
 - 클라이언트/서버 간 메시지는 **NDJSON(Newline Delimited JSON)** 형태로 교환합니다.
 - 각 메시지는 **JSON 1개를 1줄로 직렬화한 뒤, 줄 끝에 `\n`을 붙여 전송**합니다.
 
+{% hint style="info" %}
+
+TCP 스트림 특성상, 한 번의 `recv()` 호출이 정확히 한 개의 메시지를 반환하지 않을 수 있습니다.  
+수신 데이터는 내부 버퍼에 누적한 뒤, `\n` 기준으로 메시지를 분리하여 파싱해야 합니다.
+
+{% endhint %}
+
 세부 NDJSON 규칙은 아래 문서를 참고하세요.
 
-- [NDJSON 규칙](./1-ndjson.md)# NDJSON 규칙
+- [NDJSON 규칙](./1-ndjson.md)
+## 2.1 NDJSON 이란?
 
 Open Stream은 메시지 프레이밍을 위해 **NDJSON(Newline Delimited JSON)** 을 사용합니다.  
 즉, “한 줄 = 하나의 JSON 메시지” 입니다.
@@ -240,7 +260,7 @@ Open Stream은 메시지 프레이밍을 위해 **NDJSON(Newline Delimited JSON)
 
 <br>
 
-<h4 style="font-size:15px; font-weight:bold;">3. 클라이언트 구현 팁</h4>
+<h4 style="font-size:15px; font-weight:bold;">4. 클라이언트 구현 팁</h4>
 
 <div style="max-width: fit-content;">
 
@@ -270,7 +290,7 @@ def recv_lines(sock):
 
 </div>
 
-# Session & Streaming
+## 2. 세션 및 스트리밍 동작 규칙
 
 <div style="fit-content;">
 
@@ -290,12 +310,22 @@ def recv_lines(sock):
 Open Stream은 <b>TCP 연결 1개를 하나의 세션(Session)</b> 으로 간주합니다.  
 일반적인 세션 흐름은 다음과 같습니다.
 
-1. 클라이언트가 서버와 TCP 연결을 생성합니다.
-2. 클라이언트는 연결 직후 `HANDSHAKE` 명령을 전송합니다.
-3. 클라이언트는 `MONITOR` 및/또는 `CONTROL` 명령을 요청합니다.  
-    ※ `MONITOR`가 활성화된 경우, 서버는 주기적으로 `data` 이벤트를 스트리밍합니다.
-4. 작업이 완료되면 클라이언트는 `STOP` 명령을 전송합니다.
-5. 이후 TCP 연결을 종료합니다.
+1. 클라이언트가 서버에 TCP로 접속하여 세션을 생성합니다.
+2. 클라이언트는 연결 직후 `HANDSHAKE` 명령을 송신하여 서버와 프로토콜 버전 호환성을 확인합니다.
+3. 서버는 `HANDSHAKE` 요청을 처리한 뒤, 프로토콜 버전이 일치하는 경우 `handshake_ack` 이벤트를 송신합니다.
+4. 클라이언트는 `HANDSHAKE` 이후 `MONITOR` 명령을 통해 주기적 데이터 스트리밍을 요청하거나, `CONTROL` 명령을 통해 단발성 요청을 수행할 수 있습니다. (`MONITOR`가 활성화된 상태에서도 `CONTROL` 명령을 송신할 수 있습니다.)
+5. `MONITOR`가 활성화되면 서버는 클라이언트의 추가 요청과 무관하게 주기적으로 data 이벤트를 비동기적으로 송신합니다.
+6. `CONTROL` 명령은 성공 시 별도의 ACK를 송신하지 않으며,
+실패한 경우에만 `error` 또는 `control_err` 이벤트가 전달될 수 있습니다.
+7. 작업이 완료되면 클라이언트는 `STOP` 명령을 송신하여 활성 동작 또는 세션 종료 의도를 전달하고, 서버의 `stop_ack` 이후 TCP 연결을 종료합니다.
+
+{% hint style="warning" %}
+
+Open Stream은 비동기 이벤트 기반 스트리밍 방식으로, 요청–응답 순서를 보장하지 않습니다.  
+`data`, `*_ack`, `error` 이벤트는 서로 간의 선후 관계가 보장되지 않으므로 순서 의존 로직 없이 처리해야 합니다.
+
+{% endhint %}
+
 
 <br>
 
@@ -401,9 +431,6 @@ Open Stream에서 사용되는 메시지는 <b>방향과 역할</b>에 따라 �
 
 - 항상 수신 루프를 유지합니다.
 - 요청–응답의 동기적 대응을 가정하지 않습니다.
-- `data`, `*_ack`, `error` 이벤트는
-  순서 보장이 없음을 전제로 처리해야 합니다.
-
 
 <br>
 <h4 style="font-size:16px; font-weight:bold;">5. CONTROL 명령 수행</h4>
@@ -446,31 +473,174 @@ Open Stream에서 사용되는 메시지는 <b>방향과 역할</b>에 따라 �
 
 실전 구현에서는 다음 구조를 권장합니다.
 
-- 송신(Command)과 수신(Event)을 분리
-  - 송신: 명령 생성 + sendall
-  - 수신: NDJSON 라인 파서 + 디스패처
+- 송신(Command)과 수신(Event)을 분리  
+  &rightarrow; 송신: 명령 생성 + sendall  
+  &rightarrow; 수신: NDJSON 라인 파서 + 디스패처
 
-- 수신 루프의 단일 책임
-  - `\n` 기준 라인 분리
-  - JSON 파싱
-  - `type` / `error` 기반 이벤트 라우팅# 3.1 HANDSHAKE
+- 수신 루프의 단일 책임  
+  &rightarrow; `\n` 기준 라인 분리  
+  &rightarrow; JSON 파싱  
+  &rightarrow; `type` / `error` 기반 이벤트 라우팅# 1. 명령어
 
-## Request
+Open Stream에서 **클라이언트가 서버로 보내는 명령(Command) NDJSON 라인**을 의미합니다.  
+각 명령은 아래 형태로 전송됩니다.
+
+<div style="max-width:fit-content;">
+
+```json
+// Request
+{"cmd":"<COMMAND>","payload":{...}}\n
+````
+
+</div>
+
+서버는 ACK / 이벤트 / 에러를 동일하게 NDJSON 라인으로 반환합니다.
+
+<div style="max-width:fit-content;">
+
+```json
+//  Response
+{"type":"*_ack", ...}\n
+{"type":"data", ...}\n
+{"error":"<code>","message":"<msg>", "hint":"<hint>"}\n
+```
+
+</div>
+
+<br>
+
+메세지 필드들의 의미는 다음과 같습니다.
+
+<h4 style="font-size:16px; font-weight:bold;">Request (Client → Server)</h4>
+
+<div style="max-width:fit-content;">
+
+| Key       | Type   | Required | Description                                       |
+| --------- | ------ | -------: | ------------------------------------------------- |
+| `cmd`     | string |      Yes | 명령 이름 (`HANDSHAKE`, `MONITOR`, `CONTROL`, `STOP`) |
+| `payload` | object |      Yes | 명령 파라미터 객체 (명령별 스키마는 각 문서 참고)                     |
+
+1. [HANDSHAKE](./1-handshake.md) : 프로토콜 버전 협상 (세션 초기에 필수)
+
+2. [MONITOR](./2-monitor.md) : 주기적 REST GET 실행 + `data` 스트리밍
+
+3. [CONTROL](./3-control.md) : 단발 REST 실행 (성공 시 **응답 라인 없음**)
+
+4. [STOP](./4-stop.md) : `monitor` / `control` / `session` 중단
+
+</div>
+
+
+<br>
+<h4 style="font-size:16px; font-weight:bold;">Response (Client ⇠ Server)</h4>
+
+<h4 style="font-size:16px; font-weight:bold;">Success</h4>
+
+<div style="max-width:fit-content;">
+
+| Key       | Type    | Required | Description                                                    |
+| --------- | ------- | -------: | -------------------------------------------------------------- |
+| `type`    | string  |      Yes | 이벤트 타입 (예: `handshake_ack`, `monitor_ack`, `data`, `stop_ack`) |
+
+- `HANDSHAKE` 명령어 응답의 경우, `ok`(boolean), `version`(string) 을 필드에 추가하여 응답함
+
+</div>
+
+<h4 style="font-size:16px; font-weight:bold;">Error</h4>
+<div style="max-width:fit-content;">
+
+| Key       | Type   | Required | Description              |
+| --------- | ------ | -------: | ------------------------ |
+| `error`   | string |      Yes | 에러 코드 (machine-readable) |
+| `message` | string |      Yes | 에러 설명 (human-readable)   |
+| `hint`    | string |       No | 해결을 위한 가이드 또는 예시         |
+
+</div>## 3.1 HANDSHAKE
+
+세션 시작 직후 수행하는 **프로토콜 버전 협상** 단계입니다.  
+`HANDSHAKE` 이전에 `MONITOR`/`CONTROL`을 호출하면 서버가 거부할 수 있습니다.
+
+
+
+<br>
+<h4 style="font-size:16px; font-weight:bold;">Request</h4>
+
+<div style="max-width:fit-content;">
+
 ```json 
 {"cmd":"HANDSHAKE","payload":{"major":1}}\n
 ```
 
-- major: number(정수), 필수, 0 이상
+</div>
 
-## Response (success)
+Payload Fields
+<div style="max-width:fit-content;">
+
+| Field   | Required | Type | Rules    |
+| ------- | -------- | ---- | -------- |
+| `major` | Yes      | int  | 0 이상의 정수 |
+
+</div>
+
+<br>
+<h4 style="font-size:16px; font-weight:bold;">Response - Success</h4>
+
+<div style="max-width:fit-content;">
+
 ```json
-{"type":"handshake_ack","ok":true,"version":"<server_version>"}\n
+{"type":"handshake_ack","ok":true,"version":"1.0.0"}\n
 ```
 
-## Errors
-- busy_session_active (409): CONTROL 또는 MONITOR가 active면 HANDSHAKE 불가
-- version_mismatch (400): major 불일치
-# 3.2 MONITOR
+| Key       | Type    | Required | Description                                                    |
+| --------- | ------- | -------: | -------------------------------------------------------------- |
+| `ok`      | boolean |       No | 일부 ACK에서 성공 여부를 명시 (`handshake_ack` 등)                         |
+| `version` | string  |       No | 서버 프로토콜 버전 (`MAJOR.MINOR.PATCH`)                               |
+
+
+</div>
+
+<br>
+<h4 style="font-size:16px; font-weight:bold;">Response - Error</h4>
+
+<div style="max-width:fit-content;">
+
+```json
+{"error":"<code>","message":"<msg>","hint":"<optional hint>"}\n
+```
+
+</div>
+<br> <h4 style="font-size:16px; font-weight:bold;">Error Codes</h4> <div style="max-width:fit-content;">
+<div style="max-width:fit-content;">
+
+| Error Code            | HTTP Status | Description       | When it occurs                           |
+| --------------------- | ----------- | ----------------- | ---------------------------------------- |
+| `busy_session_active` | 409         | 이미 활성화된 작업이 존재함   | CONTROL 또는 MONITOR 태스크 수행 중 HANDSHAKE 요청 |
+| `version_mismatch`    | 400         | 프로토콜 MAJOR 버전 불일치 | 클라이언트 `major` 값이 서버 MAJOR와 다름            |
+| `missing_major`       | 400         | 필수 필드 누락          | payload에 `major` 키가 없음                   |
+| `invalid_major_type`  | 400         | 타입 오류             | `major`가 number(int)가 아님                 |
+| `invalid_version`     | 400         | 값 범위 오류           | `major` 값이 음수                            |
+</div>
+
+<br> <h4 style="font-size:16px; font-weight:bold;">Payload Validation Rules</h4> 
+
+<div style="max-width:fit-content;">
+
+| Field   | Attribute | Type | Validation Rule     | Error Code           |
+| ------- | --------- | ---- | ------------------- | -------------------- |
+| `major` | 필수        | int  | payload에 반드시 존재해야 함 | `missing_major`      |
+| `major` | 타입        | int  | number 타입이어야 함      | `invalid_major_type` |
+| `major` | 범위        | int  | 0 이상의 정수            | `invalid_version`    |
+
+</div>
+
+<br>
+<h4 style="font-size:16px; font-weight:bold;">Note</h4>
+
+- 서버는 MAJOR 버전만 검사합니다.
+- MINOR / PATCH 변경은 기존 클라이언트와의 호환성을 깨지 않습니다.
+- 버전 정책 관련 내용은 [릴리즈 노트 페이지](../10-release-notes/README.md)를 확인하십시오.
+
+</div># 3.2 MONITOR
 
 MONITOR는 서버가 주기적으로 REST GET을 호출하고, 그 결과를 NDJSON으로 스트리밍하는 기능입니다.
 
@@ -538,7 +708,7 @@ STOP은 대상(target)에 따라 monitor/control/session을 중단합니다.
 ```json
 {"type":"stop_ack","target":"session|control|monitor"}\n
 ```
-# Error Codes
+# 4. 에러 코드
 
 이 문서는 Open Stream 서버가 반환할 수 있는 **에러 코드(error code)** 와 그 의미를 설명합니다.
 
@@ -664,7 +834,7 @@ STOP 요청 처리 중 발생하는 에러입니다.
 
 - 복구 가능 여부는 각 에러의 "Client Action"을 기준으로 판단하십시오.
 
-</div># 9. FAQ
+</div># 5. 예제# 9. FAQ
 
 ## Q1. 왜 HANDSHAKE를 먼저 해야 하나요?
 A. 서버는 handshake_ok 상태가 아니면 MONITOR/CONTROL/STOP에 대해 412(handshake_required)를 반환합니다.
@@ -685,13 +855,29 @@ A. 거부됩니다. url은 공백을 포함할 수 없습니다.
 각 버전에서는 기능 추가, 동작 변경, 수정 사항 및 호환성 관련 정보를 제공합니다.
 
 
+
+
 <h4 style="font-size:15px; font-weight:bold;">릴리즈 정보</h4>
 
 <div style="max-width:fit-content;">
 
-| Version| ${cont_model} Version|Release Schedule|Link|
+| *Version| ${cont_model} Version|Release Schedule|Link|
 |:--:|:--:|:--:|:--:|
 |1.0.0|60.34-00 ⇡|2026.03 예정|[🔗](1-0-0.md)|
+
+----
+
+</div>
+
+*Version : **`MAJOR.MINOR.PATCH`**
+
+<div style="max-width:fit-content;">
+
+| Field | 의미 | 호환성 정책 |
+|------|------|-------------|
+| MAJOR | 프로토콜의 근본적인 변경 | **MAJOR가 다르면 호환되지 않음** |
+| MINOR | 기능 추가(하위 호환) | MAJOR가 같으면 호환 |
+| PATCH | 버그 수정 및 내부 개선 | 항상 호환 |
 
 </div>
 

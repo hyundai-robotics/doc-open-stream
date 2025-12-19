@@ -6,13 +6,29 @@
 각 버전에서는 기능 추가, 동작 변경, 수정 사항 및 호환성 관련 정보를 제공합니다.
 
 
+
+
 <h4 style="font-size:15px; font-weight:bold;">릴리즈 정보</h4>
 
 <div style="max-width:fit-content;">
 
-| Version| ${cont_model} Version|Release Schedule|Link|
+| *Version| ${cont_model} Version|Release Schedule|Link|
 |:--:|:--:|:--:|:--:|
 |1.0.0|60.34-00 ⇡|2026.03 예정|[🔗](1-0-0.md)|
+
+----
+
+</div>
+
+*Version : **`MAJOR.MINOR.PATCH`**
+
+<div style="max-width:fit-content;">
+
+| Field | 의미 | 호환성 정책 |
+|------|------|-------------|
+| MAJOR | 프로토콜의 근본적인 변경 | **MAJOR가 다르면 호환되지 않음** |
+| MINOR | 기능 추가(하위 호환) | MAJOR가 같으면 호환 |
+| PATCH | 버그 수정 및 내부 개선 | 항상 호환 |
 
 </div>
 

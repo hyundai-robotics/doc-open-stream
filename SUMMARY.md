@@ -10,7 +10,7 @@
   * [2.1 NDJSON 이란?](2-protocol/1-ndjson.md)
   * [2.2 세션 및 스트리밍 동작 규칙](2-protocol/2-session-and-streaming.md)
 
-* [3. Recipe 명령어 레퍼런스](3-recipe/README.md)
+* [3. 명령어](3-recipe/README.md)
   * [3.1 HANDSHAKE](3-recipe/1-handshake.md)
   * [3.2 MONITOR](3-recipe/2-monitor.md)
   * [3.3 CONTROL](3-recipe/3-control.md)
