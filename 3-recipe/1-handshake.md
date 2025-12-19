@@ -4,8 +4,6 @@
 `HANDSHAKE` 이전에 `MONITOR`/`CONTROL`을 호출하면 서버가 거부할 수 있습니다.
 
 
-
-<br>
 <h4 style="font-size:16px; font-weight:bold;">Request</h4>
 
 <div style="max-width:fit-content;">
