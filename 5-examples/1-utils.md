@@ -1,4 +1,4 @@
-﻿#s# 5.1 공통 유틸리티 (utils)
+﻿## 5.1 공통 유틸리티 (utils)
 
 {% hint style="info" %}
 
@@ -268,13 +268,13 @@ class Dispatcher:
      &rightarrow; `dt_sec`: 포인트 간 시간 간격(sec)  
      &rightarrow; `points_deg`: 포인트 배열(List[List[float]])
 
-### 사용 위치
+사용 위치
 - `control.md` 시나리오에서
   - base pose 읽기(rad) → `rad_to_deg()` 변환
   - `generate_sine_trajectory()`로 포인트 생성
   - 필요하면 `save_trajectory()`로 저장한 뒤 재사용(`load_trajectory()`)
 
-### 주의사항(문서에 명시 권장)
+주의 사항
 - CONTROL `joint_traject_insert_point`의 `point`는 **deg**를 가정합니다(예제 기준).
 - `dt_sec`는 전송 타이밍 및 `interval/time_from_start` 설정과 직결되므로,
   저장/로드 시 반드시 함께 유지해야 합니다.
@@ -372,7 +372,7 @@ Open Stream 프로토콜 메시지의 JSON 구조를 <b>일관되게 생성</b>�
   (2) CONTROL은 프로토콜의 1급 명령이며, `joint_traject_*`는 CONTROL 하위 기능(trajectory 전송)을 위한 helper입니다.
 
 
-### 프로토콜 명령 구조
+프로토콜 명령 구조
 
 | cmd       | 설명                   |
 | --------- | -------------------- |
@@ -381,7 +381,7 @@ Open Stream 프로토콜 메시지의 JSON 구조를 <b>일관되게 생성</b>�
 | CONTROL   | 로봇 제어 (trajectory 등) |
 | STOP      | 세션 또는 스트림 중단         |
 
-### 제공 메서드
+제공 메서드
 
 | API 함수 | 대응 cmd | 설명 |
 |--------|----------|------|
@@ -509,20 +509,10 @@ class OpenStreamAPI:
 
 </div>
 
-
-## 요약
+<br>
+<h4 style="font-size:16px; font-weight:bold;">요약</h4>
 
 * 위 `utils` 코드는 <b>이후 모든 예제에서 그대로 재사용</b>됩니다.
 * 별도 수정 없이 <b>복사–붙여넣기만 해도 정상 동작</b>합니다.
 * 다음 문서부터는 이 유틸리티를 기반으로
   <b>HANDSHAKE → MONITOR → CONTROL → STOP</b> 시나리오를 단계적으로 설명합니다.
-
----
-
-다음으로 원하시면:
-
-* `control.md`에서 <b>CONTROL body 스키마 표 정리</b>
-* `motion.py` trajectory 타입 확장(spline / velocity)
-* utils 전체를 <b>라이브러리 구조로 정리한 버전</b>
-
-바로 이어서 정리해 드리겠습니다.
