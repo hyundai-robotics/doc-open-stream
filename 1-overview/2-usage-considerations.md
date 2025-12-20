@@ -1,58 +1,53 @@
-﻿## 1.2 사용 전 유의 사항
+## 1.2 Usage Considerations
 
-Open Stream은 실시간 제어 및 상태 수신을 효율적으로 처리하기 위한 인터페이스이지만,  
-다음과 같은 제약 및 전제를 반드시 고려해야 합니다.
+Open Stream is designed to efficiently handle real-time control and status monitoring.  
+However, the following constraints and assumptions must be carefully considered.
 
-- Open Stream은 정주기 데이터 전달을 목표로 하지만 보장하지는 않습니다.
-- 운영체제 스케줄링, 네트워크 상태 및 클라이언트 처리 부하에 따라 주기 지연(jitter) 이 발생할 수 있습니다.
-- 하나의 TCP 연결에서는 하나의 MONITOR 세션만 활성화할 수 있습니다.
-- 모든 명령은 정의된 프로토콜 순서를 따라야 하며,  
-  순서 위반 시 서버는 명령을 거부하거나 연결을 종료할 수 있습니다.
+- Open Stream targets periodic data delivery but does **not guarantee strict determinism**.
+- Periodic jitter may occur depending on operating system scheduling, network conditions,
+  and client-side processing load.
+- Only **one MONITOR session** can be active per TCP connection.
+- All commands must follow the defined protocol order.
+  Violating the order may result in command rejection or connection termination.
 
 <br><br>
 
-<b> MONITOR 및 CONTROL 운용 시 참고 성능 (시험 결과) </b>
+<b>Performance Reference for MONITOR and CONTROL Operation (Test Results)</b>
 
-아래 결과는 동일한 시험 환경에서 MONITOR 단독 수행과  
-CONTROL과 MONITOR를 동시에 수행한 경우의 주기 특성을 비교한 참고 자료입니다.
+The following results compare periodic behavior between MONITOR-only operation and
+simultaneous CONTROL + MONITOR operation under the same test environment.
 
-
-시험 환경 
-- 서버 : ${cont_model} COM
-- 클라이언트 : Windows 11 기반 Python 클라이언트
-- 네트워크 : TCP 연결
-- 송/수신 주기 : MONITOR 명령으로 설정 가능한 최대 주기로 설정
+Test Environment:
+- Server: ${cont_model} COM
+- Client: Python client on Windows 11
+- Network: TCP connection
+- Send/receive period: Maximum configurable MONITOR frequency
 
 <br>
 
-시험 결과 요약
+Summary of Results
 
 <div style="max-width:fit-content;">
 
-1. MONITOR 단독 수행
+1. MONITOR Only
 
-    | **시험 조건**                                                              | **주기 특성 요약**                                                                                                    |
-    | ---------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
-    | - MONITOR 주기: 2 ms (500 Hz)<br>- CONTROL 미사용<br>- 연속 실행: 10시간          | - <u><b>평균 수신 주기: 약 2.0 ms</b></u><br>                                           |
+| **Test Conditions** | **Periodic Characteristics** |
+| --- | --- |
+| - MONITOR period: 2 ms (500 Hz)<br>- CONTROL not used<br>- Continuous run: 10 hours | - <u><b>Average receive period: ~2.0 ms</b></u> |
 
-2. CONTROL + MONITOR 동시 수행
+2. CONTROL + MONITOR Concurrent
 
-    | **시험 조건**                                                              | **주기 특성 요약**                                                                                                    |
-    | ---------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
-    | - CONTROL 주기: 2 ms<br>- MONITOR 주기: 2 ms<br>- CONTROL / MONITOR 동시 활성화 | - CONTROL(SEND): <u><b>평균 주기 약 2.0 ms</b></u>, 최대 지연 약 30~40 ms<br>- MONITOR(RECV): <b><u>평균 주기 약 2.1~2.2 ms</b></u>, 최대 지연 수십 ms~100 ms 이상 |
+| **Test Conditions** | **Periodic Characteristics** |
+| --- | --- |
+| - CONTROL period: 2 ms<br>- MONITOR period: 2 ms<br>- CONTROL and MONITOR active simultaneously | - CONTROL (SEND): <u><b>Average period ~2.0 ms</b></u>, max delay ~30–40 ms<br>- MONITOR (RECV): <u><b>Average period ~2.1–2.2 ms</b></u>, max delay from tens of ms up to >100 ms |
 
 </div>
 
 <br><br>
 
-<b> 해석 및 운용 시 유의 사항 </b>
+<b>Interpretation and Operational Notes</b>
 
-- MONITOR 레시피를 단독으로 운용하는 경우, 장시간 연속 실행에서도 비교적 안정적인 주기 수신이 가능합니다.  
-
-- CONTROL과 MONITOR를 동시에 운용할 경우, 시스템 설계에 따라 CONTROL 세션이 더 높은 우선순위로 처리됩니다.  
-
-- 이로 인해 CONTROL 주기 안정성은 유지되지만,  
-MONITOR 수신 주기는 평균 증가 및 간헐적인 지연이 발생할 수 있습니다.  
-
-- CONTROL과 MONITOR를 동시에 사용하는 환경에서는  
-MONITOR 데이터의 정주기성 저하 및 지연 발생을 전제로 시스템을 설계해야 합니다.  
+- When MONITOR is used alone, relatively stable periodic reception is possible even during long continuous operation.
+- When CONTROL and MONITOR are used concurrently, CONTROL sessions are processed with higher priority depending on system design.
+- As a result, CONTROL periodic stability is maintained, while MONITOR reception periods may increase and experience intermittent delays.
+- Systems using both CONTROL and MONITOR must be designed assuming potential degradation and jitter in MONITOR periodicity.

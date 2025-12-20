@@ -1,30 +1,31 @@
-﻿## 5.3 MONITOR 예제
+## 5.3 MONITOR Example
 
-이 예제는 Open Stream 세션에서 **MONITOR 스트리밍**을 시작하고,
-주기적으로 수신되는 데이터를 처리하는 기본 흐름을 제공합니다.
+This example demonstrates the basic flow for starting **MONITOR streaming**  
+in an Open Stream session and processing periodically received data.
 
-<h4 style="font-size:16px; font-weight:bold;">수행 시나리오</h4>
+<h4 style="font-size:16px; font-weight:bold;">Execution Scenario</h4>
 
-1. TCP 연결 생성
-2. NDJSON 수신 루프 시작 (parser + dispatcher 연결)
-3. MONITOR 전송 (method/url/period_ms/args)
-4. `monitor_ack` 수신 확인 (또는 서버가 정의한 ACK 타입)
-5. `monitor_data`(스트림 데이터) 수신 처리
-6. 예제 종료 (연결 종료)
+1. Establish a TCP connection  
+2. Start NDJSON receive loop (parser + dispatcher wired)  
+3. Send MONITOR (method / url / period_ms / args)  
+4. Confirm receipt of `monitor_ack` (or server-defined ACK type)  
+5. Process streamed `monitor_data`  
+6. Exit example (close connection)
 
-※ 실제 운용에서는 스트리밍 종료 시 `STOP target=monitor`를 전송하는 것이 권장됩니다. (STOP 예제에서 다룹니다)
-
-<br>
-<h4 style="font-size:16px; font-weight:bold;">준비물</h4>
-
-* `utils/` 디렉토리 (net.py / parser.py / dispatcher.py / api.py) 
-* 서버 주소, 포트(`49000`)
-* MONITOR 대상 REST URL, period_ms, args
+※ In real operation, it is recommended to send `STOP target=monitor` when terminating streaming  
+(this is covered in the STOP example).
 
 <br>
-<h4 style="font-size:16px; font-weight:bold;">예제 코드</h4>
+<h4 style="font-size:16px; font-weight:bold;">Prerequisites</h4>
 
-이 예제를 실행하려면 아래 파일들이 프로젝트에 존재해야 합니다.
+* `utils/` directory (net.py / parser.py / motion.py / dispatcher.py / api.py)  
+* Server address and port (`49000`)  
+* Target REST URL for MONITOR, `period_ms`, and `args`
+
+<br>
+<h4 style="font-size:16px; font-weight:bold;">Example Code</h4>
+
+To run this example, the following files must exist in your project.
 
 <div style="max-width:fit-content;">
 
@@ -34,15 +35,15 @@ OpenStreamClient/
 │   ├── net.py
 │   ├── parser.py
 │   ├── dispatcher.py
+│   ├── motion.py
 │   └── api.py
 │
 ├── scenarios/
 │   ├── handshake.py
-│   └── monitor.py        # (이 문서에서 제공하는 시나리오 코드)
+│   └── monitor.py        # Scenario code provided in this document
 │
-└── main.py               # 시나리오 런처(엔트리 포인트)
+└── main.py               # Scenario launcher (entry point)
 ```
-
 </div>
 
 <br>
@@ -67,10 +68,10 @@ def run(host: str, port: int, *, major: int, url: str, period_ms: int) -> None:
     dispatcher = Dispatcher()
     api = OpenStreamAPI(net)
 
-    # --- 동기화용 이벤트 (ACK 대기) ---
+    # --- synchronization event (wait for ACK) ---
     handshake_ok = threading.Event()
 
-    # 이벤트 핸들러 등록
+    # register event handlers
     def _on_handshake_ack(m: dict) -> None:
         ok = bool(m.get("ok"))
         print(f"[ack] handshake_ack ok={ok} version={m.get('version')}")
@@ -79,7 +80,7 @@ def run(host: str, port: int, *, major: int, url: str, period_ms: int) -> None:
 
     dispatcher.on_type["handshake_ack"] = _on_handshake_ack
 
-    # MONITOR ACK / DATA (서버 구현에 맞게 type명은 조정 가능)
+    # MONITOR ACK / DATA (type names may vary by server implementation)
     dispatcher.on_type["monitor_ack"] = lambda m: print(
         f"[ack] monitor_ack ok={m.get('ok')} url={m.get('url')} period_ms={m.get('period_ms')}"
     )
@@ -91,32 +92,31 @@ def run(host: str, port: int, *, major: int, url: str, period_ms: int) -> None:
         f"[ERR] code={e.get('error')} message={e.get('message')} hint={e.get('hint')}"
     )
 
-    # 연결 및 수신 루프 시작
+    # connect and start receive loop
     net.connect()
     net.start_recv_loop(lambda b: parser.feed(b, dispatcher.dispatch))
 
-    # 1) HANDSHAKE 선행
+    # 1) HANDSHAKE
     api.handshake(major=major)
 
-    # 2) handshake_ack 수신 대기 (타임아웃은 환경에 맞게 조정)
+    # 2) wait for handshake_ack (timeout adjustable)
     if not handshake_ok.wait(timeout=1.0):
         print("[ERR] handshake_ack timeout; MONITOR will not be sent.")
         net.close()
         return
 
-    # 3) MONITOR 송신
+    # 3) send MONITOR
     api.monitor(url=url, period_ms=period_ms, args={})
 
-    # 스트림 수신을 위해 잠시 대기 후 종료
-    # (정상 종료 시에는 STOP 예제에서처럼 STOP target=monitor 권장)
+    # wait briefly to receive stream, then exit
+    # (for graceful shutdown, send STOP target=monitor as shown in STOP example)
     time.sleep(2.0)
     net.close()
 ```
-
 </div>
 
 <div style="max-width:fit-content;">
-  &rightarrow; MONITOR 요청을 전송하고, ACK 및 스트리밍 데이터를 수신해 출력하는 실행 가능한 시나리오 코드입니다.
+  &rightarrow; Executable scenario that sends a MONITOR request and prints ACK and streaming data.
 </div>
 
 <br>
@@ -164,19 +164,17 @@ def main() -> None:
 if __name__ == "__main__":
     main()
 ```
-
 </div>
 
 <br>
-<h4 style="font-size:16px; font-weight:bold;">실행 방법</h4>
-
-프로젝트 루트에서 아래 명령을 실행합니다.
+<h4 style="font-size:16px; font-weight:bold;">How to Run</h4>
 
 <div style="max-width:fit-content;">
 
 ```bash
 python3 main.py monitor --host 192.168.1.150 --port 49000 --major 1 --url /project/robot/joints/joint_states --period-ms 1000
 ```
+</div>
 
 <h4 style="font-size:16px; font-weight:bold;">Expected Output</h4>
 
@@ -186,11 +184,9 @@ python3 main.py monitor --host 192.168.1.150 --port 49000 --major 1 --url /proje
 [ack] handshake_ack ok=True version=1.0.0
 [tx] {"cmd":"MONITOR","payload":{"method":"GET","url":"/project/robot/joints/joint_states","period_ms":1000,"id":1,"args":{}}}
 [ack] monitor_ack ok=None url=None period_ms=None
-[event] {'type': 'data', 'id': 1, 'ts': 1000, 'svc_dur_ms': 0.224, 'result': {'_type': 'JObject', 'position': [2.870257, 92.870159, 2.869597, 2.86937, -87.129492, 2.868506], 'effort': [0.0, 83.719222, 92.270308, 0.773519, -4.086226, 0.336679], 'velocity': [-0.0, -0.0, 0.0, 0.0, -0.0, 0.0]}}
+[event] {'type': 'data', 'id': 1, 'ts': 1000, 'svc_dur_ms': 0.224, 'result': {...}}
 [net] connection closed
 ```
 
-</div>
-
-* 참고 : 에러가 발생하면 `{ "error": "...", "message": "...", "hint": "..." }` 형태로 수신됩니다.
-* 참고 : `monitor_data`의 payload 스키마(`ts`, `value` 등)는 서버 구현에 따라 달라질 수 있으므로, 실제 메시지 구조에 맞게 출력/파싱 로직을 조정하십시오.
+* Note: Errors are received in the form `{ "error": "...", "message": "...", "hint": "..." }`.  
+* Note: The payload schema of `monitor_data` (`ts`, `value`, etc.) may vary depending on server implementation.

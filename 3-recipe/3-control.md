@@ -1,13 +1,13 @@
-﻿## 3.3 CONTROL
+## 3.3 CONTROL
 
-CONTROL은 클라이언트가 로봇을 제어하거나 제어기 내부 데이터를 갱신하기 위해 사용하는 레시피 명령입니다.  
-내부적으로는 <b>POST / PUT / DELETE 기반의 Hi6 OpenAPI</b>를 호출하며,  
-Stream 환경에서도 기존 OpenAPI와 <b>동일한 REST 호출 경로와 유효성 검사 로직</b>이 적용됩니다.
+CONTROL is a recipe command used by the client to control the robot or update internal controller data.  
+Internally, it invokes <b>POST / PUT / DELETE–based Hi6 OpenAPI</b>, and even in the Stream environment,  
+the <b>same REST paths and validation logic</b> as the existing OpenAPI are applied.
 
-- CONTROL은 반드시 <b>HANDSHAKE 성공 이후</b>에만 사용할 수 있습니다.<br>
-  &rightarrow; HANDSHAKE 이전에 호출하면 `handshake_required` 에러로 즉시 거부됩니다.
-- CONTROL은 <b>단발성 명령</b>이며, <b style="color:#ec1249;">성공 시 응답 NDJSON 라인을 전송하지 않습니다.</b>
-- MONITOR가 활성화된 상태에서도 CONTROL을 수행할 수 있습니다.
+- CONTROL can be used **only after a successful HANDSHAKE**.<br>
+  &rightarrow; If called before HANDSHAKE, it is immediately rejected with a `handshake_required` error.
+- CONTROL is a <b>one-shot command</b>, and <b style="color:#ec1249;">no response NDJSON line is sent on success.</b>
+- CONTROL can be executed even while MONITOR is active.
 
 <br>
 <h4 style="font-size:16px; font-weight:bold;">Request</h4>
@@ -21,29 +21,29 @@ Stream 환경에서도 기존 OpenAPI와 <b>동일한 REST 호출 경로와 유�
 
 <div style="max-width:fit-content;">
 
-| Payload Field    | Required | Type           | Rules                        |
-| -------- | -------- | -------------- | ---------------------------- |
-| `url`    | Yes      | string         | `/`로 시작, 공백 불가               |
-| `method` | Yes      | string         | `POST`, `PUT`, `DELETE` 중 하나 |
-| `args`   | No       | object         | REST 쿼리 파라미터용 객체             |
-| `body`   | No       | object | array | REST 요청 본문                   |
+| Payload Field | Required | Type | Rules |
+| ------------- | -------- | ---- | ----- |
+| `url` | Yes | string | Must start with `/`, no spaces |
+| `method` | Yes | string | One of `POST`, `PUT`, `DELETE` |
+| `args` | No | object | Object for REST query parameters |
+| `body` | No | object \\| array | REST request body |
 
 </div>
 
 <br>
 <h4 style="font-size:16px; font-weight:bold;">Response - Success (<b><u><i>no response line</i></u></b>)</h4>
 
-CONTROL 명령이 성공적으로 처리된 경우,
-<b>서버는 응답 NDJSON 라인을 전송하지 않습니다.<b>  
-클라이언트 측에서는 해당 명령어를 호출만하고 반환값을 돌려받지 않는 구조로 구현해야 합니다.
+If the CONTROL command is processed successfully,  
+<b>the server does not send a response NDJSON line.</b>  
+The client must be implemented to issue the command without expecting a return value.
 
-* 이는 Stream 프로토콜의 설계 특성에 따른 동작입니다.
-* CONTROL 성공 여부는 ACK 수신이 아니라 <b>상태 변화 또는 MONITOR 결과</b>를 통해 확인해야 합니다.
+* This behavior is by design in the Stream protocol.
+* CONTROL success should be verified through <b>state changes or MONITOR results</b>, not by receiving an ACK.
 
 <br>
 <h4 style="font-size:16px; font-weight:bold;">Response - Error</h4>
 
-오류가 발생한 경우, 서버는 현재 세션으로 `control_err` 이벤트를 전송합니다.
+If an error occurs, the server sends a `control_err` event to the current session.
 
 <div style="max-width:fit-content;">
 
@@ -55,15 +55,15 @@ CONTROL 명령이 성공적으로 처리된 경우,
 
 <div style="max-width:fit-content;">
 
-| Error Code           | HTTP Status | Description   | When it occurs              |
-| -------------------- | ----------- | ------------- | --------------------------- |
-| `handshake_required` | 412         | HANDSHAKE 미수행 | HANDSHAKE 이전에 CONTROL 호출    |
-| `missing_url`        | 400         | 필수 필드 누락      | `url` 키가 없음                 |
-| `invalid_url`        | 400         | URL 형식 오류     | `/`로 시작하지 않거나 공백 포함         |
-| `missing_method`     | 400         | 필수 필드 누락      | `method` 키가 없음              |
-| `invalid_method`     | 400         | 메서드 오류        | `POST/PUT/DELETE`가 아님       |
-| `invalid_args`       | 400         | 타입 오류         | `args`가 object가 아님          |
-| `invalid_body`       | 400         | 타입 오류         | `body`가 object 또는 array가 아님 |
+| Error Code | HTTP Status | Description | When it occurs |
+| ---------- | ----------- | ----------- | -------------- |
+| `handshake_required` | 412 | HANDSHAKE not performed | CONTROL called before HANDSHAKE |
+| `missing_url` | 400 | Missing required field | `url` key is missing |
+| `invalid_url` | 400 | Invalid URL format | Does not start with `/` or contains spaces |
+| `missing_method` | 400 | Missing required field | `method` key is missing |
+| `invalid_method` | 400 | Invalid method | Not `POST/PUT/DELETE` |
+| `invalid_args` | 400 | Invalid type | `args` is not an object |
+| `invalid_body` | 400 | Invalid type | `body` is not an object or array |
 
 </div>
 
@@ -72,17 +72,17 @@ CONTROL 명령이 성공적으로 처리된 경우,
 
 <div style="max-width:fit-content;">
 
-| Field    | Attribute | Type           | Validation Rule        | Error Code                         |
-| -------- | --------- | -------------- | ---------------------- | ---------------------------------- |
-| `url`    | 필수        | string         | payload에 반드시 존재        | `missing_url`                      |
-| `url`    | 형식        | string         | `/`로 시작, 공백 불가         | `invalid_url`                      |
-| `method` | 필수        | string         | `POST/PUT/DELETE` 중 하나 | `missing_method`, `invalid_method` |
-| `args`   | 타입        | object         | JSON object만 허용        | `invalid_args`                     |
-| `body`   | 타입        | object | array | object 또는 array만 허용    | `invalid_body`                     |
+| Field | Attribute | Type | Validation Rule | Error Code |
+| ----- | --------- | ---- | --------------- | ---------- |
+| `url` | Required | string | Must exist in payload | `missing_url` |
+| `url` | Format | string | Must start with `/`, no spaces | `invalid_url` |
+| `method` | Required | string | One of `POST/PUT/DELETE` | `missing_method`, `invalid_method` |
+| `args` | Type | object | JSON object only | `invalid_args` |
+| `body` | Type | object \\| array | Object or array only | `invalid_body` |
 
 </div>
 
 <br>
 <h4 style="font-size:16px; font-weight:bold;">Watchdog Interaction</h4>
 
-- CONTROL 명령이 성공적으로 수행되면 워치독이 감시하는 최근 활동 시간이 갱신됩니다.
+- When a CONTROL command is executed successfully, the watchdog updates the last-activity timestamp it monitors.

@@ -1,16 +1,14 @@
-﻿# 1. 개요
+﻿# 1. Overview
 
-본 문서는 Open Stream을 사용하는 외부 클라이언트를 위한 사용 메뉴얼입니다.<br>
-Open Stream의 목적, 기본 개념, 전체 동작 구조와 지원되는 사용 시나리오를 설명합니다.
+This document is a user guide for external clients that use Open Stream.  
+It explains the purpose, core concepts, overall architecture, and supported usage scenarios of Open Stream.  
 
 <br>
 
-이 문서를 통해 사용자는
+Through this document, readers will understand: 
+- What problems Open Stream is designed to solve
+- How Open Stream operates
+- When and in what situations Open Stream should be used
 
-- Open Stream이 어떤 문제를 해결하는지
-- 어떤 방식으로 동작하는지
-- 어떤 상황에서 사용하는 것이 적절한지
+📌 For the latest updates and changes, please refer to the [Release Notes](../10-release-notes/README.md)
 
-를 이해할 수 있습니다.
-
- 📌 최신 변경 사항은 [Release Notes](../10-release-notes/README.md)를 참고하세요.

@@ -2,11 +2,12 @@
 
 {% hint style="warning" %}
 
-본 제품 메뉴얼에 제공된 정보는 <b>HD현대로보틱스(HD Hyundai Robotics)</b>의 자산입니다.
+The information provided in this product manual is the property of <b>HD Hyundai Robotics</b>.
 
-본 메뉴얼은 HD현대로보틱스의 사전 서면 동의 없이, 전체 또는 일부를 복제하거나 재배포할 수 없으며, 제3자에게 제공하거나 다른 목적으로 사용할 수 없습니다.
+This manual may not be reproduced or redistributed, in whole or in part, without prior written consent from HD Hyundai Robotics,  
+and may not be provided to third parties or used for any other purpose.
 
-본 메뉴얼의 내용은 사전 예고 없이 변경될 수 있습니다.
+The contents of this manual are subject to change without prior notice.
 
 
 **Copyright ⓒ 2025 by HD Hyundai Robotics**
@@ -15,6 +16,7 @@
 
 {% hint style="warning" %}
 
-본 매뉴얼에 명시되지 않은 ${cont_model} Open Stream 기능 또는 ${cont_model} Open API 매뉴얼에 명시되지 않은 API를 사용함으로써 발생하는 어떠한 손해나 문제에 대해서도 당사는 책임을 지지 않습니다.
+HD Hyundai Robotics shall not be held responsible for any damages or issues arising from the use of  
+${cont_model} Open Stream features not specified in this manual, or APIs not documented in the ${cont_model} Open API manual.
 
 {% endhint %}

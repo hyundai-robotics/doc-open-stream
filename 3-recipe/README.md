@@ -1,7 +1,7 @@
-﻿# 1. Recipe 명령어
+# 1. Recipe Commands
 
-Recipe 는 Open Stream에서 **클라이언트가 서버로 보내는 NDJSON 라인**을 의미합니다.  
-각 라인은 아래 형태로 전송됩니다.
+A **Recipe** refers to an **NDJSON line sent from the client to the server** in Open Stream.  
+Each line is transmitted in the following format.
 
 <div style="max-width:fit-content;">
 
@@ -12,12 +12,12 @@ Recipe 는 Open Stream에서 **클라이언트가 서버로 보내는 NDJSON 라
 
 </div>
 
-서버는 ACK / 이벤트 / 에러를 동일하게 NDJSON 라인으로 반환합니다.
+The server returns ACKs, events, and errors in the same NDJSON line format.
 
 <div style="max-width:fit-content;">
 
 ```json
-//  Response
+// Response
 {"type":"*_ack", ...}\n
 {"type":"data", ...}\n
 {"error":"<code>","message":"<msg>", "hint":"<hint>"}\n
@@ -27,27 +27,26 @@ Recipe 는 Open Stream에서 **클라이언트가 서버로 보내는 NDJSON 라
 
 <br>
 
-메세지 필드들의 의미는 다음과 같습니다.
+The meaning of each message field is as follows.
 
 <h4 style="font-size:16px; font-weight:bold;">Request (Client → Server)</h4>
 
 <div style="max-width:fit-content;">
 
-| Key       | Type   | Required | Description                                       |
-| --------- | ------ | -------: | ------------------------------------------------- |
-| `cmd`     | string |      Yes | 명령 이름 (`HANDSHAKE`, `MONITOR`, `CONTROL`, `STOP`) |
-| `payload` | object |      Yes | 명령 파라미터 객체 (명령별 스키마는 각 문서 참고)                     |
+| Key | Type | Required | Description |
+| --- | ---- | -------: | ----------- |
+| `cmd` | string | Yes | Command name (`HANDSHAKE`, `MONITOR`, `CONTROL`, `STOP`) |
+| `payload` | object | Yes | Command parameter object (see each command document for schema details) |
 
-1. [HANDSHAKE](./1-handshake.md) : 프로토콜 버전 협상 (세션 초기에 필수)
+1. [HANDSHAKE](./1-handshake.md): Protocol version negotiation (mandatory at session start)
 
-2. [MONITOR](./2-monitor.md) : 주기적 REST GET 실행 + `data` 스트리밍
+2. [MONITOR](./2-monitor.md): Periodic REST GET execution + `data` streaming
 
-3. [CONTROL](./3-control.md) : 단발 REST 실행 (성공 시 **응답 라인 없음**)
+3. [CONTROL](./3-control.md): One-shot REST execution (**no response line on success**)
 
-4. [STOP](./4-stop.md) : `monitor` / `control` / `session` 중단
+4. [STOP](./4-stop.md): Stop `monitor`, `control`, or `session`
 
 </div>
-
 
 <br>
 <h4 style="font-size:16px; font-weight:bold;">Response (Client ⇠ Server)</h4>
@@ -56,21 +55,22 @@ Recipe 는 Open Stream에서 **클라이언트가 서버로 보내는 NDJSON 라
 
 <div style="max-width:fit-content;">
 
-| Key       | Type    | Required | Description                                                    |
-| --------- | ------- | -------: | -------------------------------------------------------------- |
-| `type`    | string  |      Yes | 이벤트 타입 (예: `handshake_ack`, `monitor_ack`, `data`, `stop_ack`) |
+| Key | Type | Required | Description |
+| --- | ---- | -------: | ----------- |
+| `type` | string | Yes | Event type (e.g. `handshake_ack`, `monitor_ack`, `data`, `stop_ack`) |
 
-- `HANDSHAKE` 명령어 응답의 경우, `ok`(boolean), `version`(string) 을 필드에 추가하여 응답함
+- For `HANDSHAKE` responses, the fields `ok` (boolean) and `version` (string) are additionally included.
 
 </div>
 
 <h4 style="font-size:16px; font-weight:bold;">Error</h4>
+
 <div style="max-width:fit-content;">
 
-| Key       | Type   | Required | Description              |
-| --------- | ------ | -------: | ------------------------ |
-| `error`   | string |      Yes | 에러 코드 (machine-readable) |
-| `message` | string |      Yes | 에러 설명 (human-readable)   |
-| `hint`    | string |       No | 해결을 위한 가이드 또는 예시         |
+| Key | Type | Required | Description |
+| --- | ---- | -------: | ----------- |
+| `error` | string | Yes | Error code (machine-readable) |
+| `message` | string | Yes | Error description (human-readable) |
+| `hint` | string | No | Guidance or example for resolution |
 
 </div>

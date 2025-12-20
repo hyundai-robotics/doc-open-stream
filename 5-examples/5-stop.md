@@ -1,60 +1,60 @@
-﻿## 5.5 STOP 예제 (Session / Stream 종료)
+﻿## 5.5 STOP Example (Session / Stream Termination)
 
 {% hint style="info" %}
 
-이 문서에서는 Open Stream의 **STOP** 명령을 사용하여  
-현재 실행 중인 **세션(Session)** 또는 **CONTROL / MONITOR 스트림**을
-정상적으로 종료하는 방법을 설명합니다.
+This document explains how to use the Open Stream **STOP** command to  
+gracefully terminate the currently running **session** or **CONTROL / MONITOR stream**
+in a controlled and safe manner.
 
-- STOP은 안전 종료를 위한 **필수 명령**입니다.
-- CONTROL trajectory 전송 중이거나 MONITOR 스트림이 활성화된 상태에서
-  즉시 중단해야 할 때 사용합니다.
-- 아래 코드는 <b>실제 동작하는 코드</b>이며 그대로 복사하여 사용할 수 있습니다.
+- STOP is a **mandatory command** for safe termination.
+- Use STOP when a CONTROL trajectory is being transmitted or a MONITOR stream is active
+  and an immediate interruption is required.
+- The code below is <b>fully functional</b> and can be copied and used as-is.
 
 {% endhint %}
 
 <br>
-<h4 style="font-size:16px; font-weight:bold;">STOP 명령 개요</h4>
+<h4 style="font-size:16px; font-weight:bold;">STOP Command Overview</h4>
 
-STOP은 Open Stream 세션 또는 특정 스트림을 종료하는 제어 명령입니다.
+STOP is a control command used to terminate an Open Stream session or a specific stream.
 
-- 로봇을 <b>즉시 정지</b>시키거나
-- CONTROL / MONITOR 스트림을 <b>정상적으로 해제</b>할 때 사용합니다.
+- To <b>immediately stop</b> the robot, or
+- To <b>gracefully release</b> CONTROL / MONITOR streams.
 
-STOP 명령을 보내면 서버는 내부 상태를 정리하고,
-필요 시 관련 리소스(trajectory buffer, monitor task 등)를 해제합니다.
+When a STOP command is sent, the server cleans up its internal state
+and releases related resources if necessary (trajectory buffers, monitor tasks, etc.).
 
 ---
 
 <br>
-<h4 style="font-size:16px; font-weight:bold;">STOP 대상(target)</h4>
+<h4 style="font-size:16px; font-weight:bold;">STOP Target</h4>
 
-STOP 명령은 `target` 필드로 종료 대상을 지정합니다.
+The STOP command specifies its termination scope using the `target` field.
 
-| target 값   | 설명 |
+| target value | Description |
 |------------|------|
-| `session`  | Open Stream 세션 전체 종료 (권장 기본값) |
-| `control`  | CONTROL 스트림만 중단 |
-| `monitor`  | MONITOR 스트림만 중단 |
+| `session`  | Terminate the entire Open Stream session (recommended default) |
+| `control`  | Terminate only the CONTROL stream |
+| `monitor`  | Terminate only the MONITOR stream |
 
-※ 구현/버전에 따라 `control`, `monitor`는 선택적으로 지원될 수 있으며,  
-가장 안전한 방법은 `session` 종료입니다.
-
----
-
-<br>
-<h4 style="font-size:16px; font-weight:bold;">시나리오 흐름</h4>
-
-(1) TCP 연결 및 수신 루프 시작  
-(2) HANDSHAKE 수행  
-(3) STOP 명령 전송  
-(4) 서버 응답 확인  
-(5) 소켓 종료
+※ Depending on implementation or version, `control` and `monitor` may be optional.  
+The safest approach is to terminate the entire `session`.
 
 ---
 
 <br>
-<h4 style="font-size:16px; font-weight:bold;">디렉토리 구성</h4>
+<h4 style="font-size:16px; font-weight:bold;">Scenario Flow</h4>
+
+(1) Establish TCP connection and start receive loop  
+(2) Perform HANDSHAKE  
+(3) Send STOP command  
+(4) Check server response  
+(5) Close socket
+
+---
+
+<br>
+<h4 style="font-size:16px; font-weight:bold;">Directory Structure</h4>
 
 <div style="max-width:fit-content;">
 
@@ -82,7 +82,7 @@ OpenStreamClient/
 <br>
 <h4 style="font-size:16px; font-weight:bold;">scenarios/stop.py</h4>
 
-아래 코드는 지정한 target에 대해 STOP 명령을 전송하는 예제입니다.
+The following example sends a STOP command for the specified target.
 
 <details><summary>Click to check the python code</summary>
 
@@ -117,7 +117,7 @@ def run(
     dispatcher.on_type["handshake_ack"] = on_handshake_ack
     dispatcher.on_error = lambda e: print(f"[ERR] {e}")
 
-    # 1) connect + recv loop
+    # 1) connect + receive loop
     net.connect()
     net.start_recv_loop(lambda b: parser.feed(b, dispatcher.dispatch))
 
@@ -137,26 +137,27 @@ def run(
     print(f"[INFO] sending STOP target={target}")
     api.stop(target=target)
 
-    # 짧은 대기 (서버 처리 시간)
+    # short wait (server-side processing time)
     time.sleep(0.5)
 
     # 4) close socket
     net.close()
 ```
 
+
 </details>
 
 ---
 
 <br>
-<h4 style="font-size:16px; font-weight:bold;">main.py 연결 예시</h4>
+<h4 style="font-size:16px; font-weight:bold;">main.py Integration Example</h4>
 
-기존 `main.py` 시나리오 구조에 맞춰 STOP을 호출하는 방식입니다.
+This shows how to invoke STOP according to the existing `main.py` scenario structure.
 
 <div style="max-width:fit-content;">
 
 ```python
-# main.py (일부)
+# main.py 
 from scenarios import stop as sc_stop
 
 # ...
@@ -168,23 +169,24 @@ elif args.scenario == "stop":
     )
 ```
 
+
 </div>
 
 ---
 
 <br>
-<h4 style="font-size:16px; font-weight:bold;">실행 방법</h4>
+<h4 style="font-size:16px; font-weight:bold;">How to Run</h4>
 
 <div style="max-width:fit-content;">
 
 ```bash
-# 세션 전체 종료 (권장)
+# Terminate the entire session (recommended)
 python main.py stop --host 192.168.1.150 --port 49000 --target session
 
-# CONTROL만 중단
+# Terminate CONTROL only
 python main.py stop --host 192.168.1.150 --port 49000 --target control
 
-# MONITOR만 중단
+# Terminate MONITOR only
 python main.py stop --host 192.168.1.150 --port 49000 --target monitor
 ```
 
@@ -210,8 +212,8 @@ python main.py stop --host 192.168.1.150 --port 49000 --target monitor
 
 ---
 
-## 요약
+## Summary
 
-* STOP은 로봇 제어/모니터링을 **안전하게 종료**하기 위한 명령입니다.
-* CONTROL trajectory 전송 중에는 반드시 STOP으로 종료하는 것을 권장합니다.
-* 가장 안전한 기본 사용법은 `target=session` 입니다.
+* STOP is a command used to **safely terminate** robot control and monitoring.
+* It is strongly recommended to terminate CONTROL trajectory transmission using STOP.
+* The safest default usage is `target=session`.

@@ -1,11 +1,11 @@
 ﻿{
-    "langCode": "ko",
+    "langCode": "en",
     "series": "Hi6 Open Stream",
-    "title": "Hi6 Open Stream 설명서",
-    "publisher": "HD현대로보틱스",
-    "tocTitle": "목차",
+    "title": "Hi6 Open Stream Manual",
+    "publisher": "HD Hyundai Robotics",
+    "tocTitle": "Table of Contents",
     "tocTitleElements": "[ \"h1\", \"h2\" ]",
-	"variables": {
-		"cont_model": "Hi6"
-	}
+    "variables": {
+        "cont_model": "Hi6"
+    }
 }

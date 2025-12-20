@@ -1,28 +1,27 @@
-﻿## 5.2 HANDSHAKE 예제
+## 5.2 HANDSHAKE Example
 
-이 예제는 Open Stream 세션을 시작하기 위한 가장 기본적인 흐름을 제공합니다.
+This example demonstrates the most basic flow required to start an Open Stream session.
 
 
-<h4 style="font-size:16px; font-weight:bold;">수행 시나리오</h4>
+<h4 style="font-size:16px; font-weight:bold;">Execution Scenario</h4>
 
-1. TCP 연결 생성
-2. NDJSON 수신 루프 시작 (parser + dispatcher 연결)
-3. HANDSHAKE 전송
-4. `handshake_ack` 수신 확인
-5. 연결 종료
-
-<br>
-<h4 style="font-size:16px; font-weight:bold;">준비물</h4>
-
-- `utils/` 디렉토리 (net.py / parser.py / dispatcher.py / api.py)
-- 서버 주소, 포트(`49000`)
-
+1. Establish a TCP connection
+2. Start the NDJSON receive loop (parser + dispatcher wired)
+3. Send HANDSHAKE
+4. Confirm receipt of `handshake_ack`
+5. Close the connection
 
 <br>
-<h4 style="font-size:16px; font-weight:bold;">예제 코드</h4>
+<h4 style="font-size:16px; font-weight:bold;">Prerequisites</h4>
 
-이 예제를 실행하려면 아래 파일들이 프로젝트에 존재해야 합니다.
+- `utils/` directory (net.py / parser.py / dispatcher.py / api.py)
+- Server address and port (`49000`)
 
+
+<br>
+<h4 style="font-size:16px; font-weight:bold;">Example Code</h4>
+
+To run this example, the following files must exist in your project.
 
 <div style="max-width:fit-content;">
 
@@ -32,14 +31,14 @@ OpenStreamClient/
 │   ├── net.py
 │   ├── parser.py
 │   ├── dispatcher.py
+│   ├── motion.py
 │   └── api.py
 │
 ├── scenarios/
-│   └── handshake.py      # (이 문서에서 제공하는 시나리오 코드)
+│   └── handshake.py      # Scenario code provided in this document
 │
-└── main.py               # 시나리오 런처(엔트리 포인트)
+└── main.py               # Scenario launcher (entry point)
 ```
-
 </div>
 
 <br>
@@ -62,7 +61,7 @@ def run(host: str, port: int, major: int) -> None:
     dispatcher = Dispatcher()
     api = OpenStreamAPI(net)
 
-    # 이벤트 핸들러 등록
+    # Register event handlers
     dispatcher.on_type["handshake_ack"] = lambda m: print(
         f"[ack] handshake_ack ok={m.get('ok')} version={m.get('version')}"
     )
@@ -70,23 +69,22 @@ def run(host: str, port: int, major: int) -> None:
         f"[ERR] code={e.get('error')} message={e.get('message')} hint={e.get('hint')}"
     )
 
-    # 연결 및 수신 루프 시작
+    # Connect and start receive loop
     net.connect()
     net.start_recv_loop(lambda b: parser.feed(b, dispatcher.dispatch))
 
-    # HANDSHAKE 송신
+    # Send HANDSHAKE
     api.handshake(major=major)
 
-    # ACK 수신을 위해 잠시 대기 후 종료
+    # Wait briefly for ACK, then close
     time.sleep(0.5)
     net.close()
 ```
-
 </div>
 
 <div style="max-width:fit-content;">
-  &rightarrow; HANDSHAKE 요청을 전송하고 handshake_ack 수신을 확인하는 실행 가능한 시나리오 코드입니다.
-
+  &rightarrow; This is an executable scenario that sends a HANDSHAKE request and verifies receipt of `handshake_ack`.
+</div>
 
 
 <br>
@@ -123,16 +121,16 @@ if __name__ == "__main__":
 </div>
 
 <br>
-<h4 style="font-size:16px; font-weight:bold;">실행 방법</h4>
+<h4 style="font-size:16px; font-weight:bold;">How to Run</h4>
 
-프로젝트 루트에서 아래 명령을 실행합니다.
-
+Run the following command from the project root.
 
 <div style="max-width:fit-content;">
 
 ```bash
-$python3 main.py handshake --host 192.168.1.150 --port 49000 --major 1
-````
+$ python3 main.py handshake --host 192.168.1.150 --port 49000 --major 1
+```
+</div>
 
 <h4 style="font-size:16px; font-weight:bold;">Expected Output</h4>
 
@@ -142,6 +140,6 @@ $python3 main.py handshake --host 192.168.1.150 --port 49000 --major 1
 [ack] handshake_ack ok=True version=1.0.0
 [net] connection closed
 ```
-</div>
 
-- 참고 : 에러가 발생하면 `{ "error": "...", "message": "...", "hint": "..." }` 형태로 수신됩니다.
+- Note: If an error occurs, it will be received in the form  
+  `{ "error": "...", "message": "...", "hint": "..." }`.
