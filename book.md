@@ -160,7 +160,7 @@ CONTROL과 MONITOR를 동시에 수행한 경우의 주기 특성을 비교한 �
 
     | **시험 조건**                                                              | **주기 특성 요약**                                                                                                    |
     | ---------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
-    | - MONITOR 주기: 2 ms (500 Hz)<br>- CONTROL 미사용<br>- 연속 실행: 10시간          | - <u><b>평균 수신 주기: 약 2.0 ms</b></u><br>- 수신 프레임 수: 약 1,800만<br>- 누락 프레임 비율: 약 0.001%                                           |
+    | - MONITOR 주기: 2 ms (500 Hz)<br>- CONTROL 미사용<br>- 연속 실행: 10시간          | - <u><b>평균 수신 주기: 약 2.0 ms</b></u><br>                                           |
 
 2. CONTROL + MONITOR 동시 수행
 
@@ -1151,23 +1151,28 @@ OpenStreamClient/
 
 - 본 예제는 Open Stream 프로토콜의 이해를 돕기 위해  
 의도적으로 외부 의존성을 최소화했습니다.
-# 5.1 공통 유틸리티 (utils)
+## 5.1 공통 유틸리티 (utils)
 
-이 문서에서는 이후 모든 예제에서 공통으로 사용되는  
-**Open Stream 클라이언트 유틸리티 코드**를 제공합니다.
+{% hint style="info" %}
 
-아래 코드는 **설명용 샘플이 아니라 실제로 동작하는 코드**이며,  
+이 문서에서는 이후 모든 예제에서 공통으로 사용되는
+<b>Open Stream 클라이언트 유틸리티 코드</b>를 제공합니다.
+
+아래 코드는 <b>설명용 샘플이 아니라 실제로 동작하는 코드</b>이며,
 사용자는 이를 그대로 복사하여 자신의 프로젝트에 사용할 수 있습니다.
 
-※ 본 예제는 이해와 재현성을 위해 "수신 스레드 + 블로킹 소켓(timeout)" 방식으로 구성했습니다.  
+※ 본 예제는 이해와 재현성을 위해
+<b>“수신 스레드 + 블로킹 소켓(timeout)” 방식</b>으로 구성했습니다.
 
+{% endhint %}
 
-## 디렉토리 구성
+<br>
+<h4 style="font-size:16px; font-weight:bold;">디렉토리 구성</h4>
 
 아래와 같이 `utils/` 디렉토리를 생성하고,
 각 파일을 그대로 복사하여 저장하십시오.
 
-<div style="max-width:fit-content;">
+<div style = "max-width: fit-content;">
 
 ```text
 OpenStreamClient/
@@ -1175,14 +1180,51 @@ OpenStreamClient/
     ├── net.py
     ├── parser.py
     ├── dispatcher.py
+    ├── motion.py
     └── api.py
 ```
 
+<br>
+<h4 style="font-size:16px; font-weight:bold;">유틸 역할</h4>
+
+| 파일명               | 역할                 | 주요 기능                                    |
+| ----------------- | ------------------ | ---------------------------------------- |
+| <b>net.py</b>        | TCP 네트워크 계층        | TCP 소켓 연결/해제, 수신 루프(thread), raw byte 수신 |
+| <b>parser.py</b>     | NDJSON 파서          | NDJSON 스트림 파싱, JSON 객체 생성                |
+| <b>dispatcher.py</b> | 메시지 분기             | 메시지 type/error 기준 콜백 분기                  |
+| <b>motion.py</b>     | Trajectory 유틸리티    | sin trajectory 생성, 파일 저장/로드              |
+| <b>api.py</b>        | Open Stream API 래퍼 | HANDSHAKE / MONITOR / CONTROL / STOP 추상화 |
+
 </div>
 
-## utils/net.py
 
-TCP 소켓 연결 및 송수신 담당
+
+<br>
+<div style="max-width:fit-content;">
+
+---
+
+<h4 style="font-size:16px; font-weight:bold;">utils/net.py</h4>
+
+TCP 소켓 연결 및 송수신을 담당하는 네트워크 레이어입니다.
+
+<b>역할</b>  
+  (1) Open Stream 서버와의 TCP 연결을 생성/유지/종료합니다.  
+  (2) 서버로부터 들어오는 raw byte 스트림을 수신 스레드에서 읽어 콜백(`on_bytes`)으로 전달합니다.  
+  (3) 상위 계층(parser/dispatcher)은 네트워크 I/O를 직접 다루지 않아도 되도록 분리합니다.
+
+<b>주요 설계 포인트</b>  
+  (1) `TCP_NODELAY`(Nagle OFF): 작은 NDJSON 라인의 지연을 줄입니다.  
+  (2) `SO_KEEPALIVE`: half-open 연결 감지에 도움을 줍니다.  
+  (3) `timeout` 기반 recv loop: 종료/중단 시 반응성을 확보합니다.
+
+<b>주요 API</b>  
+  (1) `connect()`: 소켓 연결 및 옵션 설정  
+  (2) `send_line(line)`: NDJSON 1라인 전송(자동 개행 포함)  
+  (3) `start_recv_loop(on_bytes)`: 수신 스레드 시작  
+  (4) `close()`: 연결 종료
+
+<details><summary>Click to check the python code</summary>
 
 ```python
 # utils/net.py
@@ -1202,22 +1244,19 @@ class NetClient:
     def connect(self) -> None:
         self.sock = socket.create_connection((self.host, self.port))
 
-        # --- socket options (recommended defaults) ---
-        # 1) Nagle OFF: reduce latency for small NDJSON lines (ACK/STOP/etc.)
+        # Nagle OFF (low latency)
         try:
             self.sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
         except OSError:
             pass
 
-        # 2) Keep-Alive ON: detect half-open TCP connections at OS level
+        # TCP keepalive
         try:
             self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_KEEPALIVE, 1)
         except OSError:
             pass
 
-        # recv loop responsiveness
         self.sock.settimeout(1.0)
-
         self._running = True
         print(f"[net] connected to {self.host}:{self.port}")
 
@@ -1256,11 +1295,25 @@ class NetClient:
         self._rx_thread.start()
 ```
 
+</details>
+
 ---
 
-## utils/parser.py
+<br>
+<h4 style="font-size:16px; font-weight:bold;">utils/parser.py</h4>
 
-NDJSON 스트림 파서 (`\n` 기준)
+NDJSON(Newline Delimited JSON) 스트림을 <b>라인 단위 JSON 객체</b>로 변환하는 파서입니다.
+
+- <b>입력</b>: `bytes` 조각(chunk). TCP는 메시지 경계를 보장하지 않기 때문에, 한 메시지가 여러 chunk로 쪼개지거나 여러 메시지가 한 chunk에 합쳐져 올 수 있습니다.
+- <b>출력</b>: 완성된 JSON(dict)을 `on_message(dict)` 콜백으로 전달합니다.
+- <b>동작</b><br>
+  (1) 내부 버퍼에 누적 후 `\n` 기준으로 라인을 분리합니다.  
+  (2) 각 라인을 UTF-8로 디코딩한 뒤 `json.loads()`로 파싱합니다.  
+  (3) JSON 파싱 실패 시 에러 로그를 남기고 해당 라인을 스킵합니다.
+
+이 모듈은 “수신(raw bytes)”과 “메시지(dict)” 사이의 경계 처리를 표준화합니다.
+
+<details><summary>Click to check the python code</summary>
 
 ```python
 # utils/parser.py
@@ -1287,11 +1340,29 @@ class NDJSONParser:
                 print(f"[parser] json decode error: {e}")
 ```
 
+</details>
+
 ---
 
-## utils/dispatcher.py
+<br>
+<h4 style="font-size:16px; font-weight:bold;">utils/dispatcher.py</h4>
 
-type / error 기반 이벤트 분기
+파싱된 메시지(dict)를 <b>type/error 기준으로 분기</b>하여, 등록된 콜백을 호출하는 디스패처입니다.
+
+- <b>역할</b>  
+  (1) 메시지 소비 로직(핸들러)을 네트워크/파서로부터 분리합니다.  
+  (2) 예제 스크립트(handshake/monitor/control)는 dispatcher에 핸들러만 등록하면 됩니다.
+
+- <b>메시지 분기 규칙(현재 구현 기준)</b>  
+  (1) `msg`에 `"error"` 키가 있으면 `on_error(msg)` 호출(등록되어 있지 않으면 print)  
+  (2) 그 외에는 `msg.get("type")` 값으로 `on_type[type]` 콜백 호출  
+  (3) 매칭되는 콜백이 없으면 기본적으로 이벤트 내용을 출력합니다.
+
+- <b>확장 포인트</b>  
+  프로젝트에 따라 `ack/event`를 명시적으로 분리하고 싶다면,  
+  `dispatch()` 내부에서 키(예: `ack`, `event`, `type`) 규칙을 확장하면 됩니다.
+
+<details><summary>Click to check the python code</summary>
 
 ```python
 # utils/dispatcher.py
@@ -1318,71 +1389,286 @@ class Dispatcher:
             print(f"[event] {msg}")
 ```
 
+</details>
+
 ---
 
-## utils/api.py
+<br>
+<h4 style="font-size:16px; font-weight:bold;">utils/motion.py</h4>
 
-레시피 명령 래퍼 (HANDSHAKE / MONITOR / CONTROL / STOP)
+`motion.py`는 CONTROL 예제에서 사용할 **joint trajectory 생성/재사용** 기능을 제공합니다.  
+핵심 목적은 “CONTROL 전송 로직(control.md)”에서 **trajectory 생성 로직을 분리**하여 문서를 짧게 유지하는 것입니다.
+
+- CONTROL 전송은 “통신/타이밍/스키마”가 복잡해지기 쉬운데,
+  trajectory 생성까지 섞이면 예제가 너무 길어집니다.
+- 따라서 trajectory는 `motion.py`에서 생성하고,
+  control 예제는 “생성된 points를 일정 간격으로 보내는 것”에 집중합니다.
+
+역할1. **단위 변환**
+   - `rad_to_deg(rad_list) -> deg_list`
+   - HTTP에서 읽은 joint state가 rad인 경우가 많아, CONTROL(point)은 deg로 맞추기 위한 유틸입니다.
+
+역할2. **Trajectory 생성 (sin wave)**
+   - `generate_sine_trajectory(base_deg, cycle_sec, amplitude_deg, dt_sec, total_sec, active_joint_count)`
+   - `base_deg`를 기준으로 앞쪽 N개 관절만 sin 변위를 적용해 흔들림을 만듭니다.
+   - 반환값은 `List[List[float]]` 형태의 **deg 포인트 배열**입니다.  
+     &rightarrow; `points_deg[k][i]` = k번째 시점의 i번째 관절 각도(deg)
+
+역할3. **Trajectory 저장/로드**
+   - `save_trajectory(points_deg, dt_sec, base_dir="data") -> saved_path`
+   - `load_trajectory(path) -> (dt_sec, points_deg)`
+   - 저장 포맷(JSON):  
+     &rightarrow; `dt_sec`: 포인트 간 시간 간격(sec)  
+     &rightarrow; `points_deg`: 포인트 배열(List[List[float]])
+
+사용 위치
+- `control.md` 시나리오에서
+  - base pose 읽기(rad) → `rad_to_deg()` 변환
+  - `generate_sine_trajectory()`로 포인트 생성
+  - 필요하면 `save_trajectory()`로 저장한 뒤 재사용(`load_trajectory()`)
+
+주의 사항
+- CONTROL `joint_traject_insert_point`의 `point`는 **deg**를 가정합니다(예제 기준).
+- `dt_sec`는 전송 타이밍 및 `interval/time_from_start` 설정과 직결되므로,
+  저장/로드 시 반드시 함께 유지해야 합니다.
+
+<details><summary>Click to check the python code</summary>
+
+```python
+# utils/motion.py
+import json
+import math
+import os
+import time
+from typing import List, Tuple
+from typing import Optional
+
+def rad_to_deg(rad_list: List[float]) -> List[float]:
+    return [r * 180.0 / math.pi for r in rad_list]
+
+
+def generate_sine_trajectory(
+    base_deg: List[float],
+    *,
+    cycle_sec: float = 1.0,
+    amplitude_deg: float = 5.0,
+    dt_sec: float = 0.02,
+    total_sec: float = 1.0,
+    active_joint_count: Optional[int] = 6
+) -> List[List[float]]:
+    if active_joint_count is None:
+        active_joint_count = len(base_deg)
+
+    omega = 2.0 * math.pi / cycle_sec
+    steps = int(total_sec / dt_sec) + 1
+
+    traj = []
+    for k in range(steps):
+        t = k * dt_sec
+        point = []
+        for i, base in enumerate(base_deg):
+            if i < active_joint_count:
+                offset = amplitude_deg * math.sin(omega * t)
+                point.append(base + offset)
+            else:
+                point.append(base)
+        traj.append(point)
+
+    return traj
+
+
+def save_trajectory(
+    points_deg: List[List[float]],
+    dt_sec: float,
+    *,
+    base_dir: str = "data",
+) -> str:
+    os.makedirs(base_dir, exist_ok=True)
+    ts = time.strftime("%m%d%H%M%S")
+    path = os.path.join(base_dir, f"trajectory_{ts}.json")
+
+    with open(path, "w", encoding="utf-8") as f:
+        json.dump(
+            {
+                "dt_sec": dt_sec,
+                "points_deg": points_deg,
+            },
+            f,
+            indent=2,
+        )
+
+    return os.path.abspath(path)
+
+
+def load_trajectory(path: str) -> Tuple[float, List[List[float]]]:
+    with open(path, "r", encoding="utf-8") as f:
+        data = json.load(f)
+
+    return data["dt_sec"], data["points_deg"]
+```
+
+</details>
+
+---
+
+<br>
+<h4 style="font-size:16px; font-weight:bold;">utils/api.py</h4>
+
+Open Stream 프로토콜 메시지의 JSON 구조를 <b>일관되게 생성</b>하는 얇은 래퍼입니다.
+
+- <b>역할</b>  
+  (1) 예제 스크립트가 “JSON 스키마”를 반복 작성하지 않도록 합니다.  
+  (2) `cmd`(HANDSHAKE/MONITOR/CONTROL/STOP) 별 payload 구조를 표준화합니다.
+
+- <b>중요</b>  
+  (1) `api.py`는 네트워크 전송을 직접 하지 않고, `net.send_line()`을 통해 NDJSON 라인으로 전송합니다.  
+  (2) CONTROL은 프로토콜의 1급 명령이며, `joint_traject_*`는 CONTROL 하위 기능(trajectory 전송)을 위한 helper입니다.
+
+
+프로토콜 명령 구조
+
+| cmd       | 설명                   |
+| --------- | -------------------- |
+| HANDSHAKE | 세션 초기화 및 버전 협상       |
+| MONITOR   | 상태/HTTP API 주기 조회    |
+| CONTROL   | 로봇 제어 (trajectory 등) |
+| STOP      | 세션 또는 스트림 중단         |
+
+제공 메서드
+
+| API 함수 | 대응 cmd | 설명 |
+|--------|----------|------|
+| `handshake(major)` | HANDSHAKE | Open Stream 세션 초기화 |
+| `monitor(url, period_ms, args=None, monitor_id=1)` | MONITOR | 지정 URL을 주기적으로 조회 |
+| `monitor_stop()` | MONITOR | MONITOR 중단 |
+| `joint_traject_init()` | CONTROL | joint trajectory 제어 초기화 |
+| `joint_traject_insert_point(body)` | CONTROL | trajectory 포인트 1개 전송 |
+| `stop(target)` | STOP | 세션 또는 control/monitor 중단 |
+
+<details><summary>Click to check the python code</summary>
 
 ```python
 # utils/api.py
 import json
 from typing import Any, Dict, Optional
 
-from utils.net import NetClient
-
 
 class OpenStreamAPI:
-    def __init__(self, net: NetClient):
+    def __init__(self, net):
         self.net = net
 
-    def handshake(self, major: int) -> None:
-        self._send_cmd("HANDSHAKE", {"major": major})
+    def _send(self, msg: dict) -> None:
+        line = json.dumps(msg, separators=(",", ":"))
+        self.net.send_line(line)
 
-    def monitor(self, *, url: str, period_ms: int, args: Dict[str, Any]) -> None:
-        payload = {
-            "method": "GET",
-            "url": url,
-            "period_ms": period_ms,
-            "id": 1, # this required field is only for the initial version.
-            "args": args,
-        }
-        self._send_cmd("MONITOR", payload)
+    # -------------------------
+    # HANDSHAKE
+    # -------------------------
 
-    def control(
+    def handshake(self, major: int = 1) -> None:
+        self._send({
+            "cmd": "HANDSHAKE",
+            "payload": {
+                "major": major
+            },
+        })
+
+    # -------------------------
+    # MONITOR
+    # -------------------------
+
+    def monitor(
         self,
         *,
-        method: str,
         url: str,
-        args: Dict[str, Any],
-        body: Optional[Any] = None,
+        period_ms: int,
+        args: Optional[Dict[str, Any]] = None,
+        monitor_id: int = 1,
+        method: str = "GET",
     ) -> None:
-        payload = {
-            "method": method,
-            "url": url,
-            "args": args,
-        }
-        if body is not None:
-            payload["body"] = body
+        """
+        Start MONITOR stream.
 
-        self._send_cmd("CONTROL", payload)
+        - url        : target API path
+        - period_ms  : polling period in milliseconds
+        - args       : optional query/body args
+        - monitor_id : MONITOR stream id
+        - method     : HTTP method (default: GET)
+        """
+        if args is None:
+            args = {}
 
-    def stop(self, target: str) -> None:
-        self._send_cmd("STOP", {"target": target})
+        self._send({
+            "cmd": "MONITOR",
+            "payload": {
+                "method": method,
+                "url": url,
+                "args": args,
+                "id": monitor_id,
+                "period_ms": period_ms,
+            },
+        })
 
-    def _send_cmd(self, cmd: str, payload: dict) -> None:
-        line = json.dumps({"cmd": cmd, "payload": payload}, separators=(",", ":"))
-        self.net.send_line(line)
+    def monitor_stop(self) -> None:
+        self._send({
+            "cmd": "MONITOR",
+            "payload": {
+                "stop": True
+            },
+        })
+
+    # -------------------------
+    # STOP
+    # -------------------------
+
+    def stop(self, target: str = "session") -> None:
+        self._send({
+            "cmd": "STOP",
+            "payload": {
+                "target": target
+            },
+        })
+
+    # -------------------------
+    # CONTROL (joint trajectory)
+    # -------------------------
+
+    def joint_traject_init(self) -> None:
+        self._send({
+            "cmd": "CONTROL",
+            "payload": {
+                "method": "POST",
+                "url": "/project/robot/trajectory/joint_traject_init",
+                "args": {},
+                "body": {},
+            },
+        })
+
+    def joint_traject_insert_point(self, body: dict) -> None:
+        self._send({
+            "cmd": "CONTROL",
+            "payload": {
+                "method": "POST",
+                "url": "/project/robot/trajectory/joint_traject_insert_point",
+                "args": {},
+                "body": body,
+            },
+        })
 ```
+
+</details>
 
 ---
 
-## 요약
+</div>
 
-* 위 `utils` 코드는 **이후 모든 예제에서 그대로 재사용**됩니다.
-* 수정 없이 복사하여 사용해도 정상 동작합니다.
-* 다음 예제부터는 이 유틸리티를 기반으로  
-  HANDSHAKE, MONITOR, CONTROL, STOP 시나리오를 단계적으로 실행합니다.
+<br>
+<h4 style="font-size:16px; font-weight:bold;">요약</h4>
+
+* 위 `utils` 코드는 <b>이후 모든 예제에서 그대로 재사용</b>됩니다.
+* 별도 수정 없이 <b>복사–붙여넣기만 해도 정상 동작</b>합니다.
+* 다음 문서부터는 이 유틸리티를 기반으로
+  <b>HANDSHAKE → MONITOR → CONTROL → STOP</b> 시나리오를 단계적으로 설명합니다.
 ## 5.2 HANDSHAKE 예제
 
 이 예제는 Open Stream 세션을 시작하기 위한 가장 기본적인 흐름을 제공합니다.
@@ -1569,6 +1855,7 @@ OpenStreamClient/
 │   └── api.py
 │
 ├── scenarios/
+│   ├── handshake.py
 │   └── monitor.py        # (이 문서에서 제공하는 시나리오 코드)
 │
 └── main.py               # 시나리오 런처(엔트리 포인트)
@@ -1725,37 +2012,447 @@ python3 main.py monitor --host 192.168.1.150 --port 49000 --major 1 --url /proje
 
 * 참고 : 에러가 발생하면 `{ "error": "...", "message": "...", "hint": "..." }` 형태로 수신됩니다.
 * 참고 : `monitor_data`의 payload 스키마(`ts`, `value` 등)는 서버 구현에 따라 달라질 수 있으므로, 실제 메시지 구조에 맞게 출력/파싱 로직을 조정하십시오.
-## 5.4 CONTROL 예제
+## 5.4 CONTROL 예제 (Joint Trajectory)
 
-이 예제는 Open Stream 세션에서 **HANDSHAKE를 선행 수행한 뒤 CONTROL 스트리밍**을 시작하고,
-주기적으로 수신되는 데이터를 처리하는 기본 흐름을 제공합니다.
+{% hint style="info" %}
 
-<br>
-<h4 style="font-size:16px; font-weight:bold;">수행 시나리오</h4>
+이 문서에서는 Open Stream의 **CONTROL** 명령을 이용해  로봇에 **joint trajectory 포인트를 스트리밍 전송**하는 예제를 제공합니다.
 
-1. TCP 연결 생성
-2. NDJSON 수신 루프 시작 (parser + dispatcher 연결)
-3. HANDSHAKE 전송 (major)
-4. `handshake_ack` 수신 확인 (성공 시에만 다음 단계 진행)
-5. CONTROL 전송 (method/url/period_ms/args)
-6. `control_ack` 수신 확인 (또는 서버가 정의한 ACK 타입)
-7. `control_data`(스트림 데이터) 수신 처리
-8. 예제 종료 (연결 종료)
+Trajectory 생성/저장은 `utils/motion.py`에서 담당합니다.<br>
+Open Stream 메시지 구성/전송은 `utils/api.py`에서 담당합니다.<br>
+사용자는 아래 코드를 그대로 복사하여 자신의 프로젝트에 사용할 수 있습니다.
 
-※ 실제 운용에서는 스트리밍 종료 시 `STOP target=control`을 전송하는 것이 권장됩니다. (STOP 예제에서 다룹니다)
+{% endhint %}
 
 <br>
-<h4 style="font-size:16px; font-weight:bold;">준비물</h4>
+<h4 style="font-size:16px; font-weight:bold;">사전 준비</h4>
 
-* `utils/` 디렉토리 (net.py / parser.py / dispatcher.py / api.py)
-* 서버 주소, 포트(`49000`)
-* CONTROL 대상 REST URL, period_ms, args
-* HANDSHAKE 버전(`major`)
+- `utils/` 디렉토리 (net.py / parser.py / dispatcher.py / motion.py / api.py)
+- Open Stream 서버 주소/포트 (예: `192.168.1.150:49000`)
+- HTTP로 joint state 조회 가능해야 함  
+  예: `GET http://{host}:8888/project/robot/joints/joint_states`
+
+---
 
 <br>
-<h4 style="font-size:16px; font-weight:bold;">예제 코드</h4>
+<h4 style="font-size:16px; font-weight:bold;">시나리오 흐름</h4>
 
-이 예제를 실행하려면 아래 파일들이 프로젝트에 존재해야 합니다.
+1) TCP 연결 및 수신 루프 시작  
+2) HANDSHAKE 전송 및 ack 확인  
+3) HTTP GET으로 `/project/robot/joints/joint_states` 조회 (rad)  
+4) `motion.rad_to_deg()`로 deg 변환  
+5) `motion.generate_sine_trajectory()`로 deg trajectory 생성  
+6) `CONTROL / joint_traject_init` 전송  
+7) `CONTROL / joint_traject_insert_point`를 dt 간격으로 반복 전송  
+8) 종료 (필요 시 STOP 예제 사용)
+---
+
+<br>
+<h4 style="font-size:16px; font-weight:bold;">디렉토리 구성</h4>
+
+<div style="max-width:fit-content;">
+
+```text
+OpenStreamClient/
+├── utils/
+│   ├── net.py
+│   ├── parser.py
+│   ├── dispatcher.py
+│   ├── motion.py
+│   └── api.py
+│
+├── scenarios/
+│   ├── handshake.py
+│   ├── monitor.py
+│   └── control.py
+│
+└── main.py
+````
+
+</div>
+
+---
+
+<br>
+<h4 style="font-size:16px; font-weight:bold;">CONTROL Body 규칙</h4>
+
+`joint_traject_insert_point`는 아래 필드를 포함하는 것을 권장합니다.
+
+* `interval` (sec): 포인트 간 간격 (예: `dt_sec`)
+* `time_from_start` (sec): 시작 기준 시간 (예: `index * dt_sec`)
+  ※ 서버 구현에 따라 이 필드는 **누락 시 오류**가 날 수 있으므로 포함을 권장합니다.
+* `look_ahead_time` (sec): 제어 선행 시간
+* `point` (deg): joint 각도 리스트
+
+---
+
+<br>
+<h4 style="font-size:16px; font-weight:bold;">scenarios/control.py</h4>
+
+아래 코드는 **그대로 복사-붙여넣기 후 실행 가능한 코드**입니다.
+
+<details><summary>Click to check the python code</summary>
+
+```python
+# scenarios/control.py
+import json
+import math
+import time
+from typing import Any, Dict, List, Optional, Tuple
+from urllib.request import urlopen
+from urllib.error import URLError, HTTPError
+
+from utils.net import NetClient
+from utils.parser import NDJSONParser
+from utils.dispatcher import Dispatcher
+from utils.api import OpenStreamAPI
+from utils.motion import generate_sine_trajectory, save_trajectory  # rad_to_deg 제거
+
+
+def http_get_joint_states(host: str, *, http_port: int = 8888, timeout_sec: float = 1.0) -> List[float]:
+    """
+    /project/robot/joints/joint_states 를 HTTP GET으로 조회해 joint positions(deg) 리스트를 반환한다.
+
+    (서버 C++ 구현 기준)
+    - position: deg 단위로 내려옴
+    - velocity: deg/s
+    - effort: Nm
+    """
+    url = f"http://{host}:{http_port}/project/robot/joints/joint_states"
+
+    try:
+        with urlopen(url, timeout=timeout_sec) as r:
+            raw = r.read().decode("utf-8")
+        data = json.loads(raw)
+    except (HTTPError, URLError, TimeoutError) as e:
+        raise RuntimeError(f"HTTP GET failed: {url} ({e})") from e
+    except json.JSONDecodeError as e:
+        raise RuntimeError(f"HTTP response is not valid JSON: {raw[:200]!r}") from e
+
+    q: List[float] = []
+
+    if isinstance(data, list):
+        q = [float(v) for v in data if isinstance(v, (int, float))]
+
+    elif isinstance(data, dict):
+        # C++ 구현은 {"position":[deg...], "velocity":[deg/s...], "effort":[Nm...]} 형태
+        if "position" in data and isinstance(data["position"], list):
+            q = [float(v) for v in data["position"] if isinstance(v, (int, float))]
+        else:
+            # e.g. {"j1": 10.0, "j2": 20.0, ...} 형태도 방어
+            items: List[Tuple[int, float]] = []
+            for k, v in data.items():
+                if not isinstance(v, (int, float)):
+                    continue
+                if isinstance(k, str) and k.startswith("j"):
+                    try:
+                        idx = int(k[1:])
+                        items.append((idx, float(v)))
+                    except ValueError:
+                        continue
+            q = [v for _, v in sorted(items, key=lambda x: x[0])]
+
+    if not q:
+        raise RuntimeError(f"Cannot extract joint positions from response: {data!r}")
+
+    return q
+
+
+def run(
+    host: str,
+    port: int,
+    *,
+    major: int = 1,
+    http_port: int = 8888,
+    # trajectory
+    cycle_sec: float = 1.0,
+    amplitude_deg: float = 5.0,
+    dt_sec: float = 0.02,
+    total_sec: float = 1.0,
+    active_joint_count: Optional[int] = 6,
+    # control timing
+    look_ahead_time: float = 0.1,
+) -> None:
+    net = NetClient(host, port)
+    parser = NDJSONParser()
+    dispatcher = Dispatcher()
+    api = OpenStreamAPI(net)
+
+    handshake_ok = {"ok": False}
+
+    def on_handshake_ack(m: dict) -> None:
+        ok = bool(m.get("ok"))
+        handshake_ok["ok"] = ok
+        print(f"[ack] handshake_ack ok={ok} version={m.get('version')}")
+
+    dispatcher.on_type["handshake_ack"] = on_handshake_ack
+    dispatcher.on_error = lambda e: print(f"[ERR] {e}")
+
+    # 1) connect + recv loop
+    net.connect()
+    net.start_recv_loop(lambda b: parser.feed(b, dispatcher.dispatch))
+
+    # 2) handshake
+    api.handshake(major=major)
+
+    t_wait = time.time() + 2.0
+    while time.time() < t_wait and not handshake_ok["ok"]:
+        time.sleep(0.01)
+
+    if not handshake_ok["ok"]:
+        print("[ERR] handshake_ack not received; aborting.")
+        net.close()
+        return
+
+    # 3) base pose (deg) via HTTP  <-- 여기 핵심
+    base_deg = http_get_joint_states(host, http_port=http_port, timeout_sec=1.0)
+    print(f"[INFO] base pose joints={len(base_deg)} deg-range={min(base_deg):.2f}..{max(base_deg):.2f}")
+
+    # 4) trajectory 생성 (deg)
+    points_deg = generate_sine_trajectory(
+        base_deg=base_deg,
+        cycle_sec=cycle_sec,
+        amplitude_deg=amplitude_deg,
+        dt_sec=dt_sec,
+        total_sec=total_sec,
+        active_joint_count=active_joint_count,
+    )
+
+    saved_path = save_trajectory(points_deg, dt_sec, base_dir="data")
+    print(f"[INFO] trajectory saved: {saved_path} (points={len(points_deg)}, dt={dt_sec})")
+
+    # 5) CONTROL init
+    api.joint_traject_init()
+
+    # 6) CONTROL insert_point streaming
+    t0 = time.time()
+    for i, point_deg in enumerate(points_deg):
+        body = {
+            "interval": float(dt_sec),
+            "time_from_start": float(i * dt_sec),   # 유효한 time_from_start 사용
+            "look_ahead_time": float(look_ahead_time),
+            "point": [float(x) for x in point_deg], # point는 deg (서버가 deg를 rad로 변환)
+        }
+        api.joint_traject_insert_point(body)
+
+        # dt에 맞춰 송신 (단순 예제)
+        target = t0 + (i + 1) * dt_sec
+        remain = target - time.time()
+        if remain > 0:
+            time.sleep(remain)
+
+    net.close()
+```
+
+</details>
+
+---
+
+<br>
+<h4 style="font-size:16px; font-weight:bold;">main.py 연결 예시</h4>
+
+기존 `main.py` 구조를 유지한다면, `control` 시나리오를 아래처럼 호출할 수 있습니다.
+
+<details><summary>Click to check the python code</summary>
+
+<div style="max-width:fit-content;">
+
+```python
+# main.py
+import argparse
+
+from scenarios import handshake as sc_handshake
+from scenarios import monitor as sc_monitor
+from scenarios import control as sc_control
+from scenarios import stop as sc_stop
+
+
+def main():
+    p = argparse.ArgumentParser(description="Open Stream Client Examples")
+
+    p.add_argument("scenario", choices=["handshake", "monitor", "control", "stop"])
+    p.add_argument("--host", default="192.168.1.150")
+    p.add_argument("--port", type=int, default=49000)
+    p.add_argument("--major", type=int, default=1)
+
+    # -------------------------
+    # MONITOR options
+    # -------------------------
+    p.add_argument("--url", default="/api/health")
+    p.add_argument("--period-ms", type=int, default=1000)
+
+    # -------------------------
+    # CONTROL options
+    # -------------------------
+    p.add_argument("--http-port", type=int, default=8888)
+    p.add_argument("--dt-sec", type=float, default=0.02)
+    p.add_argument("--total-duration-sec", type=float, default=1.0)
+    p.add_argument("--cycle-sec", type=float, default=1.0)
+    p.add_argument("--amplitude-deg", type=float, default=5.0)
+    p.add_argument("--active-joint-count", type=int, default=6)
+    p.add_argument("--look-ahead-time", type=float, default=0.1)
+
+    args = p.parse_args()
+
+    if args.scenario == "handshake":
+        sc_handshake.run(args.host, args.port, major=args.major)
+
+    elif args.scenario == "monitor":
+        sc_monitor.run(
+            args.host,
+            args.port,
+            major=args.major,
+            url=args.url,
+            period_ms=args.period_ms,
+        )
+
+    elif args.scenario == "control":
+        sc_control.run(
+            args.host,
+            args.port,
+            major=args.major,
+            http_port=args.http_port,
+            cycle_sec=args.cycle_sec,
+            amplitude_deg=args.amplitude_deg,
+            dt_sec=args.dt_sec,
+            total_sec=args.total_duration_sec,
+            active_joint_count=args.active_joint_count,
+            look_ahead_time=args.look_ahead_time,
+        )
+
+    elif args.scenario == "stop":
+        sc_stop.run(args.host, args.port, target="session")
+
+
+if __name__ == "__main__":
+    main()
+
+```
+
+---
+
+</div>
+
+</details>
+
+<br>
+<h4 style="font-size:16px; font-weight:bold;">실행 방법</h4>
+
+1. 로봇을 원점 위치로 이동 시킵니다. 
+2. joint_traject_insert_point API 의 동작 조건은 Playback 이 재생 중일 때 입니다.  
+하기 wait 문을 job 에 그대로 작성합니다.  
+0001.job - ```wait di1```
+3. 0001.job 을 자동모드에서 start 합니다.
+4. 하기 main.py 수행문을 실행합니다.
+
+    <div style="max-width:fit-content;">
+
+    ```bash
+    # 예: 30초 길이의 sine trajectory(진폭 1 deg)를 dt=2ms로 전송합니다.
+    # - cycle-sec=5  : sine 파 1주기(0→2π)가 5초에 해당합니다.
+    # - look-ahead-time=0.04s, dt=0.002s 이므로, look-ahead 버퍼는 0.04/0.002 = 20 포인트입니다.
+    #   (버퍼에 20개의 point 가 찰 때까지 추종이 지연될 수 있습니다.)
+
+    python3 main.py control \
+    --host 192.168.1.150 \
+    --port 49000 \
+    --major 1 \
+    --http-port 8888 \
+    --total-duration-sec 30.0 \
+    --dt-sec 0.002 \
+    --look-ahead-time 0.04 \
+    --amplitude-deg 1 \
+    --cycle-sec 5
+    ```
+
+    </div>
+
+---
+
+<br>
+<h4 style="font-size:16px; font-weight:bold;">Expected Output</h4>
+
+환경에 따라 출력은 달라질 수 있으나, 일반적으로 아래 흐름을 확인할 수 있습니다.
+
+<div style="max-width:fit-content;">
+
+```text
+[net] connected to 192.168.1.150:49000
+[tx] {"cmd":"HANDSHAKE","payload":{"major":1}}
+[ack] handshake_ack ok=True version=1.0.0
+[INFO] base pose joints=6
+[INFO] trajectory saved: .../data/trajectory_XXXXXX.json (points=51, dt=0.02)
+[tx] {"cmd":"CONTROL",... "url":"/project/robot/trajectory/joint_traject_init", ...}
+[tx] {"cmd":"CONTROL",... "url":"/project/robot/trajectory/joint_traject_insert_point", ...}
+...
+[net] connection closed
+```
+
+</div>
+
+---
+
+## 요약
+
+* CONTROL은 로봇 제어 메시지를 전송하는 프로토콜 명령입니다.
+* Trajectory 생성/저장은 `utils/motion.py`에 분리하여, control 예제는 **전송 로직**에 집중합니다.
+* `joint_traject_insert_point` 전송 시 `time_from_start`를 포함하고, `dt` 기반으로 증가시키는 것을 권장합니다.## 5.5 STOP 예제 (Session / Stream 종료)
+
+{% hint style="info" %}
+
+이 문서에서는 Open Stream의 **STOP** 명령을 사용하여  
+현재 실행 중인 **세션(Session)** 또는 **CONTROL / MONITOR 스트림**을
+정상적으로 종료하는 방법을 설명합니다.
+
+- STOP은 안전 종료를 위한 **필수 명령**입니다.
+- CONTROL trajectory 전송 중이거나 MONITOR 스트림이 활성화된 상태에서
+  즉시 중단해야 할 때 사용합니다.
+- 아래 코드는 <b>실제 동작하는 코드</b>이며 그대로 복사하여 사용할 수 있습니다.
+
+{% endhint %}
+
+<br>
+<h4 style="font-size:16px; font-weight:bold;">STOP 명령 개요</h4>
+
+STOP은 Open Stream 세션 또는 특정 스트림을 종료하는 제어 명령입니다.
+
+- 로봇을 <b>즉시 정지</b>시키거나
+- CONTROL / MONITOR 스트림을 <b>정상적으로 해제</b>할 때 사용합니다.
+
+STOP 명령을 보내면 서버는 내부 상태를 정리하고,
+필요 시 관련 리소스(trajectory buffer, monitor task 등)를 해제합니다.
+
+---
+
+<br>
+<h4 style="font-size:16px; font-weight:bold;">STOP 대상(target)</h4>
+
+STOP 명령은 `target` 필드로 종료 대상을 지정합니다.
+
+| target 값   | 설명 |
+|------------|------|
+| `session`  | Open Stream 세션 전체 종료 (권장 기본값) |
+| `control`  | CONTROL 스트림만 중단 |
+| `monitor`  | MONITOR 스트림만 중단 |
+
+※ 구현/버전에 따라 `control`, `monitor`는 선택적으로 지원될 수 있으며,  
+가장 안전한 방법은 `session` 종료입니다.
+
+---
+
+<br>
+<h4 style="font-size:16px; font-weight:bold;">시나리오 흐름</h4>
+
+(1) TCP 연결 및 수신 루프 시작  
+(2) HANDSHAKE 수행  
+(3) STOP 명령 전송  
+(4) 서버 응답 확인  
+(5) 소켓 종료
+
+---
+
+<br>
+<h4 style="font-size:16px; font-weight:bold;">디렉토리 구성</h4>
 
 <div style="max-width:fit-content;">
 
@@ -1768,22 +2465,28 @@ OpenStreamClient/
 │   └── api.py
 │
 ├── scenarios/
-│   └── control.py        # (이 문서에서 제공하는 시나리오 코드)
+│   ├── handshake.py
+│   ├── monitor.py
+│   ├── control.py
+│   └── stop.py
 │
-└── main.py               # 시나리오 런처(엔트리 포인트)
-```
+└── main.py
+````
 
 </div>
 
-<br>
-<h4 style="font-size:16px; font-weight:bold;">scenarios/control.py</h4>
+---
 
-<div style="max-width:fit-content;">
+<br>
+<h4 style="font-size:16px; font-weight:bold;">scenarios/stop.py</h4>
+
+아래 코드는 지정한 target에 대해 STOP 명령을 전송하는 예제입니다.
+
+<details><summary>Click to check the python code</summary>
 
 ```python
-# scenarios/control.py
+# scenarios/stop.py
 import time
-import threading
 
 from utils.net import NetClient
 from utils.parser import NDJSONParser
@@ -1791,147 +2494,125 @@ from utils.dispatcher import Dispatcher
 from utils.api import OpenStreamAPI
 
 
-def run(host: str, port: int, *, major: int, url: str, period_ms: int) -> None:
+def run(
+    host: str,
+    port: int,
+    *,
+    major: int = 1,
+    target: str = "session",
+) -> None:
     net = NetClient(host, port)
     parser = NDJSONParser()
     dispatcher = Dispatcher()
     api = OpenStreamAPI(net)
 
-    # --- HANDSHAKE ACK 대기용 ---
-    handshake_ok = threading.Event()
+    handshake_ok = {"ok": False}
 
-    def _on_handshake_ack(m: dict) -> None:
-        ok = bool(m.get("ok"))
-        print(f"[ack] handshake_ack ok={ok} version={m.get('version')}")
-        if ok:
-            handshake_ok.set()
+    def on_handshake_ack(m: dict) -> None:
+        handshake_ok["ok"] = bool(m.get("ok"))
+        print(f"[ack] handshake_ack ok={m.get('ok')} version={m.get('version')}")
 
-    dispatcher.on_type["handshake_ack"] = _on_handshake_ack
+    dispatcher.on_type["handshake_ack"] = on_handshake_ack
+    dispatcher.on_error = lambda e: print(f"[ERR] {e}")
 
-    # CONTROL ACK / DATA (서버 구현에 맞게 type 명칭은 조정 가능)
-    dispatcher.on_type["control_ack"] = lambda m: print(
-        f"[ack] control_ack ok={m.get('ok')} url={m.get('url')} period_ms={m.get('period_ms')}"
-    )
-
-    # CONTROL 스트리밍 데이터
-    # payload 스키마는 서버 구현에 따라 다를 수 있어, 예제에서는 raw 출력 형태로 둡니다.
-    dispatcher.on_type["control_data"] = lambda m: print(
-        f"[data] {m}"
-    )
-
-    # 에러 공통 처리
-    dispatcher.on_error = lambda e: print(
-        f"[ERR] code={e.get('error')} message={e.get('message')} hint={e.get('hint')}"
-    )
-
-    # 연결 및 수신 루프 시작
+    # 1) connect + recv loop
     net.connect()
     net.start_recv_loop(lambda b: parser.feed(b, dispatcher.dispatch))
 
-    # 1) HANDSHAKE 선행
+    # 2) handshake
     api.handshake(major=major)
 
-    # 2) handshake_ack 수신 대기 (환경에 맞게 timeout 조정)
-    if not handshake_ok.wait(timeout=1.0):
-        print("[ERR] handshake_ack timeout; CONTROL will not be sent.")
+    t_wait = time.time() + 2.0
+    while time.time() < t_wait and not handshake_ok["ok"]:
+        time.sleep(0.01)
+
+    if not handshake_ok["ok"]:
+        print("[ERR] handshake failed; aborting stop.")
         net.close()
         return
 
-    # 3) CONTROL 송신
-    # args는 REST 쿼리 파라미터 등에 대응하는 구조로 사용됩니다.
-    api.control(url=url, period_ms=period_ms, args={})
+    # 3) STOP
+    print(f"[INFO] sending STOP target={target}")
+    api.stop(target=target)
 
-    # 스트림 수신을 위해 잠시 대기 후 종료
-    # (정상 종료는 STOP 예제에서 STOP target=control 권장)
-    time.sleep(2.0)
+    # 짧은 대기 (서버 처리 시간)
+    time.sleep(0.5)
+
+    # 4) close socket
     net.close()
 ```
 
-</div>
+</details>
 
-<div style="max-width:fit-content;">
-  &rightarrow; HANDSHAKE 성공을 확인한 뒤 CONTROL 요청을 전송하고, ACK 및 스트리밍 데이터를 수신해 출력하는 실행 가능한 시나리오 코드입니다.
-</div>
+---
 
 <br>
-<h4 style="font-size:16px; font-weight:bold;">main.py</h4>
+<h4 style="font-size:16px; font-weight:bold;">main.py 연결 예시</h4>
+
+기존 `main.py` 시나리오 구조에 맞춰 STOP을 호출하는 방식입니다.
 
 <div style="max-width:fit-content;">
 
 ```python
-# main.py
-import argparse
+# main.py (일부)
+from scenarios import stop as sc_stop
 
-from scenarios import handshake as sc_handshake
-from scenarios import monitor as sc_monitor
-from scenarios import control as sc_control
-
-
-def main() -> None:
-    p = argparse.ArgumentParser(description="Open Stream Examples")
-    p.add_argument("scenario", choices=["handshake", "monitor", "control", "stop"])
-    p.add_argument("--host", default="192.168.1.150")
-    p.add_argument("--port", type=int, default=49000)
-
-    # common options
-    p.add_argument("--major", type=int, default=1)
-    p.add_argument("--period-ms", type=int, default=10)
-    p.add_argument("--target", choices=["session", "control", "monitor"], default="session")
-
-    # stream options
-    p.add_argument("--url", default="/api/health")
-
-    args = p.parse_args()
-
-    if args.scenario == "handshake":
-        sc_handshake.run(args.host, args.port, args.major)
-
-    elif args.scenario == "monitor":
-        sc_monitor.run(args.host, args.port, major=args.major, url=args.url, period_ms=args.period_ms)
-
-    elif args.scenario == "control":
-        sc_control.run(args.host, args.port, major=args.major, url=args.url, period_ms=args.period_ms)
-
-
-if __name__ == "__main__":
-    main()
+# ...
+elif args.scenario == "stop":
+    sc_stop.run(
+        args.host,
+        args.port,
+        target=args.target,
+    )
 ```
 
 </div>
 
+---
+
 <br>
 <h4 style="font-size:16px; font-weight:bold;">실행 방법</h4>
-
-프로젝트 루트에서 아래 명령을 실행합니다.
 
 <div style="max-width:fit-content;">
 
 ```bash
-$python3 main.py control --host 192.168.1.150 --port 49000 --major 1 --url /api/control --period-ms 10
+# 세션 전체 종료 (권장)
+python main.py stop --host 192.168.1.150 --port 49000 --target session
+
+# CONTROL만 중단
+python main.py stop --host 192.168.1.150 --port 49000 --target control
+
+# MONITOR만 중단
+python main.py stop --host 192.168.1.150 --port 49000 --target monitor
 ```
 
+</div>
+
+---
+
+<br>
 <h4 style="font-size:16px; font-weight:bold;">Expected Output</h4>
+
+<div style="max-width:fit-content;">
 
 ```text
 [net] connected to 192.168.1.150:49000
 [tx] {"cmd":"HANDSHAKE","payload":{"major":1}}
-[ack] handshake_ack ok=True version=1
-[tx] {"cmd":"CONTROL","payload":{"method":"GET","url":"/api/control","period_ms":10,"args":{}}}
-[ack] control_ack ok=True url=/api/control period_ms=10
-[data] {...}
-[data] {...}
+[ack] handshake_ack ok=True version=1.0.0
+[INFO] sending STOP target=session
+[tx] {"cmd":"STOP","payload":{"target":"session"}}
 [net] connection closed
 ```
 
 </div>
 
-* 참고 : 에러가 발생하면 `{ "error": "...", "message": "...", "hint": "..." }` 형태로 수신됩니다.
-* 참고 : `control_data`의 payload 스키마는 서버 구현에 따라 달라질 수 있으므로, 실제 메시지 구조에 맞게 출력/파싱 로직을 조정하십시오.
-
 ---
 
-원하시면, 만료된 파일을 다시 업로드해 주시는 즉시 `handshake.md`의 표현/섹션 제목/들여쓰기/문장부호까지 포함해 **완전 동일 톤으로 리라이트**해 드릴 수 있습니다. 또한 `stop.md`도 같은 방식(선행 handshake 요구 여부 포함)으로 바로 작성 가능합니다.
-# 9. FAQ
+## 요약
+
+* STOP은 로봇 제어/모니터링을 **안전하게 종료**하기 위한 명령입니다.
+* CONTROL trajectory 전송 중에는 반드시 STOP으로 종료하는 것을 권장합니다.
+* 가장 안전한 기본 사용법은 `target=session` 입니다.# 9. FAQ
 
 ## Q1. 왜 HANDSHAKE를 먼저 해야 하나요?
 A. 서버는 handshake_ok 상태가 아니면 MONITOR/CONTROL/STOP에 대해 412(handshake_required)를 반환합니다.

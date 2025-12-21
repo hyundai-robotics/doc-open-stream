@@ -21,92 +21,92 @@
 	},
 	{
 		"link": "2-protocol/README.md",
-		"char_ofs": 5384,
-		"byte_ofs": 8766
+		"char_ofs": 5339,
+		"byte_ofs": 8689
 	},
 	{
 		"link": "2-protocol/1-ndjson.md",
-		"char_ofs": 6025,
-		"byte_ofs": 9940
+		"char_ofs": 5980,
+		"byte_ofs": 9863
 	},
 	{
 		"link": "2-protocol/2-session-and-streaming.md",
-		"char_ofs": 7754,
-		"byte_ofs": 12318
+		"char_ofs": 7709,
+		"byte_ofs": 12241
 	},
 	{
 		"link": "3-recipe/README.md",
-		"char_ofs": 13028,
-		"byte_ofs": 20305
+		"char_ofs": 12983,
+		"byte_ofs": 20228
 	},
 	{
 		"link": "3-recipe/1-handshake.md",
-		"char_ofs": 15177,
-		"byte_ofs": 22910
+		"char_ofs": 15132,
+		"byte_ofs": 22833
 	},
 	{
 		"link": "3-recipe/2-monitor.md",
-		"char_ofs": 18002,
-		"byte_ofs": 26266
+		"char_ofs": 17957,
+		"byte_ofs": 26189
 	},
 	{
 		"link": "3-recipe/3-control.md",
-		"char_ofs": 22915,
-		"byte_ofs": 32580
+		"char_ofs": 22870,
+		"byte_ofs": 32503
 	},
 	{
 		"link": "3-recipe/4-stop.md",
-		"char_ofs": 26688,
-		"byte_ofs": 37373
+		"char_ofs": 26643,
+		"byte_ofs": 37296
 	},
 	{
 		"link": "4-error/README.md",
-		"char_ofs": 29317,
-		"byte_ofs": 40747
+		"char_ofs": 29272,
+		"byte_ofs": 40670
 	},
 	{
 		"link": "5-examples/README.md",
-		"char_ofs": 34099,
-		"byte_ofs": 47306
+		"char_ofs": 34054,
+		"byte_ofs": 47229
 	},
 	{
 		"link": "5-examples/1-utils.md",
-		"char_ofs": 35609,
-		"byte_ofs": 49630
+		"char_ofs": 35564,
+		"byte_ofs": 49553
 	},
 	{
 		"link": "5-examples/2-handshake.md",
-		"char_ofs": 41120,
-		"byte_ofs": 55956
+		"char_ofs": 49357,
+		"byte_ofs": 66663
 	},
 	{
 		"link": "5-examples/3-monitor.md",
-		"char_ofs": 44411,
-		"byte_ofs": 59911
+		"char_ofs": 52648,
+		"byte_ofs": 70618
 	},
 	{
 		"link": "5-examples/4-control.md",
-		"char_ofs": 49755,
-		"byte_ofs": 66349
+		"char_ofs": 58013,
+		"byte_ofs": 77086
 	},
 	{
 		"link": "5-examples/5-stop.md",
-		"char_ofs": 55302,
-		"byte_ofs": 73319
+		"char_ofs": 68803,
+		"byte_ofs": 89560
 	},
 	{
 		"link": "9-faq/README.md",
-		"char_ofs": 55302,
-		"byte_ofs": 73322
+		"char_ofs": 73071,
+		"byte_ofs": 95069
 	},
 	{
 		"link": "10-release-notes/README.md",
-		"char_ofs": 55665,
-		"byte_ofs": 73929
+		"char_ofs": 73434,
+		"byte_ofs": 95676
 	},
 	{
 		"link": "10-release-notes/1-0-0.md",
-		"char_ofs": 57265,
-		"byte_ofs": 76314
+		"char_ofs": 75034,
+		"byte_ofs": 98061
 	}
 ]
