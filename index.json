@@ -1,0 +1,112 @@
+﻿[
+	{
+		"link": "README.md",
+		"char_ofs": 0,
+		"byte_ofs": 0
+	},
+	{
+		"link": "1-overview/README.md",
+		"char_ofs": 762,
+		"byte_ofs": 789
+	},
+	{
+		"link": "1-overview/1-about-open-stream.md",
+		"char_ofs": 1259,
+		"byte_ofs": 1305
+	},
+	{
+		"link": "1-overview/2-usage-considerations.md",
+		"char_ofs": 4773,
+		"byte_ofs": 4911
+	},
+	{
+		"link": "2-protocol/README.md",
+		"char_ofs": 7058,
+		"byte_ofs": 7253
+	},
+	{
+		"link": "2-protocol/1-ndjson.md",
+		"char_ofs": 8017,
+		"byte_ofs": 8236
+	},
+	{
+		"link": "2-protocol/2-session-and-streaming.md",
+		"char_ofs": 9969,
+		"byte_ofs": 10264
+	},
+	{
+		"link": "3-recipe/README.md",
+		"char_ofs": 17393,
+		"byte_ofs": 17920
+	},
+	{
+		"link": "3-recipe/1-handshake.md",
+		"char_ofs": 19539,
+		"byte_ofs": 20146
+	},
+	{
+		"link": "3-recipe/2-monitor.md",
+		"char_ofs": 22190,
+		"byte_ofs": 22884
+	},
+	{
+		"link": "3-recipe/3-control.md",
+		"char_ofs": 27349,
+		"byte_ofs": 28181
+	},
+	{
+		"link": "3-recipe/4-stop.md",
+		"char_ofs": 31107,
+		"byte_ofs": 32029
+	},
+	{
+		"link": "4-error/README.md",
+		"char_ofs": 33950,
+		"byte_ofs": 34965
+	},
+	{
+		"link": "5-examples/README.md",
+		"char_ofs": 40818,
+		"byte_ofs": 41962
+	},
+	{
+		"link": "5-examples/1-utils.md",
+		"char_ofs": 42933,
+		"byte_ofs": 44267
+	},
+	{
+		"link": "5-examples/2-handshake.md",
+		"char_ofs": 61643,
+		"byte_ofs": 63643
+	},
+	{
+		"link": "5-examples/3-monitor.md",
+		"char_ofs": 65329,
+		"byte_ofs": 67544
+	},
+	{
+		"link": "5-examples/4-control.md",
+		"char_ofs": 71013,
+		"byte_ofs": 73500
+	},
+	{
+		"link": "5-examples/5-stop.md",
+		"char_ofs": 82757,
+		"byte_ofs": 85724
+	},
+	{
+		"link": "9-faq/README.md",
+		"char_ofs": 87879,
+		"byte_ofs": 91156
+	},
+	{
+		"link": "10-release-notes/README.md",
+		"char_ofs": 88434,
+		"byte_ofs": 91724
+	},
+	{
+		"link": "10-release-notes/1-0-0.md",
+		"char_ofs": 90682,
+		"byte_ofs": 94041
+	}
+]
