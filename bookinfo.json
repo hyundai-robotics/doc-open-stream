@@ -1,11 +1,11 @@
 ﻿{
     "langCode": "en",
-    "series": "Hi6 Open Stream",
-    "title": "Hi6 Open Stream Manual",
+    "series": "Hi7 Open Stream",
+    "title": "Hi7 Open Stream Manual",
     "publisher": "HD Hyundai Robotics",
     "tocTitle": "Table of Contents",
     "tocTitleElements": "[ \"h1\", \"h2\" ]",
     "variables": {
-        "cont_model": "Hi6"
+        "cont_model": "Hi7"
     }
 }
