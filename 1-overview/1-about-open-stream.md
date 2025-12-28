@@ -51,8 +51,8 @@ Open Stream의 기본 동작 흐름은 다음과 같습니다.
   <li>서버는 <code>HANDSHAKE</code> 요청을 처리한 뒤, 프로토콜 버전이 일치하는 경우 <code>handshake_ack</code> 이벤트를 송신합니다.</li><br>
 
   <li>클라이언트는 <code>HANDSHAKE</code> 이후
-    <code>MONITOR</code> 명령을 통해 주기적 데이터 스트리밍을 요청하거나,
-    <code>CONTROL</code> 명령을 통해 단발성 요청을 수행할 수 있습니다.
+    <code>*MONITOR</code> 명령을 통해 주기적 데이터 스트리밍을 요청하거나,
+    <code>*CONTROL</code> 명령을 통해 단발성 요청을 수행할 수 있습니다.<br>
     <small>(MONITOR가 활성화된 상태에서도 CONTROL 명령을 송신할 수 있습니다.)</small>
   </li><br>
 
