@@ -6,6 +6,8 @@ However, the following constraints and assumptions must be carefully considered.
 - Open Stream targets periodic data delivery but does **not guarantee strict determinism**.
 - Periodic jitter may occur depending on operating system scheduling, network conditions,
   and client-side processing load.
+- Since Open Stream is based on Open APIs, the execution time of Open Stream may be affected by the API service processing time of the ${cont_model} controller.
+- When PLC or Playback tasks are running concurrently, Open Stream execution may be delayed depending on system task priorities.
 - Only **one MONITOR session** can be active per TCP connection.
 - All commands must follow the defined protocol order.
   Violating the order may result in command rejection or connection termination.
