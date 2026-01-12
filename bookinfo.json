@@ -1,11 +1,12 @@
 ﻿{
     "langCode": "ko",
-    "series": "Hi6 Open Stream",
-    "title": "Hi6 Open Stream 설명서",
+    "series": "${cont_model} 제어기",
+    "title": "기능 설명서 - Open Stream",
     "publisher": "HD현대로보틱스",
     "tocTitle": "목차",
     "tocTitleElements": "[ \"h1\", \"h2\" ]",
-	"variables": {
-		"cont_model": "Hi6"
-	}
+    "docId": "${cont_model:upper}OPENSTREAM_KO_001",
+    "references": [
+        { "rpath" : "doc-hi6-operation/ko-tp630" }
+    ]
 }
