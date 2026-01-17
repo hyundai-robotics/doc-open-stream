@@ -37,7 +37,7 @@ STOP 명령은 `target` 필드로 종료 대상을 지정합니다.
 | `control`  | CONTROL 스트림만 중단 |
 | `monitor`  | MONITOR 스트림만 중단 |
 
-※ 구현/버전에 따라 `control`, `monitor`는 선택적으로 지원될 수 있으며,  
+* 구현/버전에 따라 `control`, `monitor`는 선택적으로 지원될 수 있으며,  
 가장 안전한 방법은 `session` 종료입니다.
 
 ---

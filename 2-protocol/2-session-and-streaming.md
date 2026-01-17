@@ -29,7 +29,7 @@ Open Stream은 <b>TCP 연결 1개를 하나의 세션(Session)</b> 으로 간주
 
 {% hint style="warning" %}
 
-Open Stream은 비동기 이벤트 기반 스트리밍 방식으로, 요청–응답 순서를 보장하지 않습니다.  
+Open Stream은 비동기 이벤트 기반 스트리밍 방식으로, 요청-응답 순서를 보장하지 않습니다.  
 `data`, `*_ack`, `error` 이벤트는 서로 간의 선후 관계가 보장되지 않으므로 순서 의존 로직 없이 처리해야 합니다.
 
 {% endhint %}
@@ -44,7 +44,7 @@ Open Stream은 비동기 이벤트 기반 스트리밍 방식으로, 요청–�
 - `HANDSHAKE`는 <b>세션 초기에 수행</b>해야 합니다.
 - `HANDSHAKE` 이전에 `MONITOR` 또는 `CONTROL`을 호출하면 서버가 거부할 수 있습니다.
 - 하나의 세션에서 동시에 하나의 `MONITOR`만 활성화하는 것을 권장합니다.
-- `STOP(target=session)`은 “정상 종료 의도”를 명시하는 용도로 사용하며  
+- `STOP(target=session)`은 "정상 종료 의도"를 명시하는 용도로 사용하며  
    이후 TCP Close를 수행하는 구조를 권장합니다.
 
 <br>
@@ -105,7 +105,7 @@ Open Stream에서 사용되는 메시지는 <b>방향과 역할</b>에 따라 �
         <tr>
           <td><code>data</code></td>
           <td>MONITOR 활성 시 주기적 데이터 이벤트</td>
-          <td>Hi6 Open API 서비스 함수를 수행한 결과</td>
+          <td>${cont_model} Open API 서비스 함수를 수행한 결과</td>
         </tr>
         <tr>
           <td><code>error</code></td>
@@ -132,13 +132,13 @@ Open Stream에서 사용되는 메시지는 <b>방향과 역할</b>에 따라 �
 <h4 style="font-size:16px; font-weight:bold;">4. MONITOR 스트리밍 동작 방식</h4>
 
 `MONITOR`는 클라이언트가 전달한 레시피를 기준으로  
-서버가 지정된 주기(`period_ms`)마다 Hi6 Open API 서비스 함수를 실행하고,  
+서버가 지정된 주기(`period_ms`)마다 ${cont_model} Open API 서비스 함수를 실행하고,  
 그 결과를 `data` 이벤트로 스트리밍하는 서버 주도형 메커니즘입니다.
 
 클라이언트는 다음 사항을 전제로 구현해야 합니다.
 
 - 항상 수신 루프를 유지합니다.
-- 요청–응답의 동기적 대응을 가정하지 않습니다.
+- 요청-응답의 동기적 대응을 가정하지 않습니다.
 
 <br>
 <h4 style="font-size:16px; font-weight:bold;">5. CONTROL 명령 수행</h4>
@@ -174,7 +174,7 @@ Open Stream에서 사용되는 메시지는 <b>방향과 역할</b>에 따라 �
 - <b>무장 상태(Active MONITOR streaming)</b>  
   &rightarrow; 스트리밍이 중단된 상태가 <b>약 5초</b> 이상 지속될 경우 세션 종료
 
-※ 위 시간 값은 서버 정책 또는 운영 환경에 따라 변경될 수 있습니다.
+* 위 시간 값은 서버 정책 또는 운영 환경에 따라 변경될 수 있습니다.
 
 <br>
 <h4 style="font-size:16px; font-weight:bold;">7. 권장 아키텍쳐 </h4>

@@ -1,7 +1,7 @@
 ﻿## 3.3 CONTROL
 
 CONTROL은 클라이언트가 로봇을 제어하거나 제어기 내부 데이터를 갱신하기 위해 사용하는 레시피 명령입니다.  
-내부적으로는 <b>POST / PUT / DELETE 기반의 Hi6 OpenAPI</b>를 호출하며,  
+내부적으로는 <b>POST / PUT / DELETE 기반의 ${cont_model} OpenAPI</b>를 호출하며,  
 Stream 환경에서도 기존 OpenAPI와 <b>동일한 REST 호출 경로와 유효성 검사 로직</b>이 적용됩니다.
 
 - CONTROL은 반드시 <b>HANDSHAKE 성공 이후</b>에만 사용할 수 있습니다.<br>

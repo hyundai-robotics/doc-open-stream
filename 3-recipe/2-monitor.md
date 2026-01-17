@@ -115,7 +115,7 @@ REST API(GET)를 반복 호출하고, 그 결과를 `data` 이벤트로 전송�
 | `url`       | 길이        | string | 최대 2048              | `url_too_long`                        |
 | `method`    | 필수        | string | 반드시 `"GET"`          | `missing_method`, `invalid_method`    |
 | `period_ms` | 필수        | int    | int 타입               | `missing_period_ms`, `invalid_period` |
-| `period_ms` | 범위        | int    | 2~30000, 범위 초과 시 클램프 | —                                     |
+| `period_ms` | 범위        | int    | 2~30000, 범위 초과 시 클램프 | -                                     |
 | `args`      | 타입        | object | JSON object만 허용      | `invalid_args`                        |
 
 </div>

@@ -1,6 +1,6 @@
 ﻿# Table of contents
 
-* [${cont_model} Open Stream 설명서](README.md)
+* [${cont_model} 제어기 기능설명서 - Open Stream](README.md)
 
 * [1. 개요](1-overview/README.md)
   * [1.1 Open Stream 이란?](1-overview/1-about-open-stream.md)

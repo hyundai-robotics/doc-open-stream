@@ -66,7 +66,7 @@ OpenStreamClient/
 
 * `interval` (sec): 포인트 간 간격 (예: `dt_sec`)
 * `time_from_start` (sec): 시작 기준 시간 (예: `index * dt_sec`)
-  ※ 서버 구현에 따라 이 필드는 **누락 시 오류**가 날 수 있으므로 포함을 권장합니다.
+  * 서버 구현에 따라 이 필드는 **누락 시 오류**가 날 수 있으므로 포함을 권장합니다.
 * `look_ahead_time` (sec): 제어 선행 시간
 * `point` (deg): joint 각도 리스트
 

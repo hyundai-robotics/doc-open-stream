@@ -12,7 +12,7 @@
 5. `monitor_data`(스트림 데이터) 수신 처리
 6. 예제 종료 (연결 종료)
 
-※ 실제 운용에서는 스트리밍 종료 시 `STOP target=monitor`를 전송하는 것이 권장됩니다. (STOP 예제에서 다룹니다)
+* 실제 운용에서는 스트리밍 종료 시 `STOP target=monitor`를 전송하는 것이 권장됩니다. (STOP 예제에서 다룹니다)
 
 <br>
 <h4 style="font-size:16px; font-weight:bold;">준비물</h4>

@@ -1,7 +1,7 @@
 ﻿## 2.1 NDJSON 이란?
 
 Open Stream은 메시지 프레이밍을 위해 **NDJSON(Newline Delimited JSON)** 을 사용합니다.  
-즉, “한 줄 = 하나의 JSON 메시지” 입니다.
+즉, "한 줄 = 하나의 JSON 메시지" 입니다.
 
 <h4 style="font-size:15px; font-weight:bold;">1. 메시지 프레이밍</h4>
 

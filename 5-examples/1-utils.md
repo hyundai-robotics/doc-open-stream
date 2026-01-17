@@ -8,8 +8,8 @@
 아래 코드는 <b>설명용 샘플이 아니라 실제로 동작하는 코드</b>이며,
 사용자는 이를 그대로 복사하여 자신의 프로젝트에 사용할 수 있습니다.
 
-※ 본 예제는 이해와 재현성을 위해
-<b>“수신 스레드 + 블로킹 소켓(timeout)” 방식</b>으로 구성했습니다.
+* 본 예제는 이해와 재현성을 위해
+<b>"수신 스레드 + 블로킹 소켓(timeout)" 방식</b>으로 구성했습니다.
 
 {% endhint %}
 
@@ -158,7 +158,7 @@ NDJSON(Newline Delimited JSON) 스트림을 <b>라인 단위 JSON 객체</b>로 
   (2) 각 라인을 UTF-8로 디코딩한 뒤 `json.loads()`로 파싱합니다.  
   (3) JSON 파싱 실패 시 에러 로그를 남기고 해당 라인을 스킵합니다.
 
-이 모듈은 “수신(raw bytes)”과 “메시지(dict)” 사이의 경계 처리를 표준화합니다.
+이 모듈은 "수신(raw bytes)"과 "메시지(dict)" 사이의 경계 처리를 표준화합니다.
 
 <details><summary>Click to check the python code</summary>
 
@@ -244,12 +244,12 @@ class Dispatcher:
 <h4 style="font-size:16px; font-weight:bold;">utils/motion.py</h4>
 
 `motion.py`는 CONTROL 예제에서 사용할 **joint trajectory 생성/재사용** 기능을 제공합니다.  
-핵심 목적은 “CONTROL 전송 로직(control.md)”에서 **trajectory 생성 로직을 분리**하여 문서를 짧게 유지하는 것입니다.
+핵심 목적은 "CONTROL 전송 로직(control.md)"에서 **trajectory 생성 로직을 분리**하여 문서를 짧게 유지하는 것입니다.
 
-- CONTROL 전송은 “통신/타이밍/스키마”가 복잡해지기 쉬운데,
+- CONTROL 전송은 "통신/타이밍/스키마"가 복잡해지기 쉬운데,
   trajectory 생성까지 섞이면 예제가 너무 길어집니다.
 - 따라서 trajectory는 `motion.py`에서 생성하고,
-  control 예제는 “생성된 points를 일정 간격으로 보내는 것”에 집중합니다.
+  control 예제는 "생성된 points를 일정 간격으로 보내는 것"에 집중합니다.
 
 역할1. **단위 변환**
    - `rad_to_deg(rad_list) -> deg_list`
@@ -364,7 +364,7 @@ def load_trajectory(path: str) -> Tuple[float, List[List[float]]]:
 Open Stream 프로토콜 메시지의 JSON 구조를 <b>일관되게 생성</b>하는 얇은 래퍼입니다.
 
 - <b>역할</b>  
-  (1) 예제 스크립트가 “JSON 스키마”를 반복 작성하지 않도록 합니다.  
+  (1) 예제 스크립트가 "JSON 스키마"를 반복 작성하지 않도록 합니다.  
   (2) `cmd`(HANDSHAKE/MONITOR/CONTROL/STOP) 별 payload 구조를 표준화합니다.
 
 - <b>중요</b>  
@@ -513,6 +513,6 @@ class OpenStreamAPI:
 <h4 style="font-size:16px; font-weight:bold;">요약</h4>
 
 * 위 `utils` 코드는 <b>이후 모든 예제에서 그대로 재사용</b>됩니다.
-* 별도 수정 없이 <b>복사–붙여넣기만 해도 정상 동작</b>합니다.
+* 별도 수정 없이 <b>복사-붙여넣기만 해도 정상 동작</b>합니다.
 * 다음 문서부터는 이 유틸리티를 기반으로
   <b>HANDSHAKE → MONITOR → CONTROL → STOP</b> 시나리오를 단계적으로 설명합니다.

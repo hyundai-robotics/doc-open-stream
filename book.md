@@ -1,23 +1,14 @@
-﻿# ${cont_model} Open Stream
-
-{% hint style="warning" %}
-
-본 제품 메뉴얼에 제공된 정보는 <b>HD현대로보틱스(HD Hyundai Robotics)</b>의 자산입니다.
-
-본 메뉴얼은 HD현대로보틱스의 사전 서면 동의 없이, 전체 또는 일부를 복제하거나 재배포할 수 없으며, 제3자에게 제공하거나 다른 목적으로 사용할 수 없습니다.
-
-본 메뉴얼의 내용은 사전 예고 없이 변경될 수 있습니다.
-
-
-**Copyright ⓒ 2025 by HD Hyundai Robotics**
-
-{% endhint %}
+﻿
+[__SOURCE](README.md)
+# ${cont_model} 제어기 기능설명서 - Open Stream
 
 {% hint style="warning" %}
 
 본 매뉴얼에 명시되지 않은 ${cont_model} Open Stream 기능 또는 ${cont_model} Open API 매뉴얼에 명시되지 않은 API를 사용함으로써 발생하는 어떠한 손해나 문제에 대해서도 당사는 책임을 지지 않습니다.
 
-{% endhint %}# 1. 개요
+{% endhint %}
+[__SOURCE](1-overview/README.md)
+# 1. 개요
 
 본 문서는 Open Stream을 사용하는 외부 클라이언트를 위한 사용 메뉴얼입니다.<br>
 Open Stream의 목적, 기본 개념, 전체 동작 구조와 지원되는 사용 시나리오를 설명합니다.
@@ -32,7 +23,9 @@ Open Stream의 목적, 기본 개념, 전체 동작 구조와 지원되는 사�
 
 를 이해할 수 있습니다.
 
- 📌 최신 변경 사항은 [Release Notes](../10-release-notes/README.md)를 참고하세요.## 1.1 Open Stream이란?
+ 📌 최신 변경 사항은 [Release Notes](../10-release-notes/README.md)를 참고하세요.
+[__SOURCE](1-overview/1-about-open-stream.md)
+## 1.1 Open Stream이란?
 
 해당 기능은 ${cont_model} Open API를 짧은 주기로 반복 호출하여,  
 클라이언트가 그 결과를 스트리밍 형태로 지속적으로 수신할 수 있도록 제공되는 인터페이스입니다.
@@ -85,8 +78,8 @@ Open Stream의 기본 동작 흐름은 다음과 같습니다.
   <li>서버는 <code>HANDSHAKE</code> 요청을 처리한 뒤, 프로토콜 버전이 일치하는 경우 <code>handshake_ack</code> 이벤트를 송신합니다.</li><br>
 
   <li>클라이언트는 <code>HANDSHAKE</code> 이후
-    <code>MONITOR</code> 명령을 통해 주기적 데이터 스트리밍을 요청하거나,
-    <code>CONTROL</code> 명령을 통해 단발성 요청을 수행할 수 있습니다.
+    <code>*MONITOR</code> 명령을 통해 주기적 데이터 스트리밍을 요청하거나,
+    <code>*CONTROL</code> 명령을 통해 단발성 요청을 수행할 수 있습니다.<br>
     <small>(MONITOR가 활성화된 상태에서도 CONTROL 명령을 송신할 수 있습니다.)</small>
   </li><br>
 
@@ -125,13 +118,17 @@ Open Stream은 하나의 TCP 연결 내에서 MONITOR와 CONTROL 명령을 함�
 
 단, 하나의 연결에서는 하나의 MONITOR 세션, 하나의 CONTROL 세션만 활성화할 수 있습니다.
 
-{% endhint %}## 1.2 사용 전 유의 사항
+{% endhint %}
+[__SOURCE](1-overview/2-usage-considerations.md)
+## 1.2 사용 전 유의 사항
 
 Open Stream은 실시간 제어 및 상태 수신을 효율적으로 처리하기 위한 인터페이스이지만,  
 다음과 같은 제약 및 전제를 반드시 고려해야 합니다.
 
 - Open Stream은 정주기 데이터 전달을 목표로 하지만 보장하지는 않습니다.
 - 운영체제 스케줄링, 네트워크 상태 및 클라이언트 처리 부하에 따라 주기 지연(jitter) 이 발생할 수 있습니다.
+- Open API를 활용하므로, ${cont_model} 제어기의 API 서비스 처리 시간이 길어질 경우 Open Stream 의 전체 수행 시간이 증가할 수 있습니다.
+- PLC 또는 Playback 작업이 동시에 수행되는 경우, 작업 우선순위에 따라 Open Stream 처리가 지연될 수 있습니다.
 - 하나의 TCP 연결에서는 하나의 MONITOR 세션만 활성화할 수 있습니다.
 - 모든 명령은 정의된 프로토콜 순서를 따라야 하며,  
   순서 위반 시 서버는 명령을 거부하거나 연결을 종료할 수 있습니다.
@@ -182,13 +179,15 @@ CONTROL과 MONITOR를 동시에 수행한 경우의 주기 특성을 비교한 �
 MONITOR 수신 주기는 평균 증가 및 간헐적인 지연이 발생할 수 있습니다.  
 
 - CONTROL과 MONITOR를 동시에 사용하는 환경에서는  
-MONITOR 데이터의 정주기성 저하 및 지연 발생을 전제로 시스템을 설계해야 합니다.  # 2. 프로토콜
+MONITOR 데이터의 정주기성 저하 및 지연 발생을 전제로 시스템을 설계해야 합니다.  
+[__SOURCE](2-protocol/README.md)
+# 2. 프로토콜
 
 이 섹션에서는 Open Stream이 사용하는 전송 규약(Transport)과 메시지 프레이밍 규칙을 설명합니다.
 
 {% hint style="warning" %}
 
-Open Stream은 요청–응답형 프로토콜이 아닌 **비동기 이벤트 스트림**입니다.  
+Open Stream은 요청-응답형 프로토콜이 아닌 **비동기 이벤트 스트림**입니다.  
 서버 이벤트(`data`, `*_ack`, `error`)는 클라이언트 요청과 무관하게 언제든 도착할 수 있으므로,  
 순서 의존 로직 없이 처리해야 합니다.
 
@@ -208,10 +207,12 @@ TCP 스트림 특성상, 한 번의 `recv()` 호출이 정확히 한 개의 메�
 세부 NDJSON 규칙은 아래 문서를 참고하세요.
 
 - [NDJSON 규칙](./1-ndjson.md)
+
+[__SOURCE](2-protocol/1-ndjson.md)
 ## 2.1 NDJSON 이란?
 
 Open Stream은 메시지 프레이밍을 위해 **NDJSON(Newline Delimited JSON)** 을 사용합니다.  
-즉, “한 줄 = 하나의 JSON 메시지” 입니다.
+즉, "한 줄 = 하나의 JSON 메시지" 입니다.
 
 <h4 style="font-size:15px; font-weight:bold;">1. 메시지 프레이밍</h4>
 
@@ -290,6 +291,8 @@ def recv_lines(sock):
 
 </div>
 
+
+[__SOURCE](2-protocol/2-session-and-streaming.md)
 ## 2. 세션 및 스트리밍 동작 규칙
 
 <div style="fit-content;">
@@ -321,7 +324,7 @@ Open Stream은 <b>TCP 연결 1개를 하나의 세션(Session)</b> 으로 간주
 
 {% hint style="warning" %}
 
-Open Stream은 비동기 이벤트 기반 스트리밍 방식으로, 요청–응답 순서를 보장하지 않습니다.  
+Open Stream은 비동기 이벤트 기반 스트리밍 방식으로, 요청-응답 순서를 보장하지 않습니다.  
 `data`, `*_ack`, `error` 이벤트는 서로 간의 선후 관계가 보장되지 않으므로 순서 의존 로직 없이 처리해야 합니다.
 
 {% endhint %}
@@ -336,7 +339,7 @@ Open Stream은 비동기 이벤트 기반 스트리밍 방식으로, 요청–�
 - `HANDSHAKE`는 <b>세션 초기에 수행</b>해야 합니다.
 - `HANDSHAKE` 이전에 `MONITOR` 또는 `CONTROL`을 호출하면 서버가 거부할 수 있습니다.
 - 하나의 세션에서 동시에 하나의 `MONITOR`만 활성화하는 것을 권장합니다.
-- `STOP(target=session)`은 “정상 종료 의도”를 명시하는 용도로 사용하며  
+- `STOP(target=session)`은 "정상 종료 의도"를 명시하는 용도로 사용하며  
    이후 TCP Close를 수행하는 구조를 권장합니다.
 
 <br>
@@ -397,7 +400,7 @@ Open Stream에서 사용되는 메시지는 <b>방향과 역할</b>에 따라 �
         <tr>
           <td><code>data</code></td>
           <td>MONITOR 활성 시 주기적 데이터 이벤트</td>
-          <td>Hi6 Open API 서비스 함수를 수행한 결과</td>
+          <td>${cont_model} Open API 서비스 함수를 수행한 결과</td>
         </tr>
         <tr>
           <td><code>error</code></td>
@@ -424,13 +427,13 @@ Open Stream에서 사용되는 메시지는 <b>방향과 역할</b>에 따라 �
 <h4 style="font-size:16px; font-weight:bold;">4. MONITOR 스트리밍 동작 방식</h4>
 
 `MONITOR`는 클라이언트가 전달한 레시피를 기준으로  
-서버가 지정된 주기(`period_ms`)마다 Hi6 Open API 서비스 함수를 실행하고,  
+서버가 지정된 주기(`period_ms`)마다 ${cont_model} Open API 서비스 함수를 실행하고,  
 그 결과를 `data` 이벤트로 스트리밍하는 서버 주도형 메커니즘입니다.
 
 클라이언트는 다음 사항을 전제로 구현해야 합니다.
 
 - 항상 수신 루프를 유지합니다.
-- 요청–응답의 동기적 대응을 가정하지 않습니다.
+- 요청-응답의 동기적 대응을 가정하지 않습니다.
 
 <br>
 <h4 style="font-size:16px; font-weight:bold;">5. CONTROL 명령 수행</h4>
@@ -466,7 +469,7 @@ Open Stream에서 사용되는 메시지는 <b>방향과 역할</b>에 따라 �
 - <b>무장 상태(Active MONITOR streaming)</b>  
   &rightarrow; 스트리밍이 중단된 상태가 <b>약 5초</b> 이상 지속될 경우 세션 종료
 
-※ 위 시간 값은 서버 정책 또는 운영 환경에 따라 변경될 수 있습니다.
+* 위 시간 값은 서버 정책 또는 운영 환경에 따라 변경될 수 있습니다.
 
 <br>
 <h4 style="font-size:16px; font-weight:bold;">7. 권장 아키텍쳐 </h4>
@@ -480,7 +483,9 @@ Open Stream에서 사용되는 메시지는 <b>방향과 역할</b>에 따라 �
 - 수신 루프의 단일 책임  
   &rightarrow; `\n` 기준 라인 분리  
   &rightarrow; JSON 파싱  
-  &rightarrow; `type` / `error` 기반 이벤트 라우팅# 1. Recipe 명령어
+  &rightarrow; `type` / `error` 기반 이벤트 라우팅
+[__SOURCE](3-recipe/README.md)
+# 1. Recipe 명령어
 
 Recipe 는 Open Stream에서 **클라이언트가 서버로 보내는 NDJSON 라인**을 의미합니다.  
 각 라인은 아래 형태로 전송됩니다.
@@ -555,7 +560,9 @@ Recipe 는 Open Stream에서 **클라이언트가 서버로 보내는 NDJSON 라
 | `message` | string |      Yes | 에러 설명 (human-readable)   |
 | `hint`    | string |       No | 해결을 위한 가이드 또는 예시         |
 
-</div>## 3.1 HANDSHAKE
+</div>
+[__SOURCE](3-recipe/1-handshake.md)
+## 3.1 HANDSHAKE
 
 세션 시작 직후 수행하는 **프로토콜 버전 협상** 단계입니다.  
 `HANDSHAKE` 이전에 `MONITOR`/`CONTROL`을 호출하면 서버가 거부할 수 있습니다.
@@ -641,7 +648,9 @@ Recipe 는 Open Stream에서 **클라이언트가 서버로 보내는 NDJSON 라
 - MINOR / PATCH 변경은 기존 클라이언트와의 호환성을 깨지 않습니다.
 - 버전 정책 관련 내용은 [릴리즈 노트 페이지](../10-release-notes/README.md)를 확인하십시오.
 
-</div>## 3.2 MONITOR
+</div>
+[__SOURCE](3-recipe/2-monitor.md)
+## 3.2 MONITOR
 
 클라이언트가 지정한 REST **GET** 서비스를 주기적으로 호출하고,  
 그 결과를 NDJSON 단일 라인 형태로 스트리밍하기 위한 명령입니다.
@@ -758,7 +767,7 @@ REST API(GET)를 반복 호출하고, 그 결과를 `data` 이벤트로 전송�
 | `url`       | 길이        | string | 최대 2048              | `url_too_long`                        |
 | `method`    | 필수        | string | 반드시 `"GET"`          | `missing_method`, `invalid_method`    |
 | `period_ms` | 필수        | int    | int 타입               | `missing_period_ms`, `invalid_period` |
-| `period_ms` | 범위        | int    | 2~30000, 범위 초과 시 클램프 | —                                     |
+| `period_ms` | 범위        | int    | 2~30000, 범위 초과 시 클램프 | -                                     |
 | `args`      | 타입        | object | JSON object만 허용      | `invalid_args`                        |
 
 </div>
@@ -777,10 +786,12 @@ REST API(GET)를 반복 호출하고, 그 결과를 `data` 이벤트로 전송�
 
 * MONITOR는 서버 주도형 스트리밍 메커니즘입니다.
 * `monitor_ack` 수신 여부와 관계없이 `data` 이벤트는 언제든 도착할 수 있습니다.
-* 클라이언트는 항상 수신 루프를 유지하고, `type` 기반으로 이벤트를 처리해야 합니다.## 3.3 CONTROL
+* 클라이언트는 항상 수신 루프를 유지하고, `type` 기반으로 이벤트를 처리해야 합니다.
+[__SOURCE](3-recipe/3-control.md)
+## 3.3 CONTROL
 
 CONTROL은 클라이언트가 로봇을 제어하거나 제어기 내부 데이터를 갱신하기 위해 사용하는 레시피 명령입니다.  
-내부적으로는 <b>POST / PUT / DELETE 기반의 Hi6 OpenAPI</b>를 호출하며,  
+내부적으로는 <b>POST / PUT / DELETE 기반의 ${cont_model} OpenAPI</b>를 호출하며,  
 Stream 환경에서도 기존 OpenAPI와 <b>동일한 REST 호출 경로와 유효성 검사 로직</b>이 적용됩니다.
 
 - CONTROL은 반드시 <b>HANDSHAKE 성공 이후</b>에만 사용할 수 있습니다.<br>
@@ -864,7 +875,9 @@ CONTROL 명령이 성공적으로 처리된 경우,
 <br>
 <h4 style="font-size:16px; font-weight:bold;">Watchdog Interaction</h4>
 
-- CONTROL 명령이 성공적으로 수행되면 워치독이 감시하는 최근 활동 시간이 갱신됩니다.## 3.4 STOP
+- CONTROL 명령이 성공적으로 수행되면 워치독이 감시하는 최근 활동 시간이 갱신됩니다.
+[__SOURCE](3-recipe/4-stop.md)
+## 3.4 STOP
 
 STOP은 현재 세션에서 수행 중인 동작을 중단하거나,  
 세션 종료 의도를 서버에 명시적으로 전달하기 위한 레시피 명령입니다.
@@ -960,6 +973,8 @@ STOP은 현재 세션에서 수행 중인 동작을 중단하거나,
 
 * STOP은 서버 리소스를 안전하게 정리하기 위한 명령입니다.
 * 특히 `target=session` 사용은 정상 종료 시나리오에서 권장됩니다.
+
+[__SOURCE](4-error/README.md)
 # 4. 에러 코드
 
 이 문서는 Open Stream 서버가 반환할 수 있는 **에러 코드(error code)** 와 그 의미를 설명합니다.
@@ -1086,7 +1101,9 @@ STOP 요청 처리 중 발생하는 에러입니다.
 
 - 복구 가능 여부는 각 에러의 "Client Action"을 기준으로 판단하십시오.
 
-</div># 5. 예제
+</div>
+[__SOURCE](5-examples/README.md)
+# 5. 예제
 
 {% hint style="info" %}
 
@@ -1151,6 +1168,8 @@ OpenStreamClient/
 
 - 본 예제는 Open Stream 프로토콜의 이해를 돕기 위해  
 의도적으로 외부 의존성을 최소화했습니다.
+
+[__SOURCE](5-examples/1-utils.md)
 ## 5.1 공통 유틸리티 (utils)
 
 {% hint style="info" %}
@@ -1161,8 +1180,8 @@ OpenStreamClient/
 아래 코드는 <b>설명용 샘플이 아니라 실제로 동작하는 코드</b>이며,
 사용자는 이를 그대로 복사하여 자신의 프로젝트에 사용할 수 있습니다.
 
-※ 본 예제는 이해와 재현성을 위해
-<b>“수신 스레드 + 블로킹 소켓(timeout)” 방식</b>으로 구성했습니다.
+* 본 예제는 이해와 재현성을 위해
+<b>"수신 스레드 + 블로킹 소켓(timeout)" 방식</b>으로 구성했습니다.
 
 {% endhint %}
 
@@ -1311,7 +1330,7 @@ NDJSON(Newline Delimited JSON) 스트림을 <b>라인 단위 JSON 객체</b>로 
   (2) 각 라인을 UTF-8로 디코딩한 뒤 `json.loads()`로 파싱합니다.  
   (3) JSON 파싱 실패 시 에러 로그를 남기고 해당 라인을 스킵합니다.
 
-이 모듈은 “수신(raw bytes)”과 “메시지(dict)” 사이의 경계 처리를 표준화합니다.
+이 모듈은 "수신(raw bytes)"과 "메시지(dict)" 사이의 경계 처리를 표준화합니다.
 
 <details><summary>Click to check the python code</summary>
 
@@ -1397,12 +1416,12 @@ class Dispatcher:
 <h4 style="font-size:16px; font-weight:bold;">utils/motion.py</h4>
 
 `motion.py`는 CONTROL 예제에서 사용할 **joint trajectory 생성/재사용** 기능을 제공합니다.  
-핵심 목적은 “CONTROL 전송 로직(control.md)”에서 **trajectory 생성 로직을 분리**하여 문서를 짧게 유지하는 것입니다.
+핵심 목적은 "CONTROL 전송 로직(control.md)"에서 **trajectory 생성 로직을 분리**하여 문서를 짧게 유지하는 것입니다.
 
-- CONTROL 전송은 “통신/타이밍/스키마”가 복잡해지기 쉬운데,
+- CONTROL 전송은 "통신/타이밍/스키마"가 복잡해지기 쉬운데,
   trajectory 생성까지 섞이면 예제가 너무 길어집니다.
 - 따라서 trajectory는 `motion.py`에서 생성하고,
-  control 예제는 “생성된 points를 일정 간격으로 보내는 것”에 집중합니다.
+  control 예제는 "생성된 points를 일정 간격으로 보내는 것"에 집중합니다.
 
 역할1. **단위 변환**
    - `rad_to_deg(rad_list) -> deg_list`
@@ -1517,7 +1536,7 @@ def load_trajectory(path: str) -> Tuple[float, List[List[float]]]:
 Open Stream 프로토콜 메시지의 JSON 구조를 <b>일관되게 생성</b>하는 얇은 래퍼입니다.
 
 - <b>역할</b>  
-  (1) 예제 스크립트가 “JSON 스키마”를 반복 작성하지 않도록 합니다.  
+  (1) 예제 스크립트가 "JSON 스키마"를 반복 작성하지 않도록 합니다.  
   (2) `cmd`(HANDSHAKE/MONITOR/CONTROL/STOP) 별 payload 구조를 표준화합니다.
 
 - <b>중요</b>  
@@ -1666,9 +1685,11 @@ class OpenStreamAPI:
 <h4 style="font-size:16px; font-weight:bold;">요약</h4>
 
 * 위 `utils` 코드는 <b>이후 모든 예제에서 그대로 재사용</b>됩니다.
-* 별도 수정 없이 <b>복사–붙여넣기만 해도 정상 동작</b>합니다.
+* 별도 수정 없이 <b>복사-붙여넣기만 해도 정상 동작</b>합니다.
 * 다음 문서부터는 이 유틸리티를 기반으로
   <b>HANDSHAKE → MONITOR → CONTROL → STOP</b> 시나리오를 단계적으로 설명합니다.
+
+[__SOURCE](5-examples/2-handshake.md)
 ## 5.2 HANDSHAKE 예제
 
 이 예제는 Open Stream 세션을 시작하기 위한 가장 기본적인 흐름을 제공합니다.
@@ -1816,6 +1837,8 @@ $python3 main.py handshake --host 192.168.1.150 --port 49000 --major 1
 </div>
 
 - 참고 : 에러가 발생하면 `{ "error": "...", "message": "...", "hint": "..." }` 형태로 수신됩니다.
+
+[__SOURCE](5-examples/3-monitor.md)
 ## 5.3 MONITOR 예제
 
 이 예제는 Open Stream 세션에서 **MONITOR 스트리밍**을 시작하고,
@@ -1830,7 +1853,7 @@ $python3 main.py handshake --host 192.168.1.150 --port 49000 --major 1
 5. `monitor_data`(스트림 데이터) 수신 처리
 6. 예제 종료 (연결 종료)
 
-※ 실제 운용에서는 스트리밍 종료 시 `STOP target=monitor`를 전송하는 것이 권장됩니다. (STOP 예제에서 다룹니다)
+* 실제 운용에서는 스트리밍 종료 시 `STOP target=monitor`를 전송하는 것이 권장됩니다. (STOP 예제에서 다룹니다)
 
 <br>
 <h4 style="font-size:16px; font-weight:bold;">준비물</h4>
@@ -2012,6 +2035,8 @@ python3 main.py monitor --host 192.168.1.150 --port 49000 --major 1 --url /proje
 
 * 참고 : 에러가 발생하면 `{ "error": "...", "message": "...", "hint": "..." }` 형태로 수신됩니다.
 * 참고 : `monitor_data`의 payload 스키마(`ts`, `value` 등)는 서버 구현에 따라 달라질 수 있으므로, 실제 메시지 구조에 맞게 출력/파싱 로직을 조정하십시오.
+
+[__SOURCE](5-examples/4-control.md)
 ## 5.4 CONTROL 예제 (Joint Trajectory)
 
 {% hint style="info" %}
@@ -2080,7 +2105,7 @@ OpenStreamClient/
 
 * `interval` (sec): 포인트 간 간격 (예: `dt_sec`)
 * `time_from_start` (sec): 시작 기준 시간 (예: `index * dt_sec`)
-  ※ 서버 구현에 따라 이 필드는 **누락 시 오류**가 날 수 있으므로 포함을 권장합니다.
+  * 서버 구현에 따라 이 필드는 **누락 시 오류**가 날 수 있으므로 포함을 권장합니다.
 * `look_ahead_time` (sec): 제어 선행 시간
 * `point` (deg): joint 각도 리스트
 
@@ -2396,7 +2421,9 @@ if __name__ == "__main__":
 
 * CONTROL은 로봇 제어 메시지를 전송하는 프로토콜 명령입니다.
 * Trajectory 생성/저장은 `utils/motion.py`에 분리하여, control 예제는 **전송 로직**에 집중합니다.
-* `joint_traject_insert_point` 전송 시 `time_from_start`를 포함하고, `dt` 기반으로 증가시키는 것을 권장합니다.## 5.5 STOP 예제 (Session / Stream 종료)
+* `joint_traject_insert_point` 전송 시 `time_from_start`를 포함하고, `dt` 기반으로 증가시키는 것을 권장합니다.
+[__SOURCE](5-examples/5-stop.md)
+## 5.5 STOP 예제 (Session / Stream 종료)
 
 {% hint style="info" %}
 
@@ -2435,7 +2462,7 @@ STOP 명령은 `target` 필드로 종료 대상을 지정합니다.
 | `control`  | CONTROL 스트림만 중단 |
 | `monitor`  | MONITOR 스트림만 중단 |
 
-※ 구현/버전에 따라 `control`, `monitor`는 선택적으로 지원될 수 있으며,  
+* 구현/버전에 따라 `control`, `monitor`는 선택적으로 지원될 수 있으며,  
 가장 안전한 방법은 `session` 종료입니다.
 
 ---
@@ -2612,19 +2639,23 @@ python main.py stop --host 192.168.1.150 --port 49000 --target monitor
 
 * STOP은 로봇 제어/모니터링을 **안전하게 종료**하기 위한 명령입니다.
 * CONTROL trajectory 전송 중에는 반드시 STOP으로 종료하는 것을 권장합니다.
-* 가장 안전한 기본 사용법은 `target=session` 입니다.# 9. FAQ
+* 가장 안전한 기본 사용법은 `target=session` 입니다.
+[__SOURCE](9-faq/README.md)
+# 9. FAQ
 
 ## Q1. 왜 HANDSHAKE를 먼저 해야 하나요?
 A. 서버는 handshake_ok 상태가 아니면 MONITOR/CONTROL/STOP에 대해 412(handshake_required)를 반환합니다.
 
 ## Q2. CONTROL 성공인데 응답이 없어요.
-A. 정상입니다. CONTROL이 HTTP 200이면 응답 라인을 비워 “전송하지 않음”으로 처리합니다.
+A. 정상입니다. CONTROL이 HTTP 200이면 응답 라인을 비워 "전송하지 않음"으로 처리합니다.
 
 ## Q3. MONITOR method는 POST/PUT이 가능한가요?
 A. 불가합니다. MONITOR payload의 method는 반드시 "GET" 이어야 합니다.
 
 ## Q4. url에 공백이 있으면?
 A. 거부됩니다. url은 공백을 포함할 수 없습니다.
+
+[__SOURCE](10-release-notes/README.md)
 <h2 style="display:flex; align-items:center; gap:8px;">
   10. 릴리즈 노트
 </h2>
@@ -2683,8 +2714,10 @@ A. 거부됩니다. url은 공백을 포함할 수 없습니다.
 상세한 사용 방법이나 프로토콜 설명은 본 문서의 각 레퍼런스 섹션을 따릅니다.
 
 릴리즈 간 동작 변경 사항이 있는 경우, 기존 시스템에 영향을 줄 수 있으므로<br>
-업데이트 전 반드시 해당 버전의 릴리즈 노트를 확인하시기 바랍니다.<h2 style="display:flex; align-items:center; gap:8px;">
-  Release Notes – v1.0.0
+업데이트 전 반드시 해당 버전의 릴리즈 노트를 확인하시기 바랍니다.
+[__SOURCE](10-release-notes/1-0-0.md)
+<h2 style="display:flex; align-items:center; gap:8px;">
+  Release Notes - v1.0.0
   <span style="
     font-size:14px;
     font-weight:bold;

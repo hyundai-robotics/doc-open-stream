@@ -1,17 +1,4 @@
-﻿# ${cont_model} Open Stream
-
-{% hint style="warning" %}
-
-본 제품 메뉴얼에 제공된 정보는 <b>HD현대로보틱스(HD Hyundai Robotics)</b>의 자산입니다.
-
-본 메뉴얼은 HD현대로보틱스의 사전 서면 동의 없이, 전체 또는 일부를 복제하거나 재배포할 수 없으며, 제3자에게 제공하거나 다른 목적으로 사용할 수 없습니다.
-
-본 메뉴얼의 내용은 사전 예고 없이 변경될 수 있습니다.
-
-
-**Copyright ⓒ 2025 by HD Hyundai Robotics**
-
-{% endhint %}
+﻿# ${cont_model} 제어기 기능설명서 - Open Stream
 
 {% hint style="warning" %}
 
