@@ -1,4 +1,4 @@
-## 1.2 Usage Considerations
+﻿## 1.2 Usage Considerations
 
 Open Stream is designed to efficiently handle real-time control and status monitoring.  
 However, the following constraints and assumptions must be carefully considered.
@@ -41,7 +41,7 @@ Summary of Results
 
 | **Test Conditions** | **Periodic Characteristics** |
 | --- | --- |
-| - CONTROL period: 2 ms<br>- MONITOR period: 2 ms<br>- CONTROL and MONITOR active simultaneously | - CONTROL (SEND): <u><b>Average period ~2.0 ms</b></u>, max delay ~30–40 ms<br>- MONITOR (RECV): <u><b>Average period ~2.1–2.2 ms</b></u>, max delay from tens of ms up to >100 ms |
+| - CONTROL period: 2 ms<br>- MONITOR period: 2 ms<br>- CONTROL and MONITOR active simultaneously | - CONTROL (SEND): <u><b>Average period ~2.0 ms</b></u>, max delay ~30-40 ms<br>- MONITOR (RECV): <u><b>Average period ~2.1-2.2 ms</b></u>, max delay from tens of ms up to >100 ms |
 
 </div>
 

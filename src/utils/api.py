@@ -1,4 +1,4 @@
-# utils/api.py
+﻿# utils/api.py
 import json
 from typing import Any, Dict, Optional
 

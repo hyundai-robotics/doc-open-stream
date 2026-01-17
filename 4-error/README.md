@@ -1,4 +1,4 @@
-# 4. Error Codes
+﻿# 4. Error Codes
 
 This document describes the **error codes** that can be returned by the Open Stream server and their meanings.
 

@@ -1,18 +1,6 @@
-﻿# ${cont_model} Open Stream
-
-{% hint style="warning" %}
-
-The information provided in this product manual is the property of <b>HD Hyundai Robotics</b>.
-
-This manual may not be reproduced or redistributed, in whole or in part, without prior written consent from HD Hyundai Robotics,  
-and may not be provided to third parties or used for any other purpose.
-
-The contents of this manual are subject to change without prior notice.
-
-
-**Copyright ⓒ 2025 by HD Hyundai Robotics**
-
-{% endhint %}
+﻿
+[__SOURCE](README.md)
+# ${cont_model} Controller Function Manual - Open Stream
 
 {% hint style="warning" %}
 
@@ -20,6 +8,8 @@ HD Hyundai Robotics shall not be held responsible for any damages or issues aris
 ${cont_model} Open Stream features not specified in this manual, or APIs not documented in the ${cont_model} Open API manual.
 
 {% endhint %}
+
+[__SOURCE](1-overview/README.md)
 # 1. Overview
 
 This document is a user guide for external clients that use Open Stream.  
@@ -34,6 +24,8 @@ Through this document, readers will understand:
 
 📌 For the latest updates and changes, please refer to the [Release Notes](../10-release-notes/README.md)
 
+
+[__SOURCE](1-overview/1-about-open-stream.md)
 ## 1.1 What is Open Stream?
 
 Open Stream is an interface that allows clients to continuously receive results in a streaming manner  
@@ -126,6 +118,8 @@ Open Stream allows MONITOR and CONTROL commands to be used together within a sin
 However, within a single connection, **only one MONITOR session and one CONTROL session** can be active at the same time.
 
 {% endhint %}
+
+[__SOURCE](1-overview/2-usage-considerations.md)
 ## 1.2 Usage Considerations
 
 Open Stream is designed to efficiently handle real-time control and status monitoring.  
@@ -134,6 +128,8 @@ However, the following constraints and assumptions must be carefully considered.
 - Open Stream targets periodic data delivery but does **not guarantee strict determinism**.
 - Periodic jitter may occur depending on operating system scheduling, network conditions,
   and client-side processing load.
+- Since Open Stream is based on Open APIs, the execution time of Open Stream may be affected by the API service processing time of the ${cont_model} controller.
+- When PLC or Playback tasks are running concurrently, Open Stream execution may be delayed depending on system task priorities.
 - Only **one MONITOR session** can be active per TCP connection.
 - All commands must follow the defined protocol order.
   Violating the order may result in command rejection or connection termination.
@@ -167,7 +163,7 @@ Summary of Results
 
 | **Test Conditions** | **Periodic Characteristics** |
 | --- | --- |
-| - CONTROL period: 2 ms<br>- MONITOR period: 2 ms<br>- CONTROL and MONITOR active simultaneously | - CONTROL (SEND): <u><b>Average period ~2.0 ms</b></u>, max delay ~30–40 ms<br>- MONITOR (RECV): <u><b>Average period ~2.1–2.2 ms</b></u>, max delay from tens of ms up to >100 ms |
+| - CONTROL period: 2 ms<br>- MONITOR period: 2 ms<br>- CONTROL and MONITOR active simultaneously | - CONTROL (SEND): <u><b>Average period ~2.0 ms</b></u>, max delay ~30-40 ms<br>- MONITOR (RECV): <u><b>Average period ~2.1-2.2 ms</b></u>, max delay from tens of ms up to >100 ms |
 
 </div>
 
@@ -179,13 +175,15 @@ Summary of Results
 - When CONTROL and MONITOR are used concurrently, CONTROL sessions are processed with higher priority depending on system design.
 - As a result, CONTROL periodic stability is maintained, while MONITOR reception periods may increase and experience intermittent delays.
 - Systems using both CONTROL and MONITOR must be designed assuming potential degradation and jitter in MONITOR periodicity.
+
+[__SOURCE](2-protocol/README.md)
 # 2. Protocol
 
 This section describes the transport protocol and message framing rules used by Open Stream.
 
 > **Warning**
 >
-> Open Stream is not a request–response protocol but an **event stream**.  
+> Open Stream is not a request-response protocol but an **event stream**.  
 > Server events (`data`, `*_ack`, `error`) may arrive at any time regardless of client requests,  
 > so client logic must be implemented without relying on message ordering.
 
@@ -201,6 +199,8 @@ This section describes the transport protocol and message framing rules used by 
 For detailed NDJSON rules, refer to the document below.
 
 - [NDJSON Specification](./1-ndjson.md)
+
+[__SOURCE](2-protocol/1-ndjson.md)
 ## 2.1 What is NDJSON?
 
 Open Stream uses **NDJSON (Newline Delimited JSON)** for message framing.  
@@ -275,6 +275,8 @@ def recv_lines(sock):
                 yield line.decode("utf-8", errors="replace")
 ```
 </div>
+
+[__SOURCE](2-protocol/2-session-and-streaming.md)
 ## 2. Session and Streaming Rules
 
 <div style="fit-content;">
@@ -305,7 +307,7 @@ A typical session flow is as follows:
 
 {% hint style="warning" %}
 
-Open Stream is an event-driven streaming protocol and does not guarantee request–response ordering.  
+Open Stream is an event-driven streaming protocol and does not guarantee request-response ordering.  
 Since the arrival order between `data`, `*_ack`, and `error` events is not guaranteed, clients must handle events without relying on message order.
 
 {% endhint %}
@@ -319,7 +321,7 @@ The following rules must be followed to use Open Stream correctly.
 
 - `HANDSHAKE` must be performed <b>at the beginning of the session</b>.
 - If `MONITOR` or `CONTROL` is called before `HANDSHAKE`, the server may reject the request.
-- `STOP(target=session)` is used to explicitly indicate “graceful termination intent,” and it is recommended to close the TCP connection afterward.
+- `STOP(target=session)` is used to explicitly indicate "graceful termination intent," and it is recommended to close the TCP connection afterward.
 
 <br>
 <h4 style="font-size:16px; font-weight:bold;">3. Message Direction</h4>
@@ -379,7 +381,7 @@ Messages used in Open Stream are categorized as follows based on <b>direction an
         <tr>
           <td><code>data</code></td>
           <td>Periodic data event while MONITOR is active</td>
-          <td>Result of executing the Hi6 Open API service function</td>
+          <td>Result of executing the ${cont_model} Open API service function</td>
         </tr>
         <tr>
           <td><code>error</code></td>
@@ -393,7 +395,7 @@ Messages used in Open Stream are categorized as follows based on <b>direction an
   {% hint style="info" %}
 
   Server → Client events may <b>not correspond 1:1 with client</b> requests.  
-  While `*_ack` and `error` follow a request–response pattern,  
+  While `*_ack` and `error` follow a request-response pattern,  
   `data` events generated by MONITOR are streamed independently.  
   The client must always keep the receive loop running.
 
@@ -405,7 +407,7 @@ Messages used in Open Stream are categorized as follows based on <b>direction an
 <div style="max-width:fit-content;">
 
 
-| Request–Response | Streaming |
+| Request-Response | Streaming |
 |---|---|
 | Client → `HANDSHAKE/MONITOR/CONTROL/STOP` → Server<br>Client ← `*_ack`, `error` ← Server | (after `monitor_ack`)<br>Server → `data` → Client<br>Server → `data` → Client<br>... |
 </div>
@@ -414,13 +416,13 @@ Messages used in Open Stream are categorized as follows based on <b>direction an
 <h4 style="font-size:16px; font-weight:bold;">4. MONITOR Streaming Behavior</h4>
 
 `MONITOR` is a server-driven mechanism where, based on the recipe provided by the client,  
-the server executes the Hi6 Open API service function at the specified interval (`period_ms`)  
+the server executes the ${cont_model} Open API service function at the specified interval (`period_ms`)  
 and streams the result as `data` events.
 
 Clients must be implemented with the following assumptions.
 
 - Always keep the receive loop running.
-- Do not assume synchronous request–response pairing.
+- Do not assume synchronous request-response pairing.
 
 <br>
 <h4 style="font-size:16px; font-weight:bold;">5. CONTROL Command Execution</h4>
@@ -456,7 +458,7 @@ In the current server implementation, the following policies apply.
 - <b>Armed state (Active MONITOR streaming)</b>  
   &rightarrow; Session is terminated if streaming remains interrupted for more than approximately <b>5 seconds</b>
 
-※ The above time values may change depending on server policy or operating environment.
+* The above time values may change depending on server policy or operating environment.
 
 <br>
 <h4 style="font-size:16px; font-weight:bold;">7. Recommended Architecture </h4>
@@ -471,6 +473,8 @@ For practical implementations, the following structure is recommended.
   &rightarrow; Split lines by `\n`  
   &rightarrow; JSON parsing  
   &rightarrow; Event routing based on `type` / `error`
+
+[__SOURCE](3-recipe/README.md)
 # 1. Recipe Commands
 
 A **Recipe** refers to an **NDJSON line sent from the client to the server** in Open Stream.  
@@ -547,6 +551,8 @@ The meaning of each message field is as follows.
 | `hint` | string | No | Guidance or example for resolution |
 
 </div>
+
+[__SOURCE](3-recipe/1-handshake.md)
 ## 3.1 HANDSHAKE
 
 This is the **protocol version negotiation** step performed immediately after a session starts.  
@@ -632,6 +638,8 @@ If `MONITOR` or `CONTROL` is called before `HANDSHAKE`, the server may reject th
 - The server validates **only the MAJOR version**.
 - MINOR / PATCH changes do not break compatibility with existing clients.
 - For version policy details, refer to the [Release Notes](../10-release-notes/README.md).
+
+[__SOURCE](3-recipe/2-monitor.md)
 ## 3.2 MONITOR
 
 This command periodically invokes a client-specified REST **GET** service  
@@ -748,7 +756,7 @@ All error responses follow the common NDJSON error schema.
 | `url` | Length | string | Max 2048 | `url_too_long` |
 | `method` | Required | string | Must be `"GET"` | `missing_method`, `invalid_method` |
 | `period_ms` | Required | int | Must be int | `missing_period_ms`, `invalid_period` |
-| `period_ms` | Range | int | 2~30000, clamp if out of range | — |
+| `period_ms` | Range | int | 2~30000, clamp if out of range | - |
 | `args` | Type | object | JSON object only | `invalid_args` |
 
 </div>
@@ -768,10 +776,12 @@ All error responses follow the common NDJSON error schema.
 * MONITOR is a server-driven streaming mechanism.
 * `data` events may arrive at any time, regardless of whether `monitor_ack` has been received.
 * The client must always keep a receive loop running and handle events based on the `type` field.
+
+[__SOURCE](3-recipe/3-control.md)
 ## 3.3 CONTROL
 
 CONTROL is a recipe command used by the client to control the robot or update internal controller data.  
-Internally, it invokes <b>POST / PUT / DELETE–based Hi6 OpenAPI</b>, and even in the Stream environment,  
+Internally, it invokes <b>POST / PUT / DELETE-based ${cont_model} OpenAPI</b>, and even in the Stream environment,  
 the <b>same REST paths and validation logic</b> as the existing OpenAPI are applied.
 
 - CONTROL can be used **only after a successful HANDSHAKE**.<br>
@@ -856,6 +866,8 @@ If an error occurs, the server sends a `control_err` event to the current sessio
 <h4 style="font-size:16px; font-weight:bold;">Watchdog Interaction</h4>
 
 - When a CONTROL command is executed successfully, the watchdog updates the last-activity timestamp it monitors.
+
+[__SOURCE](3-recipe/4-stop.md)
 ## 3.4 STOP
 
 STOP is a recipe command used to interrupt ongoing operations in the current session  
@@ -949,6 +961,8 @@ All error responses follow the common NDJSON error schema.
 
 * STOP is intended to safely release server resources.
 * Using `target=session` is strongly recommended for graceful shutdown scenarios.
+
+[__SOURCE](4-error/README.md)
 # 4. Error Codes
 
 This document describes the **error codes** that can be returned by the Open Stream server and their meanings.
@@ -1076,6 +1090,8 @@ Clients are recommended to:
 - Determine recoverability based on the "Client Action" column for each error.
 
 </div>
+
+[__SOURCE](5-examples/README.md)
 # 5. Examples
 
 {% hint style="info" %}
@@ -1142,6 +1158,8 @@ OpenStreamClient/
 
 - These examples intentionally minimize external dependencies  
   to focus on understanding the Open Stream protocol itself.
+
+[__SOURCE](5-examples/1-utils.md)
 ## 5.1 Common Utilities (utils)
 
 {% hint style="info" %}
@@ -1672,7 +1690,7 @@ It parses common options (host/port/major, etc.) and dispatches to the correspon
 <details><summary>Click to check the python code</summary>
 
 ```python
-import argparse
+﻿import argparse
 
 from scenarios import handshake as sc_handshake
 from scenarios import monitor as sc_monitor
@@ -1757,6 +1775,8 @@ if __name__ == "__main__":
 * It works correctly with <b>copy-and-paste only</b>, without modification.
 * Starting from the next document, step-by-step scenarios for  
   <b>HANDSHAKE → MONITOR → CONTROL → STOP</b> will be explained using these utilities.
+
+[__SOURCE](5-examples/2-handshake.md)
 ## 5.2 HANDSHAKE Example
 
 This example demonstrates the most basic flow required to start an Open Stream session.
@@ -1902,6 +1922,8 @@ $ python3 main.py handshake --host 192.168.1.150 --port 49000 --major 1
 
 - Note: If an error occurs, it will be received in the form  
   `{ "error": "...", "message": "...", "hint": "..." }`.
+
+[__SOURCE](5-examples/3-monitor.md)
 ## 5.3 MONITOR Example
 
 This example demonstrates the basic flow for starting **MONITOR streaming**  
@@ -1916,7 +1938,7 @@ in an Open Stream session and processing periodically received data.
 5. Process streamed `monitor_data`  
 6. Exit example (close connection)
 
-※ In real operation, it is recommended to send `STOP target=monitor` when terminating streaming  
+* In real operation, it is recommended to send `STOP target=monitor` when terminating streaming  
 (this is covered in the STOP example).
 
 <br>
@@ -2094,6 +2116,8 @@ python3 main.py monitor --host 192.168.1.150 --port 49000 --major 1 --url /proje
 
 * Note: Errors are received in the form `{ "error": "...", "message": "...", "hint": "..." }`.  
 * Note: The payload schema of `monitor_data` (`ts`, `value`, etc.) may vary depending on server implementation.
+
+[__SOURCE](5-examples/4-control.md)
 ## 5.4 CONTROL Example (Joint Trajectory)
 
 {% hint style="info" %}
@@ -2161,7 +2185,7 @@ It is recommended that `joint_traject_insert_point` includes the following field
 
 * `interval` (sec): interval between points (e.g. `dt_sec`)
 * `time_from_start` (sec): time offset from start (e.g. `index * dt_sec`)
-  ※ Depending on server implementation, **omitting this field may cause errors**, so it is recommended to include it.
+  * Depending on server implementation, **omitting this field may cause errors**, so it is recommended to include it.
 * `look_ahead_time` (sec): controller look-ahead time
 * `point` (deg): list of joint angles
 
@@ -2480,6 +2504,8 @@ Output may vary by environment, but you should generally observe the following f
 * CONTROL is the protocol command used to transmit robot control messages.
 * Trajectory generation and storage are separated into `utils/motion.py`, so the control example focuses on the **transmission logic**.
 * When sending `joint_traject_insert_point`, it is recommended to include `time_from_start` and increment it based on `dt`.
+
+[__SOURCE](5-examples/5-stop.md)
 ## 5.5 STOP Example (Session / Stream Termination)
 
 {% hint style="info" %}
@@ -2519,7 +2545,7 @@ The STOP command specifies its termination scope using the `target` field.
 | `control`  | Terminate only the CONTROL stream |
 | `monitor`  | Terminate only the MONITOR stream |
 
-※ Depending on implementation or version, `control` and `monitor` may be optional.  
+* Depending on implementation or version, `control` and `monitor` may be optional.  
 The safest approach is to terminate the entire `session`.
 
 ---
@@ -2699,6 +2725,8 @@ python main.py stop --host 192.168.1.150 --port 49000 --target monitor
 * STOP is a command used to **safely terminate** robot control and monitoring.
 * It is strongly recommended to terminate CONTROL trajectory transmission using STOP.
 * The safest default usage is `target=session`.
+
+[__SOURCE](9-faq/README.md)
 # 9. FAQ
 
 Q1. Why is HANDSHAKE required first?
@@ -2712,6 +2740,8 @@ A. No. The `method` field in the MONITOR payload must be **"GET"**.
 
 Q4. What if the URL contains spaces?
 A. The request is rejected. URLs must not contain spaces.
+
+[__SOURCE](10-release-notes/README.md)
 <h2 style="display:flex; align-items:center; gap:8px;">
   10. Release Notes
 </h2>
@@ -2767,8 +2797,10 @@ For detailed usage instructions or protocol descriptions, refer to the correspon
 
 If a release introduces behavioral changes, it may impact existing systems.<br>
 Always review the release notes for the target version before updating.
+
+[__SOURCE](10-release-notes/1-0-0.md)
 <h2 style="display:flex; align-items:center; gap:8px;">
-  Release Notes – v1.0.0
+  Release Notes - v1.0.0
   <span style="
     font-size:14px;
     font-weight:bold;

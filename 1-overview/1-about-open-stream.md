@@ -1,4 +1,4 @@
-## 1.1 What is Open Stream?
+﻿## 1.1 What is Open Stream?
 
 Open Stream is an interface that allows clients to continuously receive results in a streaming manner  
 by repeatedly invoking **${cont_model} Open APIs** at short intervals.

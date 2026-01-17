@@ -1,4 +1,4 @@
-## 5.3 MONITOR Example
+﻿## 5.3 MONITOR Example
 
 This example demonstrates the basic flow for starting **MONITOR streaming**  
 in an Open Stream session and processing periodically received data.
@@ -12,7 +12,7 @@ in an Open Stream session and processing periodically received data.
 5. Process streamed `monitor_data`  
 6. Exit example (close connection)
 
-※ In real operation, it is recommended to send `STOP target=monitor` when terminating streaming  
+* In real operation, it is recommended to send `STOP target=monitor` when terminating streaming  
 (this is covered in the STOP example).
 
 <br>

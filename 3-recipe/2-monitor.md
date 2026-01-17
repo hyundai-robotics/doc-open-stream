@@ -1,4 +1,4 @@
-## 3.2 MONITOR
+﻿## 3.2 MONITOR
 
 This command periodically invokes a client-specified REST **GET** service  
 and streams the results as single-line NDJSON messages.
@@ -114,7 +114,7 @@ All error responses follow the common NDJSON error schema.
 | `url` | Length | string | Max 2048 | `url_too_long` |
 | `method` | Required | string | Must be `"GET"` | `missing_method`, `invalid_method` |
 | `period_ms` | Required | int | Must be int | `missing_period_ms`, `invalid_period` |
-| `period_ms` | Range | int | 2~30000, clamp if out of range | — |
+| `period_ms` | Range | int | 2~30000, clamp if out of range | - |
 | `args` | Type | object | JSON object only | `invalid_args` |
 
 </div>

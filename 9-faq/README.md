@@ -1,4 +1,4 @@
-# 9. FAQ
+﻿# 9. FAQ
 
 Q1. Why is HANDSHAKE required first?
 A. If the server is not in the `handshake_ok` state, it returns **412 (handshake_required)** for MONITOR / CONTROL / STOP.

@@ -1,10 +1,10 @@
-# 2. Protocol
+﻿# 2. Protocol
 
 This section describes the transport protocol and message framing rules used by Open Stream.
 
 > **Warning**
 >
-> Open Stream is not a request–response protocol but an **event stream**.  
+> Open Stream is not a request-response protocol but an **event stream**.  
 > Server events (`data`, `*_ack`, `error`) may arrive at any time regardless of client requests,  
 > so client logic must be implemented without relying on message ordering.
 

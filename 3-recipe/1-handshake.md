@@ -1,4 +1,4 @@
-## 3.1 HANDSHAKE
+﻿## 3.1 HANDSHAKE
 
 This is the **protocol version negotiation** step performed immediately after a session starts.  
 If `MONITOR` or `CONTROL` is called before `HANDSHAKE`, the server may reject the request.

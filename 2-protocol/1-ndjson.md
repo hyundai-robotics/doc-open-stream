@@ -1,4 +1,4 @@
-## 2.1 What is NDJSON?
+﻿## 2.1 What is NDJSON?
 
 Open Stream uses **NDJSON (Newline Delimited JSON)** for message framing.  
 In other words, **one line equals one JSON message**.

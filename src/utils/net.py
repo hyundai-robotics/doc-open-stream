@@ -1,4 +1,4 @@
-# utils/net.py
+﻿# utils/net.py
 import socket
 import threading
 from typing import Callable, Optional

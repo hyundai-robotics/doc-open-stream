@@ -1,4 +1,4 @@
-<h2 style="display:flex; align-items:center; gap:8px;">
+﻿<h2 style="display:flex; align-items:center; gap:8px;">
   10. Release Notes
 </h2>
 

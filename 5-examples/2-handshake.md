@@ -1,4 +1,4 @@
-## 5.2 HANDSHAKE Example
+﻿## 5.2 HANDSHAKE Example
 
 This example demonstrates the most basic flow required to start an Open Stream session.
 

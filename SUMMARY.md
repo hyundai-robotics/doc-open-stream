@@ -1,6 +1,6 @@
 ﻿# Table of contents
 
-* [${cont_model} Open Stream Documentation](README.md)
+* [${cont_model} Controller Function Manual - Open Stream](README.md)
 
 * [1. Overview](1-overview/README.md)
   * [1.1 What is Open Stream?](1-overview/1-about-open-stream.md)

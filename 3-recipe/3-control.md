@@ -1,7 +1,7 @@
-## 3.3 CONTROL
+﻿## 3.3 CONTROL
 
 CONTROL is a recipe command used by the client to control the robot or update internal controller data.  
-Internally, it invokes <b>POST / PUT / DELETE–based Hi6 OpenAPI</b>, and even in the Stream environment,  
+Internally, it invokes <b>POST / PUT / DELETE-based ${cont_model} OpenAPI</b>, and even in the Stream environment,  
 the <b>same REST paths and validation logic</b> as the existing OpenAPI are applied.
 
 - CONTROL can be used **only after a successful HANDSHAKE**.<br>

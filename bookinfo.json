@@ -1,11 +1,12 @@
 ﻿{
     "langCode": "en",
-    "series": "Hi6 Open Stream",
-    "title": "Hi6 Open Stream Manual",
+    "series": "${cont_model} Controller",
+    "title": "Function Manual - Open Stream",
     "publisher": "HD Hyundai Robotics",
     "tocTitle": "Table of Contents",
     "tocTitleElements": "[ \"h1\", \"h2\" ]",
-    "variables": {
-        "cont_model": "Hi6"
-    }
+    "docId": "${cont_model:upper}OPENSTREAM_KO_001",
+    "references": [
+        { "rpath" : "doc-hi6-operation/en-tp630" }
+    ]
 }

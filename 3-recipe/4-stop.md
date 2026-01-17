@@ -1,4 +1,4 @@
-## 3.4 STOP
+﻿## 3.4 STOP
 
 STOP is a recipe command used to interrupt ongoing operations in the current session  
 or to explicitly notify the server of the intent to terminate the session.

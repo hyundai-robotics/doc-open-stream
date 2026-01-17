@@ -1,4 +1,4 @@
-# utils/parser.py
+﻿# utils/parser.py
 import json
 from typing import Callable
 

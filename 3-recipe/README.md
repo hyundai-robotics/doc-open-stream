@@ -1,4 +1,4 @@
-# 1. Recipe Commands
+﻿# 1. Recipe Commands
 
 A **Recipe** refers to an **NDJSON line sent from the client to the server** in Open Stream.  
 Each line is transmitted in the following format.

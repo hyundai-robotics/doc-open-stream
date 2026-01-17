@@ -37,7 +37,7 @@ The STOP command specifies its termination scope using the `target` field.
 | `control`  | Terminate only the CONTROL stream |
 | `monitor`  | Terminate only the MONITOR stream |
 
-※ Depending on implementation or version, `control` and `monitor` may be optional.  
+* Depending on implementation or version, `control` and `monitor` may be optional.  
 The safest approach is to terminate the entire `session`.
 
 ---

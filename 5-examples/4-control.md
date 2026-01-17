@@ -65,7 +65,7 @@ It is recommended that `joint_traject_insert_point` includes the following field
 
 * `interval` (sec): interval between points (e.g. `dt_sec`)
 * `time_from_start` (sec): time offset from start (e.g. `index * dt_sec`)
-  ※ Depending on server implementation, **omitting this field may cause errors**, so it is recommended to include it.
+  * Depending on server implementation, **omitting this field may cause errors**, so it is recommended to include it.
 * `look_ahead_time` (sec): controller look-ahead time
 * `point` (deg): list of joint angles
 
