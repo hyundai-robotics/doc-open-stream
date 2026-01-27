@@ -34,7 +34,7 @@ Stream 환경에서도 기존 OpenAPI와 <b>동일한 REST 호출 경로와 유�
 <h4 style="font-size:16px; font-weight:bold;">Response - Success (<b><u><i>no response line</i></u></b>)</h4>
 
 CONTROL 명령이 성공적으로 처리된 경우,
-<b>서버는 응답 NDJSON 라인을 전송하지 않습니다.<b>  
+<b>서버는 응답 NDJSON 라인을 전송하지 않습니다.</b>  
 클라이언트 측에서는 해당 명령어를 호출만하고 반환값을 돌려받지 않는 구조로 구현해야 합니다.
 
 * 이는 Stream 프로토콜의 설계 특성에 따른 동작입니다.

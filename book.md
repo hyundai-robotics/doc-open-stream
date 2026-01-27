@@ -293,7 +293,7 @@ def recv_lines(sock):
 
 
 [__SOURCE](2-protocol/2-session-and-streaming.md)
-## 2. 세션 및 스트리밍 동작 규칙
+## 2.2 세션 및 스트리밍 동작 규칙
 
 <div style="fit-content;">
 
@@ -485,7 +485,7 @@ Open Stream에서 사용되는 메시지는 <b>방향과 역할</b>에 따라 �
   &rightarrow; JSON 파싱  
   &rightarrow; `type` / `error` 기반 이벤트 라우팅
 [__SOURCE](3-recipe/README.md)
-# 1. Recipe 명령어
+# 3. Recipe 명령어
 
 Recipe 는 Open Stream에서 **클라이언트가 서버로 보내는 NDJSON 라인**을 의미합니다.  
 각 라인은 아래 형태로 전송됩니다.
@@ -824,7 +824,7 @@ Stream 환경에서도 기존 OpenAPI와 <b>동일한 REST 호출 경로와 유�
 <h4 style="font-size:16px; font-weight:bold;">Response - Success (<b><u><i>no response line</i></u></b>)</h4>
 
 CONTROL 명령이 성공적으로 처리된 경우,
-<b>서버는 응답 NDJSON 라인을 전송하지 않습니다.<b>  
+<b>서버는 응답 NDJSON 라인을 전송하지 않습니다.</b>  
 클라이언트 측에서는 해당 명령어를 호출만하고 반환값을 돌려받지 않는 구조로 구현해야 합니다.
 
 * 이는 Stream 프로토콜의 설계 특성에 따른 동작입니다.
@@ -2640,8 +2640,8 @@ python main.py stop --host 192.168.1.150 --port 49000 --target monitor
 * STOP은 로봇 제어/모니터링을 **안전하게 종료**하기 위한 명령입니다.
 * CONTROL trajectory 전송 중에는 반드시 STOP으로 종료하는 것을 권장합니다.
 * 가장 안전한 기본 사용법은 `target=session` 입니다.
-[__SOURCE](9-faq/README.md)
-# 9. FAQ
+[__SOURCE](6-faq/README.md)
+# 6. FAQ
 
 ## Q1. 왜 HANDSHAKE를 먼저 해야 하나요?
 A. 서버는 handshake_ok 상태가 아니면 MONITOR/CONTROL/STOP에 대해 412(handshake_required)를 반환합니다.
@@ -2655,10 +2655,8 @@ A. 불가합니다. MONITOR payload의 method는 반드시 "GET" 이어야 합�
 ## Q4. url에 공백이 있으면?
 A. 거부됩니다. url은 공백을 포함할 수 없습니다.
 
-[__SOURCE](10-release-notes/README.md)
-<h2 style="display:flex; align-items:center; gap:8px;">
-  10. 릴리즈 노트
-</h2>
+[__SOURCE](7-release-notes/README.md)
+# 7. 릴리즈 노트
 
 본 섹션은 Open Stream 인터페이스의 버전별 변경 이력을 정리한 릴리즈 노트입니다.<br>
 각 버전에서는 기능 추가, 동작 변경, 수정 사항 및 호환성 관련 정보를 제공합니다.
@@ -2715,9 +2713,9 @@ A. 거부됩니다. url은 공백을 포함할 수 없습니다.
 
 릴리즈 간 동작 변경 사항이 있는 경우, 기존 시스템에 영향을 줄 수 있으므로<br>
 업데이트 전 반드시 해당 버전의 릴리즈 노트를 확인하시기 바랍니다.
-[__SOURCE](10-release-notes/1-0-0.md)
-<h2 style="display:flex; align-items:center; gap:8px;">
-  Release Notes - v1.0.0
+[__SOURCE](7-release-notes/1-0-0.md)
+## 7.1 Release Notes - v1.0.0
+
   <span style="
     font-size:14px;
     font-weight:bold;
@@ -2728,7 +2726,7 @@ A. 거부됩니다. url은 공백을 포함할 수 없습니다.
   ">
     PREVIEW
   </span>
-</h2>
+
 
 
 {% hint style="warning" %}

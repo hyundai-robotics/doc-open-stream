@@ -1,4 +1,4 @@
-﻿# 1. Recipe 명령어
+﻿# 3. Recipe 명령어
 
 Recipe 는 Open Stream에서 **클라이언트가 서버로 보내는 NDJSON 라인**을 의미합니다.  
 각 라인은 아래 형태로 전송됩니다.

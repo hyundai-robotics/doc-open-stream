@@ -1,4 +1,4 @@
-﻿# 9. FAQ
+﻿# 6. FAQ
 
 ## Q1. 왜 HANDSHAKE를 먼저 해야 하나요?
 A. 서버는 handshake_ok 상태가 아니면 MONITOR/CONTROL/STOP에 대해 412(handshake_required)를 반환합니다.
