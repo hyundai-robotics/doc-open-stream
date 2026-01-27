@@ -24,4 +24,4 @@
   * [5.5 STOP Example](5-examples/5-stop.md)
 * [6. FAQ](6-faq/README.md)
 * [7. Release Notes](7-release-notes/README.md)
-  * [7.1 v1.0.0](7-release-notes/1-0-0.md)
+  * [7.1 v1.0.0](7-release-notes/1-v1-0-0.md)

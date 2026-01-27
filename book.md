@@ -2795,3 +2795,147 @@ For detailed usage instructions or protocol descriptions, refer to the correspon
 
 If a release introduces behavioral changes, it may impact existing systems.<br>
 Always review the release notes for the target version before updating.
+
+[__SOURCE](7-release-notes/1-v1-0-0.md)
+## 7.1 Release Notes - v1.0.0
+  <span style="
+    font-size:14px;
+    font-weight:bold;
+    padding:2px 6px;
+    border-radius:4px;
+    border:1px solid #c62828;
+    color:#c62828;
+  ">
+    PREVIEW
+  </span>
+
+
+{% hint style="warning" %}
+
+<h4 style="font-size:15px; font-weight:bold;">Status</h4>
+
+- This version is the first public release of the Open Stream interface.
+- Official release: March 2026 (planned)
+
+{% endhint %}
+
+{% hint style="info" %}
+
+<h4 style="font-size:15px; font-weight:bold;">Overview</h4>
+
+- Open Stream is a real-time streaming-based interface designed for robot control and state acquisition.
+- This release provides the core Open Stream protocol, recipe commands, and related communication rules.
+
+{% endhint %}
+
+<br>
+
+<h4 style="
+  display:inline-block;
+  padding:2px 8px;
+  border-left:4px solid rgb(255, 140, 0);
+  font-size:15px;
+  font-weight:bold;
+">
+  ✨ Added
+</h4>
+
+<ul>
+  <li>Protocol
+    <ul>
+      <li>Lightweight streaming protocol based on NDJSON</li>
+      <li>Bidirectional communication over a single TCP connection</li>
+      <li>Command-based session management model</li>
+    </ul>
+  </li>
+
+  <li>Recipe Commands
+    <ul>
+      <li>HANDSHAKE: Protocol version negotiation</li>
+      <li>MONITOR: Periodic state data streaming (millisecond-level interval)</li>
+      <li>CONTROL: Real-time control command transmission (high priority)</li>
+      <li>STOP: Terminate an active session or recipe</li>
+    </ul>
+  </li>
+</ul>
+
+<br>
+
+<h4 style="
+  display:inline-block;
+  padding:2px 6px;
+  border-left:4px solid #3F51B5;
+  font-size:15px;
+  font-weight:bold;
+">
+  🔧 Changed
+</h4>
+
+<ul>
+  <li>This is the initial public release; there are no changes compared to previous versions.</li>
+</ul>
+
+<br>
+
+<h4 style="
+  display:inline-block;
+  padding:2px 8px;
+  border-left:4px solid #2E7D32;
+  font-size:15px;
+  font-weight:bold;
+">
+  🛠 Fixed
+</h4>
+
+<ul>
+  <li>This is the initial public release; there are no fixed issues.</li>
+</ul>
+
+<br>
+
+<h4 style="
+  display:inline-block;
+  padding:2px 8px;
+  border-left:4px solid #B71C1C;
+  font-size:15px;
+  font-weight:bold;
+">
+  ❌ Deprecated
+</h4>
+
+<ul>
+  <li>This is the initial public release; there are no deprecated or removed features.</li>
+</ul>
+
+<br>
+
+<h4 style="
+  display:inline-block;
+  padding:2px 8px;
+  border-left:4px solid #9E9E9E;
+  font-size:15px;
+  font-weight:bold;
+">
+  ⚠ Caution
+</h4>
+
+<ul>
+  <li>When CONTROL and MONITOR run concurrently, real-time performance of CONTROL is prioritized.</li>
+  <li>Periodic delays may occur depending on OS scheduling and network conditions.</li>
+  <li>Only one MONITOR session can be active per TCP connection.</li>
+  <li>MONITOR data is not suitable for real-time control decisions.</li>
+  <li>Latency and jitter may occur depending on network and client performance.</li>
+</ul>
+
+<br>
+
+<h4 style="font-size:15px; font-weight:bold;">Related Documentation</h4>
+
+<ul>
+  <li><a href="../1-overview/README.md">Open Stream Overview</a></li>
+  <li><a href="../1-overview/2-usage-considerations.md">Usage Considerations</a></li>
+  <li><a href="../2-protocol/README.md">Protocol</a></li>
+  <li><a href="../3-recipe/README.md">Recipe Commands</a></li>
+  <li><a href="../5-examples/README.md">Examples</a></li>
+  <li><a href="../6-faq/README.md">FAQ</a></li>
+</ul>
