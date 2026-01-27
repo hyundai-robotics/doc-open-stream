@@ -1,4 +1,4 @@
-﻿## 2. Session and Streaming Rules
+﻿## 2.2 Session and Streaming Rules
 
 <div style="fit-content;">
 

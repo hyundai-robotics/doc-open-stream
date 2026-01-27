@@ -277,7 +277,7 @@ def recv_lines(sock):
 </div>
 
 [__SOURCE](2-protocol/2-session-and-streaming.md)
-## 2. Session and Streaming Rules
+## 2.2 Session and Streaming Rules
 
 <div style="fit-content;">
 
@@ -475,7 +475,7 @@ For practical implementations, the following structure is recommended.
   &rightarrow; Event routing based on `type` / `error`
 
 [__SOURCE](3-recipe/README.md)
-# 1. Recipe Commands
+# 3. Recipe Commands
 
 A **Recipe** refers to an **NDJSON line sent from the client to the server** in Open Stream.  
 Each line is transmitted in the following format.
@@ -2726,8 +2726,8 @@ python main.py stop --host 192.168.1.150 --port 49000 --target monitor
 * It is strongly recommended to terminate CONTROL trajectory transmission using STOP.
 * The safest default usage is `target=session`.
 
-[__SOURCE](9-faq/README.md)
-# 9. FAQ
+[__SOURCE](6-faq/README.md)
+# 6. FAQ
 
 Q1. Why is HANDSHAKE required first?
 A. If the server is not in the `handshake_ok` state, it returns **412 (handshake_required)** for MONITOR / CONTROL / STOP.
@@ -2741,10 +2741,8 @@ A. No. The `method` field in the MONITOR payload must be **"GET"**.
 Q4. What if the URL contains spaces?
 A. The request is rejected. URLs must not contain spaces.
 
-[__SOURCE](10-release-notes/README.md)
-<h2 style="display:flex; align-items:center; gap:8px;">
-  10. Release Notes
-</h2>
+[__SOURCE](7-release-notes/README.md)
+# 7. Release Notes
 
 This section summarizes the version-by-version change history of the Open Stream interface.<br>
 Each version documents feature additions, behavioral changes, fixes, and compatibility notes.
@@ -2797,149 +2795,3 @@ For detailed usage instructions or protocol descriptions, refer to the correspon
 
 If a release introduces behavioral changes, it may impact existing systems.<br>
 Always review the release notes for the target version before updating.
-
-[__SOURCE](10-release-notes/1-0-0.md)
-<h2 style="display:flex; align-items:center; gap:8px;">
-  Release Notes - v1.0.0
-  <span style="
-    font-size:14px;
-    font-weight:bold;
-    padding:2px 6px;
-    border-radius:4px;
-    border:1px solid #c62828;
-    color:#c62828;
-  ">
-    PREVIEW
-  </span>
-</h2>
-
-
-{% hint style="warning" %}
-
-<h4 style="font-size:15px; font-weight:bold;">Status</h4>
-
-- This version is the first public release of the Open Stream interface.
-- Official release: March 2026 (planned)
-
-{% endhint %}
-
-{% hint style="info" %}
-
-<h4 style="font-size:15px; font-weight:bold;">Overview</h4>
-
-- Open Stream is a real-time streaming-based interface designed for robot control and state acquisition.
-- This release provides the core Open Stream protocol, recipe commands, and related communication rules.
-
-{% endhint %}
-
-<br>
-
-<h4 style="
-  display:inline-block;
-  padding:2px 8px;
-  border-left:4px solid rgb(255, 140, 0);
-  font-size:15px;
-  font-weight:bold;
-">
-  ✨ Added
-</h4>
-
-<ul>
-  <li>Protocol
-    <ul>
-      <li>Lightweight streaming protocol based on NDJSON</li>
-      <li>Bidirectional communication over a single TCP connection</li>
-      <li>Command-based session management model</li>
-    </ul>
-  </li>
-
-  <li>Recipe Commands
-    <ul>
-      <li>HANDSHAKE: Protocol version negotiation</li>
-      <li>MONITOR: Periodic state data streaming (millisecond-level interval)</li>
-      <li>CONTROL: Real-time control command transmission (high priority)</li>
-      <li>STOP: Terminate an active session or recipe</li>
-    </ul>
-  </li>
-</ul>
-
-<br>
-
-<h4 style="
-  display:inline-block;
-  padding:2px 6px;
-  border-left:4px solid #3F51B5;
-  font-size:15px;
-  font-weight:bold;
-">
-  🔧 Changed
-</h4>
-
-<ul>
-  <li>This is the initial public release; there are no changes compared to previous versions.</li>
-</ul>
-
-<br>
-
-<h4 style="
-  display:inline-block;
-  padding:2px 8px;
-  border-left:4px solid #2E7D32;
-  font-size:15px;
-  font-weight:bold;
-">
-  🛠 Fixed
-</h4>
-
-<ul>
-  <li>This is the initial public release; there are no fixed issues.</li>
-</ul>
-
-<br>
-
-<h4 style="
-  display:inline-block;
-  padding:2px 8px;
-  border-left:4px solid #B71C1C;
-  font-size:15px;
-  font-weight:bold;
-">
-  ❌ Deprecated
-</h4>
-
-<ul>
-  <li>This is the initial public release; there are no deprecated or removed features.</li>
-</ul>
-
-<br>
-
-<h4 style="
-  display:inline-block;
-  padding:2px 8px;
-  border-left:4px solid #9E9E9E;
-  font-size:15px;
-  font-weight:bold;
-">
-  ⚠ Caution
-</h4>
-
-<ul>
-  <li>When CONTROL and MONITOR run concurrently, real-time performance of CONTROL is prioritized.</li>
-  <li>Periodic delays may occur depending on OS scheduling and network conditions.</li>
-  <li>Only one MONITOR session can be active per TCP connection.</li>
-  <li>MONITOR data is not suitable for real-time control decisions.</li>
-  <li>Latency and jitter may occur depending on network and client performance.</li>
-</ul>
-
-<br>
-
-<h4 style="font-size:15px; font-weight:bold;">Related Documentation</h4>
-
-<ul>
-  <li><a href="../1-overview/README.md">Open Stream Overview</a></li>
-  <li><a href="../1-overview/2-usage-considerations.md">Usage Considerations</a></li>
-  <li><a href="../2-protocol/README.md">Protocol</a></li>
-  <li><a href="../3-recipe/README.md">Recipe Commands</a></li>
-  <li><a href="../4-examples/README.md">Examples</a></li>
-  <li><a href="../9-faq/README.md">FAQ</a></li>
-</ul>

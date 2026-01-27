@@ -1,6 +1,4 @@
-﻿<h2 style="display:flex; align-items:center; gap:8px;">
-  10. Release Notes
-</h2>
+﻿# 7. Release Notes
 
 This section summarizes the version-by-version change history of the Open Stream interface.<br>
 Each version documents feature additions, behavioral changes, fixes, and compatibility notes.
