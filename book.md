@@ -2855,6 +2855,6 @@ A. 거부됩니다. url은 공백을 포함할 수 없습니다.
   <li><a href="../1-overview/2-usage-considerations.md">사용 전 유의 사항</a></li>
   <li><a href="../2-protocol/README.md">프로토콜</a></li>
   <li><a href="../3-recipe/README.md">Recipe 명령어</a></li>
-  <li><a href="../4-examples/README.md">예제</a></li>
-  <li><a href="../9-faq/README.md">F&Q</a></li>
+  <li><a href="../5-examples/README.md">예제</a></li>
+  <li><a href="../6-faq/README.md">FAQ</a></li>
 </ul>
