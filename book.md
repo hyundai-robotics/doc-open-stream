@@ -2713,7 +2713,7 @@ A. 거부됩니다. url은 공백을 포함할 수 없습니다.
 
 릴리즈 간 동작 변경 사항이 있는 경우, 기존 시스템에 영향을 줄 수 있으므로<br>
 업데이트 전 반드시 해당 버전의 릴리즈 노트를 확인하시기 바랍니다.
-[__SOURCE](7-release-notes/1-0-0.md)
+[__SOURCE](7-release-notes/1-v1-0-0.md)
 ## 7.1 Release Notes - v1.0.0
 
   <span style="
