@@ -2,6 +2,8 @@
 
 * [${cont_model} Controller Function Manual - Open Stream](README.md)
 
+* [Precautions](0-about-this-manual/precautions.md)
+
 * [1. Overview](1-overview/README.md)
   * [1.1 What is Open Stream?](1-overview/1-about-open-stream.md)
   * [1.2 Usage Considerations](1-overview/2-usage-considerations.md)
