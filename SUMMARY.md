@@ -2,6 +2,8 @@
 
 * [${cont_model} 제어기 기능설명서 - Open Stream](README.md)
 
+* [사전 주의사항](0-about-this-manual/precautions.md)
+
 * [1. 개요](1-overview/README.md)
   * [1.1 Open Stream 이란?](1-overview/1-about-open-stream.md)
   * [1.2 사용전 유의 사항](1-overview/2-usage-considerations.md)
