@@ -1,27 +1,25 @@
-﻿## 5.2 HANDSHAKE Example
+## 5.2 握手示例
 
-This example demonstrates the most basic flow required to start an Open Stream session.
+此示例演示开始 Open Stream 会话所需的最基本流程。
 
+<h4 style="font-size:16px; font-weight:bold;">执行场景</h4>
 
-<h4 style="font-size:16px; font-weight:bold;">Execution Scenario</h4>
-
-1. Establish a TCP connection
-2. Start the NDJSON receive loop (parser + dispatcher wired)
-3. Send HANDSHAKE
-4. Confirm receipt of `handshake_ack`
-5. Close the connection
-
-<br>
-<h4 style="font-size:16px; font-weight:bold;">Prerequisites</h4>
-
-- `utils/` directory (net.py / parser.py / dispatcher.py / api.py)
-- Server address and port (`49000`)
-
+1. 建立 TCP 连接
+2. 启动 NDJSON 接收循环（解析器 + 调度器连接）
+3. 发送 握手
+4. 确认收到 `handshake_ack`
+5. 关闭连接
 
 <br>
-<h4 style="font-size:16px; font-weight:bold;">Example Code</h4>
+<h4 style="font-size:16px; font-weight:bold;">先决条件</h4>
 
-To run this example, the following files must exist in your project.
+- `utils/` 目录 (net.py / parser.py / dispatcher.py / api.py)
+- 服务器地址和端口 (`49000`)
+
+<br>
+<h4 style="font-size:16px; font-weight:bold;">示例代码</h4>
+
+要运行此示例，您的项目中必须存在以下文件。
 
 <div style="max-width:fit-content;">
 
@@ -35,9 +33,9 @@ OpenStreamClient/
 │   └── api.py
 │
 ├── scenarios/
-│   └── handshake.py      # Scenario code provided in this document
+│   └── handshake.py      # 本文档提供的场景代码
 │
-└── main.py               # Scenario launcher (entry point)
+└── main.py               # 场景启动器（入口点）
 ```
 </div>
 
@@ -61,7 +59,7 @@ def run(host: str, port: int, major: int) -> None:
     dispatcher = Dispatcher()
     api = OpenStreamAPI(net)
 
-    # Register event handlers
+    # 注册事件处理程序
     dispatcher.on_type["handshake_ack"] = lambda m: print(
         f"[ack] handshake_ack ok={m.get('ok')} version={m.get('version')}"
     )
@@ -69,23 +67,20 @@ def run(host: str, port: int, major: int) -> None:
         f"[ERR] code={e.get('error')} message={e.get('message')} hint={e.get('hint')}"
     )
 
-    # Connect and start receive loop
+    # 连接并启动接收循环
     net.connect()
     net.start_recv_loop(lambda b: parser.feed(b, dispatcher.dispatch))
 
-    # Send HANDSHAKE
+    # 发送 握手
     api.handshake(major=major)
 
-    # Wait briefly for ACK, then close
+    # 简短等待 ACK，然后关闭
     time.sleep(0.5)
     net.close()
 ```
-</div>
-
 <div style="max-width:fit-content;">
-  &rightarrow; This is an executable scenario that sends a HANDSHAKE request and verifies receipt of `handshake_ack`.
+  &rightarrow; 这是一个可执行的场景，发送 HANDSHAKE 请求并验证 `handshake_ack` 的接收。
 </div>
-
 
 <br>
 <h4 style="font-size:16px; font-weight:bold;">main.py</h4>
@@ -99,12 +94,12 @@ import argparse
 from scenarios import handshake as sc_handshake
 
 def main() -> None:
-    p = argparse.ArgumentParser(description="Open Stream Examples")
+    p = argparse.ArgumentParser(description="Open Stream 示例")
     p.add_argument("scenario", choices=["handshake", "monitor", "control", "stop"])
     p.add_argument("--host", default="192.168.1.150")
     p.add_argument("--port", type=int, default=49000)
 
-    # common options
+    # 通用选项
     p.add_argument("--major", type=int, default=1)
     p.add_argument("--period-ms", type=int, default=10)
     p.add_argument("--target", choices=["session", "control", "monitor"], default="session")
@@ -121,9 +116,9 @@ if __name__ == "__main__":
 </div>
 
 <br>
-<h4 style="font-size:16px; font-weight:bold;">How to Run</h4>
+<h4 style="font-size:16px; font-weight:bold;">如何运行</h4>
 
-Run the following command from the project root.
+从项目根目录运行以下命令。
 
 <div style="max-width:fit-content;">
 
@@ -132,14 +127,14 @@ $ python3 main.py handshake --host 192.168.1.150 --port 49000 --major 1
 ```
 </div>
 
-<h4 style="font-size:16px; font-weight:bold;">Expected Output</h4>
+<h4 style="font-size:16px; font-weight:bold;">预期输出</h4>
 
 ```text
-[net] connected to 192.168.1.150:49000
+[net] 连接到 192.168.1.150:49000
 [tx] {"cmd":"HANDSHAKE","payload":{"major":1}}
 [ack] handshake_ack ok=True version=1.0.0
-[net] connection closed
+[net] 连接关闭
 ```
 
-- Note: If an error occurs, it will be received in the form  
+- 注意：如果发生错误，将以以下格式接收  
   `{ "error": "...", "message": "...", "hint": "..." }`.

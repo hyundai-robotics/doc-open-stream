@@ -1,23 +1,21 @@
-﻿# 3. Recipe Commands
+﻿# 3. 配方命令
 
-A **Recipe** refers to an **NDJSON line sent from the client to the server** in Open Stream.  
-Each line is transmitted in the following format.
+**配方**指的是在 Open Stream 中从客户端发送到服务器的 **NDJSON 行**。  
+每一行采用以下格式传输。
 
 <div style="max-width:fit-content;">
 
 ```json
-// Request
+// 请求
 {"cmd":"<COMMAND>","payload":{...}}\n
-````
+````</div>
 
-</div>
-
-The server returns ACKs, events, and errors in the same NDJSON line format.
+服务器以相同的 NDJSON 行格式返回 ACK、事件和错误。
 
 <div style="max-width:fit-content;">
 
 ```json
-// Response
+// 响应
 {"type":"*_ack", ...}\n
 {"type":"data", ...}\n
 {"error":"<code>","message":"<msg>", "hint":"<hint>"}\n
@@ -27,50 +25,108 @@ The server returns ACKs, events, and errors in the same NDJSON line format.
 
 <br>
 
-The meaning of each message field is as follows.
+每个消息字段的含义如下。
 
-<h4 style="font-size:16px; font-weight:bold;">Request (Client → Server)</h4>
+<h4 style="font-size:16px; font-weight:bold;">请求 (客户端 → 服务器)</h4>
 
 <div style="max-width:fit-content;">
 
-| Key | Type | Required | Description |
+| 键 | 类型 | 必需 | 描述 |
 | --- | ---- | -------: | ----------- |
-| `cmd` | string | Yes | Command name (`HANDSHAKE`, `MONITOR`, `CONTROL`, `STOP`) |
-| `payload` | object | Yes | Command parameter object (see each command document for schema details) |
+| (
 
-1. [HANDSHAKE](./1-handshake.md): Protocol version negotiation (mandatory at session start)
+</div>
 
-2. [MONITOR](./2-monitor.md): Periodic REST GET execution + `data` streaming
+服务器以相同的 NDJSON 行格式返回 ACK、事件和错误。
 
-3. [CONTROL](./3-control.md): One-shot REST execution (**no response line on success**)
+<div style="max-width:fit-content;">
 
-4. [STOP](./4-stop.md): Stop `monitor`, `control`, or `session`
+```json
+// 响应
+{"type":"*_ack", ...}\n
+{"type":"data", ...}\n
+{"error":"<code>","message":"<msg>", "hint":"<hint>"}\n
+```
 
 </div>
 
 <br>
-<h4 style="font-size:16px; font-weight:bold;">Response (Client ⇠ Server)</h4>
 
-<h4 style="font-size:16px; font-weight:bold;">Success</h4>
+每个消息字段的含义如下。
+
+<h4 style="font-size:16px; font-weight:bold;">请求（客户端 → 服务器）</h4>
 
 <div style="max-width:fit-content;">
 
-| Key | Type | Required | Description |
+| 键 | 类型 | 必需 | 描述 |
 | --- | ---- | -------: | ----------- |
-| `type` | string | Yes | Event type (e.g. `handshake_ack`, `monitor_ack`, `data`, `stop_ack`) |
+| )`cmd`| 字符串 | 是 | 命令名称 ( ( | 字符串 | 是 | 命令名称 ()`HANDSHAKE`, (, )`MONITOR`, (, )`CONTROL`, (, )`STOP`) |
+| () |
+| )`payload`| 对象 | 是 | 命令参数对象（有关架构详细信息，请参阅每个命令文档） |
 
-- For `HANDSHAKE` responses, the fields `ok` (boolean) and `version` (string) are additionally included.
+1. [HANDSHAKE](./1-handshake.md): 协议版本协商（会话开始时必需）
+
+2. [MONITOR](./2-monitor.md): 定期REST GET执行 + ( | 对象 | 是 | 命令参数对象（有关架构详细信息，请参阅每个命令文档） |
+
+1. [HANDSHAKE](./1-handshake.md): 协议版本协商（会话开始时必需）
+
+2. [MONITOR](./2-monitor.md): 定期REST GET执行 + )`数据`流
+
+3. [CONTROL](./3-control.md): 单次REST执行（**成功时没有响应行**）
+
+4. [STOP](./4-stop.md): 停止（流）
+
+3. [CONTROL](./3-control.md): 单次REST执行（**成功时没有响应行**）
+
+4. [STOP](./4-stop.md): 停止 )`monitor`, (, )`control`, 或 (, 或 )`session`</div>
+
+<br>
+<h4 style="font-size:16px; font-weight:bold;">响应（客户端 ⇠ 服务器）</h4>
+
+<h4 style="font-size:16px; font-weight:bold;">成功</h4>
+
+<div style="max-width:fit-content;">
+
+| 键 | 类型 | 必需 | 描述 |
+| --- | ---- | -------: | ----------- |
+| (
 
 </div>
 
-<h4 style="font-size:16px; font-weight:bold;">Error</h4>
+<br>
+<h4 style="font-size:16px; font-weight:bold;">响应（客户端 ⇠ 服务器）</h4>
+
+<h4 style="font-size:16px; font-weight:bold;">成功</h4>
+<div style="max-width:fit-content;">
+
+| 键 | 类型 | 必需 | 描述 |
+| --- | ---- | -------: | ----------- |
+| )`type`| 字符串 | 是 | 事件类型（例如（ | 字符串 | 是 | 事件类型（例如）`handshake_ack`、（、）`monitor_ack`、（、）`data`、（、）`stop_ack`） | - 对于（） |
+
+- 对于）`HANDSHAKE`响应，字段（响应，字段）`ok`（布尔值）和（（布尔值）和）`version`（字符串）也包括在内。
+
+</div>
+
+<h4 style="font-size:16px; font-weight:bold;">错误</h4>
 
 <div style="max-width:fit-content;">
 
-| Key | Type | Required | Description |
+| 键 | 类型 | 必需 | 描述 |
 | --- | ---- | -------: | ----------- |
-| `error` | string | Yes | Error code (machine-readable) |
-| `message` | string | Yes | Error description (human-readable) |
-| `hint` | string | No | Guidance or example for resolution |
+| (（字符串）也包括在内。
+
+</div>
+
+<h4 style="font-size:16px; font-weight:bold;">错误</h4>
+
+<div style="max-width:fit-content;">
+
+| 键 | 类型 | 必需 | 描述 |
+| --- | ---- | -------: | ----------- |
+| )`error`| 字符串 | 是 | 错误代码（机器可读） |
+| ( | 字符串 | 是 | 错误代码（机器可读） |
+| )`message`| 字符串 | 是 | 错误描述（人类可读） |
+| ( | 字符串 | 是 | 错误描述（人类可读） |
+| )`hint` | 字符串 | 否 | 解决方案的指南或示例 |
 
 </div>

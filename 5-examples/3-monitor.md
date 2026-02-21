@@ -1,35 +1,33 @@
-﻿## 5.3 MONITOR Example
+## 5.3 MONITOR 示例
 
-This example demonstrates the basic flow for starting **MONITOR streaming**  
-in an Open Stream session and processing periodically received data.
+此示例演示了在 Open Stream 会话中启动 **MONITOR 流** 的基本流程，并处理定期接收的数据。
 
-<h4 style="font-size:16px; font-weight:bold;">Execution Scenario</h4>
+<h4 style="font-size:16px; font-weight:bold;">执行场景</h4>
 
-1. Establish a TCP connection  
-2. Start NDJSON receive loop (parser + dispatcher wired)  
-3. Send MONITOR (method / url / period_ms / args)  
-4. Confirm receipt of `monitor_ack` (or server-defined ACK type)  
-5. Process streamed `monitor_data`  
-6. Exit example (close connection)
+1. 建立 TCP 连接  
+2. 启动 NDJSON 接收循环（解析器 + 派发器连接）  
+3. 发送 MONITOR（方法 / url / period_ms / 参数）  
+4. 确认收到 `monitor_ack`（或服务器定义的 ACK 类型）  
+5. 处理流式 `monitor_data`  
+6. 退出示例（关闭连接）
 
-* In real operation, it is recommended to send `STOP target=monitor` when terminating streaming  
-(this is covered in the STOP example).
-
-<br>
-<h4 style="font-size:16px; font-weight:bold;">Prerequisites</h4>
-
-* `utils/` directory (net.py / parser.py / motion.py / dispatcher.py / api.py)  
-* Server address and port (`49000`)  
-* Target REST URL for MONITOR, `period_ms`, and `args`
+* 在实际操作中，建议在终止流时发送 `STOP target=monitor`  
+（这在 STOP 示例中有说明）。
 
 <br>
-<h4 style="font-size:16px; font-weight:bold;">Example Code</h4>
+<h4 style="font-size:16px; font-weight:bold;">先决条件</h4>
 
-To run this example, the following files must exist in your project.
+* `utils/` 目录（net.py / parser.py / motion.py / dispatcher.py / api.py）  
+* 服务器地址和端口（`49000`）  
+* MONITOR 的目标 REST URL、`period_ms` 和 `args`
+
+<br>
+<h4 style="font-size:16px; font-weight:bold;">示例代码</h4>
+
+要运行此示例，以下文件必须存在于您的项目中。
 
 <div style="max-width:fit-content;">
 
-```text
 OpenStreamClient/
 ├── utils/
 │   ├── net.py
@@ -40,15 +38,13 @@ OpenStreamClient/
 │
 ├── scenarios/
 │   ├── handshake.py
-│   └── monitor.py        # Scenario code provided in this document
+│   └── monitor.py        # 本文档提供的场景代码
 │
-└── main.py               # Scenario launcher (entry point)
-```
+└── main.py               # 场景启动器（入口点）
 </div>
 
 <br>
 <h4 style="font-size:16px; font-weight:bold;">scenarios/monitor.py</h4>
-
 <div style="max-width:fit-content;">
 
 ```python
@@ -68,10 +64,10 @@ def run(host: str, port: int, *, major: int, url: str, period_ms: int) -> None:
     dispatcher = Dispatcher()
     api = OpenStreamAPI(net)
 
-    # --- synchronization event (wait for ACK) ---
+    # --- 同步事件（等待确认）---
     handshake_ok = threading.Event()
 
-    # register event handlers
+    # 注册事件处理程序
     def _on_handshake_ack(m: dict) -> None:
         ok = bool(m.get("ok"))
         print(f"[ack] handshake_ack ok={ok} version={m.get('version')}")
@@ -80,7 +76,7 @@ def run(host: str, port: int, *, major: int, url: str, period_ms: int) -> None:
 
     dispatcher.on_type["handshake_ack"] = _on_handshake_ack
 
-    # MONITOR ACK / DATA (type names may vary by server implementation)
+    # 监控确认 / 数据（类型名称可能因服务器实现而异）
     dispatcher.on_type["monitor_ack"] = lambda m: print(
         f"[ack] monitor_ack ok={m.get('ok')} url={m.get('url')} period_ms={m.get('period_ms')}"
     )
@@ -92,31 +88,31 @@ def run(host: str, port: int, *, major: int, url: str, period_ms: int) -> None:
         f"[ERR] code={e.get('error')} message={e.get('message')} hint={e.get('hint')}"
     )
 
-    # connect and start receive loop
+    # 连接并开始接收循环
     net.connect()
     net.start_recv_loop(lambda b: parser.feed(b, dispatcher.dispatch))
 
-    # 1) HANDSHAKE
+    # 1) 握手
     api.handshake(major=major)
 
-    # 2) wait for handshake_ack (timeout adjustable)
+    # 2) 等待握手确认（超时可调）
     if not handshake_ok.wait(timeout=1.0):
-        print("[ERR] handshake_ack timeout; MONITOR will not be sent.")
+        print("[ERR] handshake_ack 超时；监控将不会被发送。")
         net.close()
         return
 
-    # 3) send MONITOR
+    # 3) 发送监控
     api.monitor(url=url, period_ms=period_ms, args={})
 
-    # wait briefly to receive stream, then exit
-    # (for graceful shutdown, send STOP target=monitor as shown in STOP example)
+    # 简要等待以接收流，然后退出
+    # （为了优雅的关闭，发送停止目标=监控，如停止示例所示）
     time.sleep(2.0)
     net.close()
 ```
 </div>
 
 <div style="max-width:fit-content;">
-  &rightarrow; Executable scenario that sends a MONITOR request and prints ACK and streaming data.
+  &rightarrow; 可执行场景，发送 MONITOR 请求并打印 ACK 和流数据。
 </div>
 
 <br>
@@ -124,50 +120,10 @@ def run(host: str, port: int, *, major: int, url: str, period_ms: int) -> None:
 
 <div style="max-width:fit-content;">
 
-```python
-# main.py
-import argparse
-
-from scenarios import handshake as sc_handshake
-from scenarios import monitor as sc_monitor
-
-
-def main() -> None:
-    p = argparse.ArgumentParser(description="Open Stream Examples")
-    p.add_argument("scenario", choices=["handshake", "monitor", "control", "stop"])
-    p.add_argument("--host", default="192.168.1.150")
-    p.add_argument("--port", type=int, default=49000)
-
-    # common options
-    p.add_argument("--major", type=int, default=1)
-    p.add_argument("--period-ms", type=int, default=10)
-    p.add_argument("--target", choices=["session", "control", "monitor"], default="session")
-
-    # monitor options
-    p.add_argument("--url", default="/api/health")
-
-    args = p.parse_args()
-
-    if args.scenario == "handshake":
-        sc_handshake.run(args.host, args.port, args.major)
-
-    elif args.scenario == "monitor":
-        sc_monitor.run(
-            args.host,
-            args.port,
-            major=args.major,
-            url=args.url,
-            period_ms=args.period_ms,
-        )
-
-
-if __name__ == "__main__":
-    main()
-```
 </div>
 
 <br>
-<h4 style="font-size:16px; font-weight:bold;">How to Run</h4>
+<h4 style="font-size:16px; font-weight:bold;">如何运行</h4>
 
 <div style="max-width:fit-content;">
 
@@ -176,17 +132,17 @@ python3 main.py monitor --host 192.168.1.150 --port 49000 --major 1 --url /proje
 ```
 </div>
 
-<h4 style="font-size:16px; font-weight:bold;">Expected Output</h4>
+<h4 style="font-size:16px; font-weight:bold;">预期输出</h4>
 
 ```text
-[net] connected to 192.168.1.150:49000
+[net] 连接到 192.168.1.150:49000
 [tx] {"cmd":"HANDSHAKE","payload":{"major":1}}
 [ack] handshake_ack ok=True version=1.0.0
 [tx] {"cmd":"MONITOR","payload":{"method":"GET","url":"/project/robot/joints/joint_states","period_ms":1000,"id":1,"args":{}}}
 [ack] monitor_ack ok=None url=None period_ms=None
 [event] {'type': 'data', 'id': 1, 'ts': 1000, 'svc_dur_ms': 0.224, 'result': {...}}
-[net] connection closed
+[net] 连接已关闭
 ```
 
-* Note: Errors are received in the form `{ "error": "...", "message": "...", "hint": "..." }`.  
-* Note: The payload schema of `monitor_data` (`ts`, `value`, etc.) may vary depending on server implementation.
+* 注意：错误以 `{ "error": "...", "message": "...", "hint": "..." }` 形式接收。  
+* 注意：`monitor_data` 的有效载荷架构 (`ts`, `值 (value)`, 等) 可能会根据服务器实现而有所不同。
