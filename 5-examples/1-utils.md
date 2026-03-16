@@ -1,4 +1,4 @@
-## 5.1 常用工具（utils）
+﻿## 5.1 常用工具（utils）
 
 {% hint style="info" %}
 
@@ -9,7 +9,7 @@
 您可以直接将其复制到自己的项目中并原样使用。
 
 为了清晰和可重复性，该示例故意采用了  
-<b>“接收线程 + 阻塞套接字（带超时）”</b> 模型。
+<b>"接收线程 + 阻塞套接字（带超时）"</b> 模型。
 
 {% endhint %}
 
@@ -154,7 +154,7 @@ class NetClient:
   (2) 将每一行解码为UTF-8并通过`json.loads()`解析。  
   (3) 在JSON解析失败时，记录错误并跳过该行。
 
-该模块标准化“原始字节”和“解析消息”之间的边界。
+该模块标准化"原始字节"和"解析消息"之间的边界。
 
 <details><summary>点击检查Python代码</summary>
 
@@ -243,7 +243,7 @@ class Dispatcher:
 - CONTROL 传输已经涉及复杂的时序和模式处理。
 - 将轨迹生成混入同一个示例会使其过长。
 - 因此，轨迹在 `motion.py` 中生成，而 CONTROL 示例专注于  
-  “以固定间隔发送生成的点”。
+  "以固定间隔发送生成的点"。
 
 角色 1. **轨迹生成（正弦波）**
 - `generate_sine_trajectory(base_deg, cycle_sec, amplitude_deg, dt_sec, total_sec, active_joint_count)`

@@ -1,4 +1,4 @@
-## 2.2 会话和流规则
+﻿## 2.2 会话和流规则
 
 <div style="fit-content;">
 
@@ -42,7 +42,7 @@ Open Stream 是一种事件驱动的流协议，不保证请求-响应的顺序�
 
 - `HANDSHAKE` 必须在 <b>会话开始时</b> 执行。
 - 如果在 `HANDSHAKE` 之前调用 `MONITOR` 或 `CONTROL`，服务器可能会拒绝请求。
-- `STOP(target=session)` 用于明确表示“优雅终止意图”，并建议在之后关闭 TCP 连接。
+- `STOP(target=session)` 用于明确表示"优雅终止意图"，并建议在之后关闭 TCP 连接。
 
 <br>
 <h4 style="font-size:16px; font-weight:bold;">3. 消息方向</h4>

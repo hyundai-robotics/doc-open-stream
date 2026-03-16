@@ -1,4 +1,4 @@
-## 5.3 MONITOR 示例
+﻿## 5.3 MONITOR 示例
 
 此示例演示了在 Open Stream 会话中启动 **MONITOR 流** 的基本流程，并处理定期接收的数据。
 

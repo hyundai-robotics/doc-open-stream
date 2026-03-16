@@ -1,4 +1,4 @@
-## 2.1 什么是 NDJSON？
+﻿## 2.1 什么是 NDJSON？
 
 Open Stream 使用 **NDJSON (换行分隔的 JSON)** 进行消息框架。  
 换句话说，**一行等于一个 JSON 消息**。

@@ -1,4 +1,4 @@
-## 3.3 控制
+﻿## 3.3 控制
 
 控制是客户用于控制机器人或更新内部控制器数据的命令。  
 内部调用 <b>POST / PUT / DELETE-based ${cont_model} OpenAPI</b>，即使在流环境中，  

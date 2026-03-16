@@ -10,7 +10,7 @@ HD Hyundai Robotics 对因使用本手册未指定的 ${cont_model} Open Stream 
 [__SOURCE](0-about-this-manual/precautions.md)
 # 注意事项
 
-{% include url="https://hrcontentsrelay-bmgae5hdbzapc4bc.koreacentral-01.azurewebsites.net/api/proxy?path=doc-common-pages/zh/precautions.md" %}
+{% include file="zh/precautions.md" %}
 [__SOURCE](1-overview/README.md)
 # 1. 概述
 
@@ -312,7 +312,7 @@ Open Stream 是一种事件驱动的流协议，不保证请求-响应的顺序�
 
 - `HANDSHAKE` 必须在 <b>会话开始时</b> 执行。
 - 如果在 `HANDSHAKE` 之前调用 `MONITOR` 或 `CONTROL`，服务器可能会拒绝请求。
-- `STOP(target=session)` 用于明确表示“优雅终止意图”，并建议在之后关闭 TCP 连接。
+- `STOP(target=session)` 用于明确表示"优雅终止意图"，并建议在之后关闭 TCP 连接。
 
 <br>
 <h4 style="font-size:16px; font-weight:bold;">3. 消息方向</h4>
@@ -1344,7 +1344,7 @@ STOP 是一个食谱命令，用于中断当前会话中的正在进行的操作
 
 - 一些错误是可恢复的，而另一些可能需要重新连接（致命）。
 
-- 根据每个错误的“客户端操作”列确定可恢复性。
+- 根据每个错误的"客户端操作"列确定可恢复性。
 [__SOURCE](5-examples/README.md)
 # 5. 示例
 
@@ -1422,7 +1422,7 @@ OpenStreamClient/
 您可以直接将其复制到自己的项目中并原样使用。
 
 为了清晰和可重复性，该示例故意采用了  
-<b>“接收线程 + 阻塞套接字（带超时）”</b> 模型。
+<b>"接收线程 + 阻塞套接字（带超时）"</b> 模型。
 
 {% endhint %}
 
@@ -1567,7 +1567,7 @@ class NetClient:
   (2) 将每一行解码为UTF-8并通过`json.loads()`解析。  
   (3) 在JSON解析失败时，记录错误并跳过该行。
 
-该模块标准化“原始字节”和“解析消息”之间的边界。
+该模块标准化"原始字节"和"解析消息"之间的边界。
 
 <details><summary>点击检查Python代码</summary>
 
@@ -1656,7 +1656,7 @@ class Dispatcher:
 - CONTROL 传输已经涉及复杂的时序和模式处理。
 - 将轨迹生成混入同一个示例会使其过长。
 - 因此，轨迹在 `motion.py` 中生成，而 CONTROL 示例专注于  
-  “以固定间隔发送生成的点”。
+  "以固定间隔发送生成的点"。
 
 角色 1. **轨迹生成（正弦波）**
 - `generate_sine_trajectory(base_deg, cycle_sec, amplitude_deg, dt_sec, total_sec, active_joint_count)`
