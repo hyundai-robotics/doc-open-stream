@@ -40,11 +40,11 @@
 
 |구분|설명|
 |:--|:--|
-|<span style="border-left:4px solid rgb(255,140,0); padding-left:6px;"><b>✨ Added</b></span>|신규 기능, 명령어, 필드 또는 옵션이 추가된 경우|
-|<span style="border-left:4px solid #3F51B5; padding-left:6px;"><b>🔧 Changed</b></span>|기존 동작 방식, 사양, 기본값이 변경된 경우|
-|<span style="border-left:4px solid #2E7D32; padding-left:6px;"><b>🛠 Fixed</b></span>|오류 수정, 안정성 개선, 비정상 동작 보완|
-|<span style="border-left:4px solid #B71C1C; padding-left:6px;"><b>❌ Deprecated</b></span>|향후 제거 예정이거나 사용이 권장되지 않는 기능|
-|<span style="border-left:4px solid #9E9E9E; padding-left:6px;"><b>⚠ Caution</b></span>|해당 버전 사용 시 반드시 인지해야 할 주의 사항|
+|<span style="border-left:4px solid rgb(255,140,0); padding-left:6px;"><b>Added</b></span>|신규 기능, 명령어, 필드 또는 옵션이 추가된 경우|
+|<span style="border-left:4px solid #3F51B5; padding-left:6px;"><b>Changed</b></span>|기존 동작 방식, 사양, 기본값이 변경된 경우|
+|<span style="border-left:4px solid #2E7D32; padding-left:6px;"><b>Fixed</b></span>|오류 수정, 안정성 개선, 비정상 동작 보완|
+|<span style="border-left:4px solid #B71C1C; padding-left:6px;"><b>Deprecated</b></span>|향후 제거 예정이거나 사용이 권장되지 않는 기능|
+|<span style="border-left:4px solid #9E9E9E; padding-left:6px;"><b>Caution</b></span>|해당 버전 사용 시 반드시 인지해야 할 주의 사항|
 
 </div>
 

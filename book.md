@@ -2703,11 +2703,11 @@ A. 거부됩니다. url은 공백을 포함할 수 없습니다.
 
 |구분|설명|
 |:--|:--|
-|<span style="border-left:4px solid rgb(255,140,0); padding-left:6px;"><b>✨ Added</b></span>|신규 기능, 명령어, 필드 또는 옵션이 추가된 경우|
-|<span style="border-left:4px solid #3F51B5; padding-left:6px;"><b>🔧 Changed</b></span>|기존 동작 방식, 사양, 기본값이 변경된 경우|
-|<span style="border-left:4px solid #2E7D32; padding-left:6px;"><b>🛠 Fixed</b></span>|오류 수정, 안정성 개선, 비정상 동작 보완|
-|<span style="border-left:4px solid #B71C1C; padding-left:6px;"><b>❌ Deprecated</b></span>|향후 제거 예정이거나 사용이 권장되지 않는 기능|
-|<span style="border-left:4px solid #9E9E9E; padding-left:6px;"><b>⚠ Caution</b></span>|해당 버전 사용 시 반드시 인지해야 할 주의 사항|
+|<span style="border-left:4px solid rgb(255,140,0); padding-left:6px;"><b>Added</b></span>|신규 기능, 명령어, 필드 또는 옵션이 추가된 경우|
+|<span style="border-left:4px solid #3F51B5; padding-left:6px;"><b>Changed</b></span>|기존 동작 방식, 사양, 기본값이 변경된 경우|
+|<span style="border-left:4px solid #2E7D32; padding-left:6px;"><b>Fixed</b></span>|오류 수정, 안정성 개선, 비정상 동작 보완|
+|<span style="border-left:4px solid #B71C1C; padding-left:6px;"><b>Deprecated</b></span>|향후 제거 예정이거나 사용이 권장되지 않는 기능|
+|<span style="border-left:4px solid #9E9E9E; padding-left:6px;"><b>Caution</b></span>|해당 버전 사용 시 반드시 인지해야 할 주의 사항|
 
 </div>
 
@@ -2718,6 +2718,7 @@ A. 거부됩니다. url은 공백을 포함할 수 없습니다.
 
 릴리즈 간 동작 변경 사항이 있는 경우, 기존 시스템에 영향을 줄 수 있으므로<br>
 업데이트 전 반드시 해당 버전의 릴리즈 노트를 확인하시기 바랍니다.
+
 [__SOURCE](7-release-notes/1-v1-0-0.md)
 ## 7.1 Release Notes - v1.0.0
 
@@ -2761,7 +2762,7 @@ A. 거부됩니다. url은 공백을 포함할 수 없습니다.
   font-size:15px;
   font-weight:bold;
 ">
-  ✨ Added
+  Added
 </h4>
 
 <ul>
@@ -2792,7 +2793,7 @@ A. 거부됩니다. url은 공백을 포함할 수 없습니다.
   font-size:15px;
   font-weight:bold;
 ">
-  🔧 Changed
+  Changed
 </h4>
 
 <ul>
@@ -2808,7 +2809,7 @@ A. 거부됩니다. url은 공백을 포함할 수 없습니다.
   font-size:15px;
   font-weight:bold;
 ">
-  🛠 Fixed
+  Fixed
 </h4>
 
 <ul>
@@ -2824,7 +2825,7 @@ A. 거부됩니다. url은 공백을 포함할 수 없습니다.
   font-size:15px;
   font-weight:bold;
 ">
-  ❌ Deprecated
+  Deprecated
 </h4>
 
 <ul>
@@ -2840,7 +2841,7 @@ A. 거부됩니다. url은 공백을 포함할 수 없습니다.
   font-size:15px;
   font-weight:bold;
 ">
-  ⚠ Caution
+  Caution
 </h4>
 
 <ul>
