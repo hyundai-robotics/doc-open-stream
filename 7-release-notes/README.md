@@ -36,11 +36,11 @@ Each version documents feature additions, behavioral changes, fixes, and compati
 
 | Category | Description |
 |:--|:--|
-|<span style="border-left:4px solid rgb(255,140,0); padding-left:6px;"><b>✨ Added</b></span>|New features, commands, fields, or options added|
-|<span style="border-left:4px solid #3F51B5; padding-left:6px;"><b>🔧 Changed</b></span>|Changes to existing behavior, specifications, or defaults|
-|<span style="border-left:4px solid #2E7D32; padding-left:6px;"><b>🛠 Fixed</b></span>|Bug fixes, stability improvements, abnormal behavior corrections|
-|<span style="border-left:4px solid #B71C1C; padding-left:6px;"><b>❌ Deprecated</b></span>|Features planned for removal or no longer recommended|
-|<span style="border-left:4px solid #9E9E9E; padding-left:6px;"><b>⚠ Caution</b></span>|Important usage notes that must be acknowledged for this version|
+|<span style="border-left:4px solid rgb(255,140,0); padding-left:6px;"><b>Added</b></span>|New features, commands, fields, or options added|
+|<span style="border-left:4px solid #3F51B5; padding-left:6px;"><b>Changed</b></span>|Changes to existing behavior, specifications, or defaults|
+|<span style="border-left:4px solid #2E7D32; padding-left:6px;"><b>Fixed</b></span>|Bug fixes, stability improvements, abnormal behavior corrections|
+|<span style="border-left:4px solid #B71C1C; padding-left:6px;"><b>Deprecated</b></span>|Features planned for removal or no longer recommended|
+|<span style="border-left:4px solid #9E9E9E; padding-left:6px;"><b>Caution</b></span>|Important usage notes that must be acknowledged for this version|
 
 </div>
 
