@@ -3344,11 +3344,11 @@ A. 请求将被拒绝。URL 不得包含空格。
 
 | 类别 | 描述 |
 |:--|:--|
-|<span style="border-left:4px solid rgb(255,140,0); padding-left:6px;"><b>✨ 添加</b></span>|新增功能、命令、字段或选项|
-|<span style="border-left:4px solid #3F51B5; padding-left:6px;"><b>🔧 更改</b></span>|对现有行为、规范或默认值的更改|
-|<span style="border-left:4px solid #2E7D32; padding-left:6px;"><b>🛠 修复</b></span>|错误修复、稳定性改进、异常行为修正|
-|<span style="border-left:4px solid #B71C1C; padding-left:6px;"><b>❌ 不推荐使用</b></span>|计划删除或不再推荐的功能|
-|<span style="border-left:4px solid #9E9E9E; padding-left:6px;"><b>⚠ 注意</b></span>|重要使用说明，必须对此版本予以重视|
+|<span style="border-left:4px solid rgb(255,140,0); padding-left:6px;"><b>添加</b></span>|新增功能、命令、字段或选项|
+|<span style="border-left:4px solid #3F51B5; padding-left:6px;"><b>更改</b></span>|对现有行为、规范或默认值的更改|
+|<span style="border-left:4px solid #2E7D32; padding-left:6px;"><b>修复</b></span>|错误修复、稳定性改进、异常行为修正|
+|<span style="border-left:4px solid #B71C1C; padding-left:6px;"><b>不推荐使用</b></span>|计划删除或不再推荐的功能|
+|<span style="border-left:4px solid #9E9E9E; padding-left:6px;"><b>注意</b></span>|重要使用说明，必须对此版本予以重视|
 
 </div>
 
@@ -3358,6 +3358,7 @@ A. 请求将被拒绝。URL 不得包含空格。
 有关详细的使用说明或协议描述，请参阅本文件中的相应参考部分。
 如果发布引入了行为变化，它可能会影响现有系统。<br>
 在更新之前，请始终查看目标版本的发布说明。
+
 [__SOURCE](7-release-notes/1-v1-0-0.md)
 ## 7.1 发布说明 - v1.0.0
   <span style="
@@ -3399,7 +3400,7 @@ A. 请求将被拒绝。URL 不得包含空格。
   font-size:15px;
   font-weight:bold;
 ">
-  ✨ 添加
+  添加
 </h4>
 
 <ul>
@@ -3430,7 +3431,7 @@ A. 请求将被拒绝。URL 不得包含空格。
   font-size:15px;
   font-weight:bold;
 ">
-  🔧 更改
+  更改
 </h4>
 
 <ul>
@@ -3446,7 +3447,7 @@ A. 请求将被拒绝。URL 不得包含空格。
   font-size:15px;
   font-weight:bold;
 ">
-  🛠 修复
+  修复
 </h4>
 
 <ul>
@@ -3466,7 +3467,7 @@ A. 请求将被拒绝。URL 不得包含空格。
   font-size:15px;
   font-weight:bold;
 ">
-  ❌ 已弃用
+  已弃用
 </h4>
 
 <ul>
@@ -3482,7 +3483,7 @@ A. 请求将被拒绝。URL 不得包含空格。
   font-size:15px;
   font-weight:bold;
 ">
-  ⚠ 注意
+  注意
 </h4>
 
 <ul>

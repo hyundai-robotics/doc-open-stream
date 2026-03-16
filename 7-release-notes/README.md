@@ -36,11 +36,11 @@
 
 | 类别 | 描述 |
 |:--|:--|
-|<span style="border-left:4px solid rgb(255,140,0); padding-left:6px;"><b>✨ 添加</b></span>|新增功能、命令、字段或选项|
-|<span style="border-left:4px solid #3F51B5; padding-left:6px;"><b>🔧 更改</b></span>|对现有行为、规范或默认值的更改|
-|<span style="border-left:4px solid #2E7D32; padding-left:6px;"><b>🛠 修复</b></span>|错误修复、稳定性改进、异常行为修正|
-|<span style="border-left:4px solid #B71C1C; padding-left:6px;"><b>❌ 不推荐使用</b></span>|计划删除或不再推荐的功能|
-|<span style="border-left:4px solid #9E9E9E; padding-left:6px;"><b>⚠ 注意</b></span>|重要使用说明，必须对此版本予以重视|
+|<span style="border-left:4px solid rgb(255,140,0); padding-left:6px;"><b>添加</b></span>|新增功能、命令、字段或选项|
+|<span style="border-left:4px solid #3F51B5; padding-left:6px;"><b>更改</b></span>|对现有行为、规范或默认值的更改|
+|<span style="border-left:4px solid #2E7D32; padding-left:6px;"><b>修复</b></span>|错误修复、稳定性改进、异常行为修正|
+|<span style="border-left:4px solid #B71C1C; padding-left:6px;"><b>不推荐使用</b></span>|计划删除或不再推荐的功能|
+|<span style="border-left:4px solid #9E9E9E; padding-left:6px;"><b>注意</b></span>|重要使用说明，必须对此版本予以重视|
 
 </div>
 
