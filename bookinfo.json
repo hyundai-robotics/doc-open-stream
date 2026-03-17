@@ -1,4 +1,4 @@
-﻿{
+{
     "langCode": "ko",
     "series": "${cont_model} 제어기",
     "title": "기능 설명서 - Open Stream",
@@ -8,7 +8,7 @@
     "docId": "${cont_model:upper}OPENSTREAM_KO_001",
     "references": [
         {
-            "title": "${cont_model:upper} 제어기 조작 설명서 - TP630",
+            "title": "${cont_model} 제어기 조작 설명서 - TP630",
             "id": "${cont_model:upper}OPTP630_KO"
         }
     ]
