@@ -127,10 +127,10 @@ Messages used in Open Stream are categorized as follows based on <b>direction an
 
 <div style="max-width:fit-content;">
 
-
 | Request-Response | Streaming |
 |---|---|
 | Client → `HANDSHAKE/MONITOR/CONTROL/STOP` → Server<br>Client ← `*_ack`, `error` ← Server | (after `monitor_ack`)<br>Server → `data` → Client<br>Server → `data` → Client<br>... |
+
 </div>
 
 <br>
