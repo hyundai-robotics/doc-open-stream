@@ -428,6 +428,13 @@ Open Stream에서 사용되는 메시지는 <b>방향과 역할</b>에 따라 �
 </div>
 </div>
 
+<div style="max-width:fit-content;">
+
+| 요청-응답 방식 | 스트리밍 방식 |
+|---|---|
+| Client → `HANDSHAKE/MONITOR/CONTROL/STOP` → Server<br>Client ← `*_ack`, `error` ← Server | (after `monitor_ack`)<br>Server → `data` → Client<br>Server → `data` → Client<br>... |
+
+</div>
 
 <br>
 <h4 style="font-size:16px; font-weight:bold;">4. MONITOR 스트리밍 동작 방식</h4>
@@ -490,6 +497,7 @@ Open Stream에서 사용되는 메시지는 <b>방향과 역할</b>에 따라 �
   &rightarrow; `\n` 기준 라인 분리  
   &rightarrow; JSON 파싱  
   &rightarrow; `type` / `error` 기반 이벤트 라우팅
+
 [__SOURCE](3-recipe/README.md)
 # 3. Recipe 명령어
 
