@@ -506,8 +506,118 @@ class OpenStreamAPI:
 </details>
 
 ---
-
 </div>
+
+<br>
+
+<br>
+
+<h4 style="font-size:16px; font-weight:bold;">main.py에 대하여</h4>
+
+<code>main.py</code>는 <code>utils/</code> 패키지의 일부는 아니지만, 모든 예제 시나리오의 <b>실행 진입점(execution entry point)</b>으로서 중요한 역할을 합니다.
+
+<code>main.py</code>의 주요 역할은 다음과 같습니다:
+<ul>
+  <li>커맨드 라인 인자 파싱 (시나리오 유형, 호스트, 포트 등)</li>
+  <li>적절한 시나리오 모듈 선택 및 호출</li>
+  <li>모든 예제에 대해 통합된 실행 인터페이스 제공</li>
+</ul>
+
+이러한 구조적 분리는 의도된 것입니다:
+<ul>
+  <li><code>utils/</code>: <b>재사용 가능하며 시나리오에 독립적인 빌딩 블록</b>들을 포함합니다.</li>
+  <li><code>scenarios/*.py</code>: <b>단계별 프로토콜 흐름</b>을 포함합니다.</li>
+  <li><code>main.py</code>: 실행을 <b>오케스트레이션(조율)</b>만 하며, 프로토콜 로직 자체를 직접 구현하지는 않습니다.</li>
+</ul>
+
+다음 섹션의 모든 예제는 <code>main.py</code>를 통해 실행되는 것을 전제로 합니다.
+
+
+<br>
+<h4 style="font-size:16px; font-weight:bold;">main.py (시나리오 런처)</h4>
+
+<code>main.py</code>는 커맨드 라인 인자를 통해 각 예제 시나리오를 실행할 수 있는 통합 진입점을 제공합니다.
+공통 옵션(호스트/포트/메이저 버전 등)을 파싱하고 <code>scenarios/</code> 하위의 해당 모듈로 전달합니다.
+
+<details><summary>파이썬 코드 확인하기</summary>
+
+```python
+﻿import argparse
+
+from scenarios import handshake as sc_handshake
+from scenarios import monitor as sc_monitor
+from scenarios import control as sc_control
+from scenarios import stop as sc_stop
+
+
+def main():
+    p = argparse.ArgumentParser(description="Open Stream Client Examples")
+
+    p.add_argument("scenario", choices=["handshake", "monitor", "control", "stop"])
+    p.add_argument("--host", default="192.168.1.150")
+    p.add_argument("--port", type=int, default=49000)
+    p.add_argument("--major", type=int, default=1)
+
+    # -------------------------
+    # MONITOR options
+    # -------------------------
+    p.add_argument("--url", default="/api/health")
+    p.add_argument("--period-ms", type=int, default=1000)
+
+    # -------------------------
+    # CONTROL options
+    # -------------------------
+    p.add_argument("--http-port", type=int, default=8888)
+    p.add_argument("--dt-sec", type=float, default=0.02)
+    p.add_argument("--total-duration-sec", type=float, default=1.0)
+    p.add_argument("--cycle-sec", type=float, default=5.0)
+    p.add_argument("--amplitude-deg", type=float, default=1.0)
+    p.add_argument("--active-joint-count", type=int, default=6)
+    p.add_argument("--look-ahead-time", type=float, default=0.04)
+
+    p.add_argument("--target", \
+                   choices=["session", "control", "monitor"], \
+                   default="session", \
+                   help="STOP target (session | control | monitor)")
+
+
+    args = p.parse_args()
+
+    if args.scenario == "handshake":
+        sc_handshake.run(args.host, args.port, major=args.major)
+
+    elif args.scenario == "monitor":
+        sc_monitor.run(
+            args.host,
+            args.port,
+            major=args.major,
+            url=args.url,
+            period_ms=args.period_ms,
+        )
+
+    elif args.scenario == "control":
+        sc_control.run(
+            args.host,
+            args.port,
+            major=args.major,
+            http_port=args.http_port,
+            cycle_sec=args.cycle_sec,
+            amplitude_deg=args.amplitude_deg,
+            dt_sec=args.dt_sec,
+            total_sec=args.total_duration_sec,
+            active_joint_count=args.active_joint_count,
+            look_ahead_time=args.look_ahead_time,
+        )
+
+    elif args.scenario == "stop":
+        sc_stop.run(args.host, args.port, target="session")
+
+
+if __name__ == "__main__":
+    main()
+```
+
+</details>
 
 <br>
 <h4 style="font-size:16px; font-weight:bold;">요약</h4>
