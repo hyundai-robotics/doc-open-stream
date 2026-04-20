@@ -411,10 +411,10 @@ Messages used in Open Stream are categorized as follows based on <b>direction an
 
 <div style="max-width:fit-content;">
 
-
 | Request-Response | Streaming |
 |---|---|
 | Client → `HANDSHAKE/MONITOR/CONTROL/STOP` → Server<br>Client ← `*_ack`, `error` ← Server | (after `monitor_ack`)<br>Server → `data` → Client<br>Server → `data` → Client<br>... |
+
 </div>
 
 <br>
@@ -642,7 +642,7 @@ If `MONITOR` or `CONTROL` is called before `HANDSHAKE`, the server may reject th
 
 - The server validates **only the MAJOR version**.
 - MINOR / PATCH changes do not break compatibility with existing clients.
-- For version policy details, refer to the [Release Notes](../10-release-notes/README.md).
+- For version policy details, refer to the [Release Notes](../7-release-notes/README.md).
 
 [__SOURCE](3-recipe/2-monitor.md)
 ## 3.2 MONITOR

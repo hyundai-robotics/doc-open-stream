@@ -82,4 +82,4 @@ If `MONITOR` or `CONTROL` is called before `HANDSHAKE`, the server may reject th
 
 - The server validates **only the MAJOR version**.
 - MINOR / PATCH changes do not break compatibility with existing clients.
-- For version policy details, refer to the [Release Notes](../10-release-notes/README.md).
+- For version policy details, refer to the [Release Notes](../7-release-notes/README.md).
