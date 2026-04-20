@@ -660,9 +660,10 @@ Recipe 는 Open Stream에서 **클라이언트가 서버로 보내는 NDJSON 라
 
 - 서버는 MAJOR 버전만 검사합니다.
 - MINOR / PATCH 변경은 기존 클라이언트와의 호환성을 깨지 않습니다.
-- 버전 정책 관련 내용은 [릴리즈 노트 페이지](../10-release-notes/README.md)를 확인하십시오.
+- 버전 정책 관련 내용은 [릴리즈 노트 페이지](../7-release-notes/README.md)를 확인하십시오.
 
 </div>
+
 [__SOURCE](3-recipe/2-monitor.md)
 ## 3.2 MONITOR
 

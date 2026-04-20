@@ -82,6 +82,6 @@
 
 - 서버는 MAJOR 버전만 검사합니다.
 - MINOR / PATCH 변경은 기존 클라이언트와의 호환성을 깨지 않습니다.
-- 버전 정책 관련 내용은 [릴리즈 노트 페이지](../10-release-notes/README.md)를 확인하십시오.
+- 버전 정책 관련 내용은 [릴리즈 노트 페이지](../7-release-notes/README.md)를 확인하십시오.
 
 </div>
