@@ -2504,7 +2504,7 @@ Output may vary by environment, but you should generally observe the following f
 
 ---
 
-## Summary
+#### Summary
 
 * CONTROL is the protocol command used to transmit robot control messages.
 * Trajectory generation and storage are separated into `utils/motion.py`, so the control example focuses on the **transmission logic**.
