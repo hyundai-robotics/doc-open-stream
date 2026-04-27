@@ -210,7 +210,7 @@ python main.py stop --host 192.168.1.150 --port 49000 --target monitor
 
 ---
 
-## 요약
+#### 요약
 
 * STOP은 로봇 제어/모니터링을 **안전하게 종료**하기 위한 명령입니다.
 * CONTROL trajectory 전송 중에는 반드시 STOP으로 종료하는 것을 권장합니다.
