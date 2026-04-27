@@ -2877,7 +2877,7 @@ if __name__ == "__main__":
 
 ---
 
-## 摘要
+#### 摘要
 
 * CONTROL 是用于传输机器人控制消息的协议命令。
 * 轨迹生成和存储被分开成（命令。
@@ -2930,12 +2930,13 @@ if __name__ == "__main__":
 
 ---
 
-## 摘要
+#### 摘要
 
 * CONTROL 是用于传输机器人控制消息的协议命令。
 * 轨迹生成和存储分开到)`utils/motion.py`中，因此控制示例专注于**传输逻辑**。
 * 发送时(，因此控制示例专注于**传输逻辑**。
 * 发送)`joint_traject_insert_point`时，建议包含(，建议包含)`time_from_start`并基于(和基于)`dt`进行增量。
+
 [__SOURCE](5-examples/5-stop.md)
 ## 5.5 停止示例（会话 / 流终止）
 
@@ -3222,7 +3223,7 @@ python main.py stop --host 192.168.1.150 --port 49000 --target monitor
 
 ---
 
-## 摘要
+#### 摘要
 
 * STOP 是一个用于 **安全终止** 机器人控制和监控的命令。
 * 强烈建议使用 STOP 终止 CONTROL 轨迹传输。
@@ -3255,10 +3256,8 @@ elif args.scenario == "stop":
 ```bash
 # 终止整个会话（推荐）
 python main.py stop --host 192.168.1.150 --port 49000 --target session
-
 # 仅终止控制
 python main.py stop --host 192.168.1.150 --port 49000 --target control
-
 # 仅终止监控
 python main.py stop --host 192.168.1.150 --port 49000 --target monitor
 ```
@@ -3285,7 +3284,7 @@ python main.py stop --host 192.168.1.150 --port 49000 --target monitor
 
 ---
 
-## 概要
+#### 概要
 
 * STOP 是一个用于 **安全终止** 机器人控制和监控的命令。
 * 强烈建议使用 STOP 终止 CONTROL 轨迹传输。

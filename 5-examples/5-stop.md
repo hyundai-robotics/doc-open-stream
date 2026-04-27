@@ -283,7 +283,7 @@ python main.py stop --host 192.168.1.150 --port 49000 --target monitor
 
 ---
 
-## 摘要
+#### 摘要
 
 * STOP 是一个用于 **安全终止** 机器人控制和监控的命令。
 * 强烈建议使用 STOP 终止 CONTROL 轨迹传输。
@@ -316,10 +316,8 @@ elif args.scenario == "stop":
 ```bash
 # 终止整个会话（推荐）
 python main.py stop --host 192.168.1.150 --port 49000 --target session
-
 # 仅终止控制
 python main.py stop --host 192.168.1.150 --port 49000 --target control
-
 # 仅终止监控
 python main.py stop --host 192.168.1.150 --port 49000 --target monitor
 ```
@@ -346,7 +344,7 @@ python main.py stop --host 192.168.1.150 --port 49000 --target monitor
 
 ---
 
-## 概要
+#### 概要
 
 * STOP 是一个用于 **安全终止** 机器人控制和监控的命令。
 * 强烈建议使用 STOP 终止 CONTROL 轨迹传输。
