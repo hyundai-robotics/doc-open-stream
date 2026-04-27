@@ -212,7 +212,7 @@ python main.py stop --host 192.168.1.150 --port 49000 --target monitor
 
 ---
 
-## Summary
+#### Summary
 
 * STOP is a command used to **safely terminate** robot control and monitoring.
 * It is strongly recommended to terminate CONTROL trajectory transmission using STOP.
