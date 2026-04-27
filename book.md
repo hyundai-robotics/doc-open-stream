@@ -2542,11 +2542,12 @@ if __name__ == "__main__":
 
 ---
 
-## 요약
+#### 요약
 
 * CONTROL은 로봇 제어 메시지를 전송하는 프로토콜 명령입니다.
 * Trajectory 생성/저장은 `utils/motion.py`에 분리하여, control 예제는 **전송 로직**에 집중합니다.
 * `joint_traject_insert_point` 전송 시 `time_from_start`를 포함하고, `dt` 기반으로 증가시키는 것을 권장합니다.
+
 [__SOURCE](5-examples/5-stop.md)
 ## 5.5 STOP 예제 (Session / Stream 종료)
 
