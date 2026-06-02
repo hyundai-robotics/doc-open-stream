@@ -27,7 +27,7 @@ Through this document, readers will understand:
 - How Open Stream operates
 - When and in what situations Open Stream should be used
 
-📌 For the latest updates and changes, please refer to the [Release Notes](../7-release-notes/README.md)
+* For the latest updates and changes, please refer to the [Release Notes](../7-release-notes/README.md)
 
 
 [__SOURCE](1-overview/1-about-open-stream.md)
@@ -368,7 +368,7 @@ Messages used in Open Stream are categorized as follows based on <b>direction an
   </div>
 
   <div style="overflow-x:auto;">
-    <div style="font-weight:bold; margin-bottom:6px;">Client ⇠ Server (Events)</div>
+    <div style="font-weight:bold; margin-bottom:6px;">Client <-- Server (Events)</div>
     <table style="width:fit-content; min-width:fit-content; border-collapse:collapse;">
       <thead>
         <tr>
@@ -531,7 +531,7 @@ The meaning of each message field is as follows.
 </div>
 
 <br>
-<h4 style="font-size:16px; font-weight:bold;">Response (Client ⇠ Server)</h4>
+<h4 style="font-size:16px; font-weight:bold;">Response (Client <-- Server)</h4>
 
 <h4 style="font-size:16px; font-weight:bold;">Success</h4>
 
@@ -1695,7 +1695,7 @@ It parses common options (host/port/major, etc.) and dispatches to the correspon
 <details><summary>Click to check the python code</summary>
 
 ```python
-﻿import argparse
+import argparse
 
 from scenarios import handshake as sc_handshake
 from scenarios import monitor as sc_monitor
@@ -2758,7 +2758,7 @@ Each version documents feature additions, behavioral changes, fixes, and compati
 
 | *Version | ${cont_model} Version | Release Schedule | Link |
 |:--:|:--:|:--:|:--:|
-|1.0.0|70.00-00 ⇡|Planned for 2026.03|[🔗](1-v1-0-0.md)|
+|1.0.0|>=V70.00-00 |Mar, 2026|[🔗](1-v1-0-0.md)|
 
 ----
 

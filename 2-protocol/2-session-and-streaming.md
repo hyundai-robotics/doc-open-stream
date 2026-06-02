@@ -84,7 +84,7 @@ Messages used in Open Stream are categorized as follows based on <b>direction an
   </div>
 
   <div style="overflow-x:auto;">
-    <div style="font-weight:bold; margin-bottom:6px;">Client ⇠ Server (Events)</div>
+    <div style="font-weight:bold; margin-bottom:6px;">Client <-- Server (Events)</div>
     <table style="width:fit-content; min-width:fit-content; border-collapse:collapse;">
       <thead>
         <tr>

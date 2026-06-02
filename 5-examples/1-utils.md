@@ -528,7 +528,7 @@ It parses common options (host/port/major, etc.) and dispatches to the correspon
 <details><summary>Click to check the python code</summary>
 
 ```python
-﻿import argparse
+import argparse
 
 from scenarios import handshake as sc_handshake
 from scenarios import monitor as sc_monitor

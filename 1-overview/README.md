@@ -10,5 +10,5 @@ Through this document, readers will understand:
 - How Open Stream operates
 - When and in what situations Open Stream should be used
 
-📌 For the latest updates and changes, please refer to the [Release Notes](../7-release-notes/README.md)
+* For the latest updates and changes, please refer to the [Release Notes](../7-release-notes/README.md)
 

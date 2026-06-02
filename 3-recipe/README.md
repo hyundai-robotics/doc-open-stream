@@ -49,7 +49,7 @@ The meaning of each message field is as follows.
 </div>
 
 <br>
-<h4 style="font-size:16px; font-weight:bold;">Response (Client ⇠ Server)</h4>
+<h4 style="font-size:16px; font-weight:bold;">Response (Client <-- Server)</h4>
 
 <h4 style="font-size:16px; font-weight:bold;">Success</h4>
 

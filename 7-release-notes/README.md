@@ -9,7 +9,7 @@ Each version documents feature additions, behavioral changes, fixes, and compati
 
 | *Version | ${cont_model} Version | Release Schedule | Link |
 |:--:|:--:|:--:|:--:|
-|1.0.0|70.00-00 ⇡|Planned for 2026.03|[🔗](1-v1-0-0.md)|
+|1.0.0|>=V70.00-00 |Mar, 2026|[🔗](1-v1-0-0.md)|
 
 ----
 
