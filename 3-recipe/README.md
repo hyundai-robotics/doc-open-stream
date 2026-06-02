@@ -50,7 +50,7 @@ Recipe 는 Open Stream에서 **클라이언트가 서버로 보내는 NDJSON 라
 
 
 <br>
-<h4 style="font-size:16px; font-weight:bold;">Response (Client ⇠ Server)</h4>
+<h4 style="font-size:16px; font-weight:bold;">Response (Client <-- Server)</h4>
 
 <h4 style="font-size:16px; font-weight:bold;">Success</h4>
 

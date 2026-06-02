@@ -28,7 +28,7 @@ Open Stream의 목적, 기본 개념, 전체 동작 구조와 지원되는 사�
 
 를 이해할 수 있습니다.
 
- 📌 최신 변경 사항은 [Release Notes](../7-release-notes/README.md)를 참고하세요.
+* 최신 변경 사항은 [Release Notes](../7-release-notes/README.md)를 참고하세요.
 
 [__SOURCE](1-overview/1-about-open-stream.md)
 ## 1.1 Open Stream이란?
@@ -388,7 +388,7 @@ Open Stream에서 사용되는 메시지는 <b>방향과 역할</b>에 따라 �
   </div>
 
   <div style="overflow-x:auto;">
-    <div style="font-weight:bold; margin-bottom:6px;">Client ⇠ Server (Events)</div>
+    <div style="font-weight:bold; margin-bottom:6px;">Client <-- Server (Events)</div>
     <table style="width:fit-content; min-width:fit-content; border-collapse:collapse;">
       <thead>
         <tr>
@@ -551,7 +551,7 @@ Recipe 는 Open Stream에서 **클라이언트가 서버로 보내는 NDJSON 라
 
 
 <br>
-<h4 style="font-size:16px; font-weight:bold;">Response (Client ⇠ Server)</h4>
+<h4 style="font-size:16px; font-weight:bold;">Response (Client <-- Server)</h4>
 
 <h4 style="font-size:16px; font-weight:bold;">Success</h4>
 
@@ -1729,7 +1729,7 @@ class OpenStreamAPI:
 <details><summary>파이썬 코드 확인하기</summary>
 
 ```python
-﻿import argparse
+import argparse
 
 from scenarios import handshake as sc_handshake
 from scenarios import monitor as sc_monitor
@@ -2797,7 +2797,7 @@ A. 거부됩니다. url은 공백을 포함할 수 없습니다.
 
 | *Version| ${cont_model} Version|Release Schedule|Link|
 |:--:|:--:|:--:|:--:|
-|1.0.0|70.00-00 ⇡|2026.03 예정|[🔗](1-v1-0-0.md)|
+|1.0.0|>=70.00-00|2026년 03월|[🔗](1-v1-0-0.md)|
 
 ----
 

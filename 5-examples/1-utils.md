@@ -542,7 +542,7 @@ class OpenStreamAPI:
 <details><summary>파이썬 코드 확인하기</summary>
 
 ```python
-﻿import argparse
+import argparse
 
 from scenarios import handshake as sc_handshake
 from scenarios import monitor as sc_monitor

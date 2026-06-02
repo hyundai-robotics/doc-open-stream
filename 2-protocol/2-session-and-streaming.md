@@ -87,7 +87,7 @@ Open Stream에서 사용되는 메시지는 <b>방향과 역할</b>에 따라 �
   </div>
 
   <div style="overflow-x:auto;">
-    <div style="font-weight:bold; margin-bottom:6px;">Client ⇠ Server (Events)</div>
+    <div style="font-weight:bold; margin-bottom:6px;">Client <-- Server (Events)</div>
     <table style="width:fit-content; min-width:fit-content; border-collapse:collapse;">
       <thead>
         <tr>
