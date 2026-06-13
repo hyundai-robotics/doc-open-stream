@@ -7,10 +7,18 @@
 HD Hyundai Robotics 对因使用本手册未指定的 ${cont_model} Open Stream 功能或未在 ${cont_model} 打开 API 手册中记录的 API 而造成的任何损害或问题不承担责任。
 
 {% endhint %}
+[__SOURCE](0-about-this-manual/README.md)
+# 关于手册
+
 [__SOURCE](0-about-this-manual/precautions.md)
 # 注意事项
 
 {% include file="zh/precautions.md" %}
+[__SOURCE](0-about-this-manual/safety-notice.md)
+# 安全注意事项
+
+{% include file="zh/safety-notice.md" %}
+
 [__SOURCE](1-overview/README.md)
 # 1. 概述
 
@@ -1345,6 +1353,7 @@ STOP 是一个食谱命令，用于中断当前会话中的正在进行的操作
 - 一些错误是可恢复的，而另一些可能需要重新连接（致命）。
 
 - 根据每个错误的"客户端操作"列确定可恢复性。
+
 [__SOURCE](5-examples/README.md)
 # 5. 示例
 
