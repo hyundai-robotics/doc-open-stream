@@ -1,22 +1,22 @@
-﻿# 2. Protocol
+﻿# 2. 协议
 
-This section describes the transport protocol and message framing rules used by Open Stream.
+本节描述了 Open Stream 使用的传输协议和消息封装规则。
 
-> **Warning**
+> **警告**
 >
-> Open Stream is not a request-response protocol but an **event stream**.  
-> Server events (`data`, `*_ack`, `error`) may arrive at any time regardless of client requests,  
-> so client logic must be implemented without relying on message ordering.
+> Open Stream 不是请求-响应协议，而是 **事件流**。  
+> 服务器事件 (`data`, `*_ack`, `错误 (error)`) 可能会在任何时间到达，无论客户端请求如何，  
+> 因此客户端逻辑必须在不依赖消息排序的情况下实现。
 
-- Open Stream uses a **single-session communication model based on a TCP socket**.
-- Messages exchanged between the client and server use **NDJSON (Newline Delimited JSON)**.
-- Each message is sent by **serializing exactly one JSON object per line and appending `\n` at the end**.
+- Open Stream 使用基于 **TCP 套接字的单会话通信模型**。
+- 客户端和服务器之间交换的消息使用 **NDJSON (新行分隔 JSON)**。
+- 每条消息通过 **每行序列化一个 JSON 对象并在末尾附加 `\n` 发送**。
 
-> **Info**
+> **信息**
 >
-> Due to the nature of TCP streams, a single `recv()` call may not return exactly one message.  
-> Received data should be accumulated in an internal buffer and parsed by splitting on `\n`.
+> 由于 TCP 流的性质，单个 `recv()` 调用可能不会返回恰好一条消息。  
+> 接收到的数据应在内部缓冲区中累积，并通过在 `\n` 上拆分进行解析。
 
-For detailed NDJSON rules, refer to the document below.
+有关详细的 NDJSON 规则，请参阅下面的文档。
 
-- [NDJSON Specification](./1-ndjson.md)
+- [NDJSON 规范](./1-ndjson.md)

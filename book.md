@@ -1,73 +1,64 @@
 ﻿
 [__SOURCE](README.md)
-# ${cont_model} Controller Function Manual - Open Stream
+# ${cont_model} 控制器功能手册 - 打开流
 
 {% hint style="warning" %}
 
-HD Hyundai Robotics shall not be held responsible for any damages or issues arising from the use of  
-${cont_model} Open Stream features not specified in this manual, or APIs not documented in the ${cont_model} Open API manual.
+HD 현대 로보틱스 对于因使用本手册中未指定的 ${cont_model} 打开流功能或未在 ${cont_model} 开放 API 手册中记录的 API 而导致的任何损害或问题不承担责任。
 
 {% endhint %}
-
 [__SOURCE](0-about-this-manual/README.md)
-# About the Manual
-
+# 关于手册
 [__SOURCE](0-about-this-manual/precautions.md)
-# Precautions
+# 注意事项
 
-{% include file="en/precautions.md" %}
-
+{% include file="zh/precautions.md" %}
 [__SOURCE](0-about-this-manual/safety-notice.md)
-# Safety Cautions
+# 安全注意事项
 
-{% include file="en/safety-notice.md" %}
-
+{% include file="zh/safety-notice.md" %}
 [__SOURCE](1-overview/README.md)
-# 1. Overview
+# 1. 概述
 
-This document is a user guide for external clients that use Open Stream.  
-It explains the purpose, core concepts, overall architecture, and supported usage scenarios of Open Stream.  
+本文件是为使用 Open Stream 的外部客户提供的用户指南。  
+它解释了 Open Stream 的目的、核心概念、整体架构以及支持的使用场景。  
 
 <br>
 
-Through this document, readers will understand: 
-- What problems Open Stream is designed to solve
-- How Open Stream operates
-- When and in what situations Open Stream should be used
+通过本文档，读者将了解：
+- Open Stream 旨在解决什么问题
+- Open Stream 如何运作
+- 何时以及在什么情况下应使用 Open Stream
 
-* For the latest updates and changes, please refer to the [Release Notes](../7-release-notes/README.md)
-
-
+* 有关最新更新和变更，请参阅 [Release Notes](../7-release-notes/README.md)
 [__SOURCE](1-overview/1-about-open-stream.md)
-## 1.1 What is Open Stream?
+## 1.1 什么是 Open Stream？
 
-Open Stream is an interface that allows clients to continuously receive results in a streaming manner  
-by repeatedly invoking **${cont_model} Open APIs** at short intervals.
-
-<br>
-
-It provides a streaming interface through a **TCP-based lightweight server** embedded inside the ${cont_model} controller,  
-enabling external clients to continuously send and receive data over a persistent connection.
+Open Stream 是一个接口，允许客户端通过短时间间隔反复调用 **${cont_model} Open APIs** 以流式方式持续接收结果。
 
 <br>
 
-Open Stream has the following characteristics:
-
-- Maintains a **single long-lived TCP connection**
-- Uses **NDJSON (Newline Delimited JSON)** for requests and responses
-- Supports both **periodic data streaming (`MONITOR`)** and **immediate control commands (`CONTROL`)**
-- Eliminates repeated creation of HTTP request/response cycles
+它通过嵌入在 ${cont_model} 控制器内的 **基于 TCP 的轻量级服务器** 提供流式接口，使外部客户端能够通过持久连接持续发送和接收数据。
 
 <br>
 
-Open Stream is designed for client environments that require handling  
-**high-frequency control commands and status monitoring over a single connection**.
+Open Stream 具有以下特点：
+
+- 维护 **单个长期存在的 TCP 连接**
+- 对请求和响应使用 **NDJSON（换行分隔 JSON）**
+- 支持 **周期性数据流（`MONITOR`）** 和 **即时控制命令（`CONTROL`）**
+- 消除 HTTP 请求/响应周期的重复创建
+
+<br>
+
+Open Stream 是为需要处理  
+**高频率控制命令和状态监测的客户端环境** 设计的，且通过单个连接进行。
 
 <br><br>
 
-<b>Overall Operation Overview</b>
+<b>整体操作概述</b>
 
-The basic operational flow of Open Stream is as follows.
+Open Stream 的基本操作流程如下。
 
 <div style="display:flex; flex-wrap:wrap; align-items:flex-start;">
 
@@ -84,25 +75,25 @@ The basic operational flow of Open Stream is as follows.
 <div style="flex:1 1 280px; min-width:280px; max-width:fit-content;">
   <ol style="line-height:1.5;">
 
-  <li>The client establishes a TCP connection to the server, creating a session.</li><br>
+  <li>客户端与服务器建立 TCP 连接，创建一个会话。</li><br>
 
-  <li>Immediately after connection, the client sends a <code>HANDSHAKE</code> command<br>
-      to verify protocol version compatibility with the server.</li><br>
+  <li>连接后，客户端立即发送 <code>HANDSHAKE</code> 命令<br>
+      以验证与服务器的协议版本兼容性。</li><br>
 
-  <li>The server processes the <code>HANDSHAKE</code> request and, if the protocol version is compatible, sends a <code>handshake_ack</code> event.</li><br>
+  <li>服务器处理 <code>HANDSHAKE</code> 请求，如果协议版本兼容，则发送 <code>handshake_ack</code> 事件。</li><br>
 
-  <li>After a successful <code>HANDSHAKE</code>, the client may request periodic data streaming using the <code>MONITOR</code> command, or execute one-shot requests using the <code>CONTROL</code> command.
-      <small>(CONTROL commands can be sent even while MONITOR is active.)</small>
+  <li>在成功执行 <code>HANDSHAKE</code> 后，客户端可以使用 <code>MONITOR</code> 命令请求周期性数据流，或者使用 <code>CONTROL</code> 命令执行一次性请求。
+      <small>(即使在 MONITOR 活动期间，也可以发送 CONTROL 命令。)</small>
   </li><br>
 
-  <li>When <code>MONITOR</code> is active, the server sends <code>data</code> events at the configured interval, independent of additional client requests.</li><br>
+  <li>当 <code>MONITOR</code> 活动时，服务器在配置的间隔发送 <code>data</code> 事件，而不受额外客户端请求的影响。</li><br>
     
-  <li>Successful <code>CONTROL</code> commands do not generate ACK responses.<br>
-      Only failures may result in <code>error</code> or <code>control_err</code> events.</li><br>
+  <li>成功的 <code>CONTROL</code> 命令不会生成 ACK 响应。<br>
+      只有失败才可能导致 <code>error</code> 或 <code>control_err</code> 事件。</li><br>
 
-  <li>When operations are complete, the client sends a <code>STOP</code> command
-      to indicate termination of active operations or session intent,
-      and closes the TCP connection after receiving <code>stop_ack</code>.
+  <li>当操作完成时，客户端发送 <code>STOP</code> 命令
+      以指示终止活动操作或会话意图，
+      并在收到 <code>stop_ack</code> 后关闭 TCP 连接。
   </li>
 
   </ol>
@@ -114,123 +105,118 @@ The basic operational flow of Open Stream is as follows.
 
 {% hint style="info" %}
 
-**What is the MONITOR command?**  
-The MONITOR command repeatedly invokes a single ${cont_model} Open API service at a client-defined interval  
-and continuously streams the results to the client.
+**什么是 MONITOR 命令？**  
+MONITOR 命令重复在客户端定义的间隔内调用单个 ${cont_model} Open API 服务  
+并持续将结果流式传送到客户端。
 
-**What is the CONTROL command?**  
-The CONTROL command is used to send one-shot control requests to the ${cont_model} Open API.  
-Clients may send CONTROL commands repeatedly at short intervals as needed.
+**什么是 CONTROL 命令？**  
+CONTROL 命令用于向 ${cont_model} Open API 发送一次性控制请求。  
+客户端可以根据需要在短时间间隔内重复发送 CONTROL 命令。
 
 {% endhint %}
 
-Open Stream allows MONITOR and CONTROL commands to be used together within a single TCP connection.
+Open Stream 允许 MONITOR 和 CONTROL 命令在单个 TCP 连接中一起使用。
 
 {% hint style="warning" %}
 
-However, within a single connection, **only one MONITOR session and one CONTROL session** can be active at the same time.
+然而，在单个连接中，**只能同时活跃一个 MONITOR 会话和一个 CONTROL 会话**。
 
 {% endhint %}
-
 [__SOURCE](1-overview/2-usage-considerations.md)
-## 1.2 Usage Considerations
+## 1.2 使用注意事项
 
-Open Stream is designed to efficiently handle real-time control and status monitoring.  
-However, the following constraints and assumptions must be carefully considered.
+Open Stream 旨在高效处理实时控制和状态监控。  
+然而，以下限制和假设必须仔细考虑。
 
-- Open Stream targets periodic data delivery but does **not guarantee strict determinism**.
-- Periodic jitter may occur depending on operating system scheduling, network conditions,
-  and client-side processing load.
-- Since Open Stream is based on Open APIs, the execution time of Open Stream may be affected by the API service processing time of the ${cont_model} controller.
-- When PLC or Playback tasks are running concurrently, Open Stream execution may be delayed depending on system task priorities.
-- Only **one MONITOR session** can be active per TCP connection.
-- All commands must follow the defined protocol order.
-  Violating the order may result in command rejection or connection termination.
+- Open Stream 针对周期性数据传输，但不 **保证严格确定性**。
+- 可能会因操作系统调度、网络条件以及客户端处理负载而出现周期性抖动。
+- 由于 Open Stream 基于 Open APIs，Open Stream 的执行时间可能受到 ${cont_model} 控制器的 API 服务处理时间的影响。
+- 当 PLC 或播放任务同时运行时，Open Stream 执行可能会因系统任务优先级而延迟。
+- 每个 TCP 连接只能有 **一个 MONITOR 会话** 处于激活状态。
+- 所有命令必须遵循定义的协议顺序。
+  违反顺序可能导致命令被拒绝或连接终止。
 
 <br><br>
 
-<b>Performance Reference for MONITOR and CONTROL Operation (Test Results)</b>
+<b>MONITOR 和 CONTROL 操作的性能参考 （测试结果）</b>
 
-The following results compare periodic behavior between MONITOR-only operation and
-simultaneous CONTROL + MONITOR operation under the same test environment.
+以下结果比较了在相同测试环境下 MONITOR 单独操作和同时进行 CONTROL + MONITOR 操作的周期性行为。
 
-Test Environment:
-- Server: ${cont_model} COM
-- Client: Python client on Windows 11
-- Network: TCP connection
-- Send/receive period: Maximum configurable MONITOR frequency
+测试环境：
+- 服务器: ${cont_model} COM
+- 客户端: Windows 11 上的 Python 客户端
+- 网络: TCP 连接
+- 发送/接收周期: 最大可配置的 MONITOR 频率
 
 <br>
 
-Summary of Results
+结果总结
 
 <div style="max-width:fit-content;">
 
-1. MONITOR Only
+1. 仅 MONITOR
 
-| **Test Conditions** | **Periodic Characteristics** |
+| **测试条件** | **周期性特征** |
 | --- | --- |
-| - MONITOR period: 2 ms (500 Hz)<br>- CONTROL not used<br>- Continuous run: 10 hours | - <u><b>Average receive period: ~2.0 ms</b></u> |
+| - MONITOR 周期: 2 ms (500 Hz)<br>- 未使用 CONTROL<br>- 持续运行: 10 小时 | - <u><b>平均接收周期: ~2.0 ms</b></u> |
 
-2. CONTROL + MONITOR Concurrent
+2. CONTROL + MONITOR 并发
 
-| **Test Conditions** | **Periodic Characteristics** |
+| **测试条件** | **周期性特征** |
 | --- | --- |
-| - CONTROL period: 2 ms<br>- MONITOR period: 2 ms<br>- CONTROL and MONITOR active simultaneously | - CONTROL (SEND): <u><b>Average period ~2.0 ms</b></u>, max delay ~30-40 ms<br>- MONITOR (RECV): <u><b>Average period ~2.1-2.2 ms</b></u>, max delay from tens of ms up to >100 ms |
+| - CONTROL 周期: 2 ms<br>- MONITOR 周期: 2 ms<br>- CONTROL 和 MONITOR 同时激活 | - CONTROL (发送): <u><b>平均周期 ~2.0 ms</b></u>, 最大延迟 ~30-40 ms<br>- MONITOR (接收): <u><b>平均周期 ~2.1-2.2 ms</b></u>, 最大延迟从数十毫秒到 >100 毫秒 |
 
 </div>
 
 <br><br>
 
-<b>Interpretation and Operational Notes</b>
+<b>解读与操作注意事项</b>
 
-- When MONITOR is used alone, relatively stable periodic reception is possible even during long continuous operation.
-- When CONTROL and MONITOR are used concurrently, CONTROL sessions are processed with higher priority depending on system design.
-- As a result, CONTROL periodic stability is maintained, while MONITOR reception periods may increase and experience intermittent delays.
-- Systems using both CONTROL and MONITOR must be designed assuming potential degradation and jitter in MONITOR periodicity.
-
+- 当单独使用 MONITOR 时，即使在长时间的连续操作中，也可以实现相对稳定的周期性接收。
+- 当 CONTROL 和 MONITOR 同时使用时，根据系统设计，CONTROL 会话优先级较高。
+- 结果是，CONTROL 周期稳定性得以维持，而 MONITOR 接收周期可能会增加并经历间歇性延迟。
+- 同时使用 CONTROL 和 MONITOR 的系统必须设计为假设 MONITOR 周期性可能严重下降和抖动。
 [__SOURCE](2-protocol/README.md)
-# 2. Protocol
+# 2. 协议
 
-This section describes the transport protocol and message framing rules used by Open Stream.
+本节描述了 Open Stream 使用的传输协议和消息封装规则。
 
-> **Warning**
+> **警告**
 >
-> Open Stream is not a request-response protocol but an **event stream**.  
-> Server events (`data`, `*_ack`, `error`) may arrive at any time regardless of client requests,  
-> so client logic must be implemented without relying on message ordering.
+> Open Stream 不是请求-响应协议，而是 **事件流**。  
+> 服务器事件 (`data`, `*_ack`, `错误 (error)`) 可能会在任何时间到达，无论客户端请求如何，  
+> 因此客户端逻辑必须在不依赖消息排序的情况下实现。
 
-- Open Stream uses a **single-session communication model based on a TCP socket**.
-- Messages exchanged between the client and server use **NDJSON (Newline Delimited JSON)**.
-- Each message is sent by **serializing exactly one JSON object per line and appending `\n` at the end**.
+- Open Stream 使用基于 **TCP 套接字的单会话通信模型**。
+- 客户端和服务器之间交换的消息使用 **NDJSON (新行分隔 JSON)**。
+- 每条消息通过 **每行序列化一个 JSON 对象并在末尾附加 `\n` 发送**。
 
-> **Info**
+> **信息**
 >
-> Due to the nature of TCP streams, a single `recv()` call may not return exactly one message.  
-> Received data should be accumulated in an internal buffer and parsed by splitting on `\n`.
+> 由于 TCP 流的性质，单个 `recv()` 调用可能不会返回恰好一条消息。  
+> 接收到的数据应在内部缓冲区中累积，并通过在 `\n` 上拆分进行解析。
 
-For detailed NDJSON rules, refer to the document below.
+有关详细的 NDJSON 规则，请参阅下面的文档。
 
-- [NDJSON Specification](./1-ndjson.md)
-
+- [NDJSON 规范](./1-ndjson.md)
 [__SOURCE](2-protocol/1-ndjson.md)
-## 2.1 What is NDJSON?
+## 2.1 什么是 NDJSON？
 
-Open Stream uses **NDJSON (Newline Delimited JSON)** for message framing.  
-In other words, **one line equals one JSON message**.
+Open Stream 使用 **NDJSON (换行分隔 JSON)** 进行消息框架。  
+换句话说，**一行等于一个 JSON 消息**。
 
-<h4 style="font-size:15px; font-weight:bold;">1. Message Framing</h4>
+<h4 style="font-size:15px; font-weight:bold;">1. 消息框架</h4>
 
 <div style="max-width:fit-content;">
 
-- Clients send requests as follows:
+- 客户端发送请求如下：
 
 ```json
 {"cmd":"HANDSHAKE","payload":{"major":1}}\n
 {"cmd":"MONITOR","payload":{"period_ms":10,"method":"GET","url":"/project/robot"}}\n
 ```
 
-- The server sends responses and events in the same manner:
+- 服务器以相同方式发送响应和事件：
 
 ```json
 {"type":"handshake_ack","ok":true,"version":"1.0.0"}\n
@@ -241,36 +227,36 @@ In other words, **one line equals one JSON message**.
 
 <br>
 
-<h4 style="font-size:15px; font-weight:bold;">2. Mandatory Rules</h4>
+<h4 style="font-size:15px; font-weight:bold;">2. 强制规则</h4>
 
-1. Each message must serialize exactly one JSON object into a single line.  
-   → Newline characters inside a JSON string will break framing.
-2. Each message **must end with a newline character (`\n`)**.
-3. All messages must be encoded in **UTF-8**.
+1. 每个消息必须精确序列化一个 JSON 对象为单行。  
+   → JSON 字符串内部的换行字符将破坏框架。
+2. 每个消息 **必须以换行字符 (`\n`) 结束**。
+3. 所有消息必须以 **UTF-8** 编码。
 
 <br>
 
-<h4 style="font-size:15px; font-weight:bold;">3. Recommendations</h4>
+<h4 style="font-size:15px; font-weight:bold;">3. 建议</h4>
 
-1. Whitespace-free serialization is recommended to minimize message size.
+1. 推荐无空格序列化以最小化消息大小。
 
 ```python
-# Python example
+# Python 示例
 import json
 json.dumps(recipe_data, separators=(",", ":")) + "\n"
 ```
 
 <br>
 
-<h4 style="font-size:15px; font-weight:bold;">4. Client Implementation Tips</h4>
+<h4 style="font-size:15px; font-weight:bold;">4. 客户端实现技巧</h4>
 
 <div style="max-width:fit-content;">
 
 {% hint style="info" %}
 
-Due to TCP stream characteristics, a single `recv()` call does not guarantee exactly one line.  
-It is recommended to accumulate received data into an internal buffer and split messages by `\n`
-before performing JSON parsing.
+由于 TCP 流特性，单个 `recv()` 调用并不保证正好一行。  
+建议将接收到的数据积累到内部缓冲区，并通过 `\n` 分割消息
+然后进行 JSON 解析。
 
 {% endhint %}
 
@@ -288,16 +274,15 @@ def recv_lines(sock):
                 yield line.decode("utf-8", errors="replace")
 ```
 </div>
-
 [__SOURCE](2-protocol/2-session-and-streaming.md)
-## 2.2 Session and Streaming Rules
+## 2.2 会话和流规则
 
 <div style="fit-content;">
 
 {% hint style="info" %}
 
-This document explains the <b>Session Lifecycle</b> and <b>Streaming Behavior</b>  
-that must be understood to properly implement and operate Open Stream.
+本文件解释了 <b>会话生命周期</b> 和 <b>流行为</b>  
+必须了解，以正确实施和操作 Open Stream。
 
 {% endhint %}
 
@@ -305,42 +290,42 @@ that must be understood to properly implement and operate Open Stream.
 
 <br>
 
-<h4 style="font-size:16px; font-weight:bold;">1. Session Lifecycle</h4>
+<h4 style="font-size:16px; font-weight:bold;">1. 会话生命周期</h4>
 
-Open Stream treats <b>one TCP connection as one session</b>.  
-A typical session flow is as follows:
+Open Stream 将 <b>一个 TCP 连接视为一个会话</b>。  
+典型的会话流程如下：
 
-1. The client connects to the server over TCP to create a session.
-2. Immediately after connection, the client sends the `HANDSHAKE` command to verify protocol version compatibility with the server.
-3. After processing the `HANDSHAKE` request, if the protocol version matches, the server sends a `handshake_ack` event.
-4. After `HANDSHAKE`, the client can request periodic data streaming via `MONITOR`, or execute one-shot requests via `CONTROL`. (`CONTROL` can also be sent while `MONITOR` is active.)
-5. When `MONITOR` is active, the server sends `data` events periodically regardless of additional client requests.
-6. A `CONTROL` command sends no separate ACK on success; only on failure may an `error` or `control_err` event be delivered.
-7. When work is complete, the client sends `STOP` to indicate termination intent for the active operation or session, then closes the TCP connection after receiving `stop_ack` from the server.
+1. 客户端通过 TCP 连接到服务器以创建会话。
+2. 连接后，客户端立即发送 `HANDSHAKE` 命令以验证与服务器的协议版本兼容性。
+3. 处理 `HANDSHAKE` 请求后，如果协议版本匹配，服务器发送 `handshake_ack` 事件。
+4. 在 `HANDSHAKE` 之后，客户端可以通过 `MONITOR` 请求周期性的数据流，或通过 `CONTROL` 执行一次性请求。（在 `MONITOR` 活动时也可以发送 `CONTROL`。）
+5. 当 `MONITOR` 活动时，服务器定期发送 `data` 事件，而不管其他客户端请求。
+6. `CONTROL` 命令在成功时不发送单独的 ACK；仅在失败时可能发送 `错误 (error)` 或 `control_err` 事件。
+7. 工作完成时，客户端发送 `STOP` 表示对活动操作或会话的终止意图，然后在收到服务器的 `stop_ack` 后关闭 TCP 连接。
 
 {% hint style="warning" %}
 
-Open Stream is an event-driven streaming protocol and does not guarantee request-response ordering.  
-Since the arrival order between `data`, `*_ack`, and `error` events is not guaranteed, clients must handle events without relying on message order.
+Open Stream 是一种事件驱动的流协议，不保证请求-响应的顺序。  
+由于 `data`、`*_ack` 和 `错误 (error)` 事件之间的到达顺序不保证，客户端必须在不依赖消息顺序的情况下处理事件。
 
 {% endhint %}
 
 
 <br>
 
-<h4 style="font-size:16px; font-weight:bold;">2. Usage Rules</h4>
+<h4 style="font-size:16px; font-weight:bold;">2. 使用规则</h4>
 
-The following rules must be followed to use Open Stream correctly.
+要正确使用 Open Stream，必须遵循以下规则。
 
-- `HANDSHAKE` must be performed <b>at the beginning of the session</b>.
-- If `MONITOR` or `CONTROL` is called before `HANDSHAKE`, the server may reject the request.
-- `STOP(target=session)` is used to explicitly indicate "graceful termination intent," and it is recommended to close the TCP connection afterward.
+- `HANDSHAKE` 必须在 <b>会话开始时</b> 执行。
+- 如果在 `HANDSHAKE` 之前调用 `MONITOR` 或 `CONTROL`，服务器可能会拒绝请求。
+- `STOP(target=session)` 用于明确表示“优雅终止意图”，建议在之后关闭 TCP 连接。
 
 <br>
-<h4 style="font-size:16px; font-weight:bold;">3. Message Direction</h4>
+<h4 style="font-size:16px; font-weight:bold;">3. 消息方向</h4>
 
 <p>
-Messages used in Open Stream are categorized as follows based on <b>direction and role</b>.
+在 Open Stream 中使用的消息根据 <b>方向和角色</b> 分类如下。
 </p>
 
 <div style="display:flex; flex-wrap:wrap; gap:16px; align-items:flex-start;">
@@ -358,48 +343,48 @@ Messages used in Open Stream are categorized as follows based on <b>direction an
 <div style="flex:1 1 520px; min-width:280px; max-width:fit-content; display:flex; flex-direction:column; gap:12px;">
 
   <div style="overflow-x:auto;">
-    <div style="font-weight:bold; margin-bottom:6px;">Client → Server (Commands)</div>
+    <div style="font-weight:bold; margin-bottom:6px;">客户端 → 服务器 (命令)</div>
     <table style="width:fit-content; min-width:fit-content; border-collapse:collapse;">
       <thead>
         <tr>
-          <th>Command</th>
-          <th>Description</th>
+          <th>命令</th>
+          <th>描述</th>
         </tr>
       </thead>
       <tbody>
-        <tr><td><code>HANDSHAKE</code></td><td>Protocol version negotiation</td></tr>
-        <tr><td><code>MONITOR</code></td><td>Configure periodic data streaming</td></tr>
-        <tr><td><code>CONTROL</code></td><td>Execute command-type REST requests</td></tr>
-        <tr><td><code>STOP</code></td><td>Terminate active operation or session</td></tr>
+        <tr><td><code>HANDSHAKE</code></td><td>协议版本协商</td></tr>
+        <tr><td><code>MONITOR</code></td><td>配置周期性数据流</td></tr>
+        <tr><td><code>CONTROL</code></td><td>执行命令类型的 REST 请求</td></tr>
+        <tr><td><code>STOP</code></td><td>终止活动操作或会话</td></tr>
       </tbody>
     </table>
   </div>
 
   <div style="overflow-x:auto;">
-    <div style="font-weight:bold; margin-bottom:6px;">Client <-- Server (Events)</div>
+    <div style="font-weight:bold; margin-bottom:6px;">客户端 <-- 服务器 (事件)</div>
     <table style="width:fit-content; min-width:fit-content; border-collapse:collapse;">
       <thead>
         <tr>
-          <th>Event</th>
-          <th>Description</th>
-          <th>Notes</th>
+          <th>事件</th>
+          <th>描述</th>
+          <th>备注</th>
         </tr>
       </thead>
       <tbody>
         <tr>
           <td><code>*_ack</code></td>
-          <td>ACK indicating that a command has been accepted</td>
-          <td>e.g. <code>handshake_ack</code>, <code>monitor_ack</code>, <code>stop_ack</code></td>
+          <td>表示命令已被接受的 ACK</td>
+          <td>例如 <code>handshake_ack</code>、<code>monitor_ack</code>、<code>stop_ack</code></td>
         </tr>
         <tr>
           <td><code>data</code></td>
-          <td>Periodic data event while MONITOR is active</td>
-          <td>Result of executing the ${cont_model} Open API service function</td>
+          <td>当 MONITOR 活动时的周期性数据事件</td>
+          <td>执行 ${cont_model} Open API 服务功能的结果</td>
         </tr>
         <tr>
           <td><code>error</code></td>
-          <td>Error message delivered when a failure occurs</td>
-          <td>Refer to the Error Codes section for details</td>
+          <td>在发生故障时传递的错误消息</td>
+          <td>有关详细信息，请参阅错误代码部分</td>
         </tr>
       </tbody>
     </table>
@@ -407,10 +392,10 @@ Messages used in Open Stream are categorized as follows based on <b>direction an
 
   {% hint style="info" %}
 
-  Server → Client events may <b>not correspond 1:1 with client</b> requests.  
-  While `*_ack` and `error` follow a request-response pattern,  
-  `data` events generated by MONITOR are streamed independently.  
-  The client must always keep the receive loop running.
+  服务器 → 客户端事件可能 <b>与客户端</b> 请求不对应 1:1。  
+  虽然 `*_ack` 和 `错误 (error)` 遵循请求-响应模式，  
+  由 MONITOR 生成的 `data` 事件是独立流的。  
+  客户端必须始终保持接收循环运行。
 
   {% endhint %}
   
@@ -419,74 +404,73 @@ Messages used in Open Stream are categorized as follows based on <b>direction an
 
 <div style="max-width:fit-content;">
 
-| Request-Response | Streaming |
+| 请求-响应 | 流 |
 |---|---|
-| Client → `HANDSHAKE/MONITOR/CONTROL/STOP` → Server<br>Client ← `*_ack`, `error` ← Server | (after `monitor_ack`)<br>Server → `data` → Client<br>Server → `data` → Client<br>... |
+| 客户端 → `HANDSHAKE/MONITOR/CONTROL/STOP` → 服务器<br>客户端 ← `*_ack`、`错误 (error)` ← 服务器 | （在 `monitor_ack` 之后）<br>服务器 → `data` → 客户端<br>服务器 → `data` → 客户端<br>... |
 
 </div>
 
 <br>
-<h4 style="font-size:16px; font-weight:bold;">4. MONITOR Streaming Behavior</h4>
+<h4 style="font-size:16px; font-weight:bold;">4. MONITOR 流行为</h4>
 
-`MONITOR` is a server-driven mechanism where, based on the recipe provided by the client,  
-the server executes the ${cont_model} Open API service function at the specified interval (`period_ms`)  
-and streams the result as `data` events.
+`MONITOR` 是一个由服务器驱动的机制，基于客户端提供的配方，  
+服务器在指定的间隔内 (`period_ms`) 执行 ${cont_model} Open API 服务功能  
+并将结果作为 `data` 事件流。
 
-Clients must be implemented with the following assumptions.
+客户端必须在以下假设下实现。
 
-- Always keep the receive loop running.
-- Do not assume synchronous request-response pairing.
-
-<br>
-<h4 style="font-size:16px; font-weight:bold;">5. CONTROL Command Execution</h4>
-
-
-Depending on policy/implementation, <b>CONTROL provides no separate response line on success.</b>
-
-Recommended strategy:
-
-- Detect failures via `error` or `control_err` events.
-- Verify success using the following approaches:
-  - Confirm changes in MONITOR results
-  - Use a dedicated state-query MONITOR endpoint
-
+- 始终保持接收循环运行。
+- 不要假设同步的请求-响应配对。
 
 <br>
-<h4 style="font-size:16px; font-weight:bold;">6. Timeout / Watchdog</h4>
+<h4 style="font-size:16px; font-weight:bold;">5. CONTROL 命令执行</h4>
 
-The server may terminate the connection if the session remains idle for an extended period.
 
-Client recommendations:
+根据策略/实现，<b>成功时 CONTROL 不提供单独的响应行。</b>
 
-- Perform `HANDSHAKE` immediately after connection
-- Perform a graceful shutdown using `STOP(target=session)`
-- Prevent the receive loop from stopping during streaming
-- Prepare reconnection and re-HANDSHAKE logic on EOF or socket errors
+建议的策略：
 
-In the current server implementation, the following policies apply.
+- 通过 `错误 (error)` 或 `control_err` 事件检测故障。
+- 使用以下方法验证成功：
+  - 确认 MONITOR 结果中的变化
+  - 使用专用状态查询 MONITOR 端点
 
-- <b>Disarmed state (Idle / No active MONITOR)</b>  
-  &rightarrow; Session is terminated after approximately <b>180 seconds</b> of no meaningful activity
-
-- <b>Armed state (Active MONITOR streaming)</b>  
-  &rightarrow; Session is terminated if streaming remains interrupted for more than approximately <b>5 seconds</b>
-
-* The above time values may change depending on server policy or operating environment.
 
 <br>
-<h4 style="font-size:16px; font-weight:bold;">7. Recommended Architecture </h4>
+<h4 style="font-size:16px; font-weight:bold;">6. 超时 / 看门狗</h4>
 
-For practical implementations, the following structure is recommended.
+如果会话长时间保持空闲，服务器可能会终止连接。
 
-- Separate sending (Commands) and receiving (Events)  
-  &rightarrow; Send: build command + `sendall`  
-  &rightarrow; Receive: NDJSON line parser + dispatcher
+客户端建议：
 
-- Single-responsibility receive loop  
-  &rightarrow; Split lines by `\n`  
-  &rightarrow; JSON parsing  
-  &rightarrow; Event routing based on `type` / `error`
+- 在连接后立即执行 `HANDSHAKE`
+- 使用 `STOP(target=session)` 进行优雅关机
+- 在流式传输期间防止接收循环停止
+- 在 EOF 或套接字错误时准备重连和重新 HANDSHAKE 的逻辑
 
+在当前服务器实现中，适用以下策略。
+
+- <b>解除武装状态（空闲 / 没有活动 MONITOR）</b>  
+  &rightarrow; 在大约 <b>180 秒</b> 没有有意义活动后会话被终止
+
+- <b>武装状态（活动 MONITOR 流）</b>  
+  &rightarrow; 如果流式传输中断超过大约 <b>5 秒</b>，会话被终止
+
+* 以上时间值可能会根据服务器策略或操作环境而变化。
+
+<br>
+<h4 style="font-size:16px; font-weight:bold;">7. 推荐架构 </h4>
+
+对于实际实现，建议以下结构。
+
+- 分开发送（命令）和接收（事件）  
+  &rightarrow; 发送：构建命令 + `sendall`  
+  &rightarrow; 接收：NDJSON 行解析器 + 分发器
+
+- 单一责任接收循环  
+  &rightarrow; 按 `\n` 拆分行  
+  &rightarrow; JSON 解析  
+  &rightarrow; 基于 `类型 (type)` / `错误 (error)` 的事件路由
 [__SOURCE](3-recipe/README.md)
 # 3. Recipe Commands
 
@@ -498,7 +482,32 @@ Each line is transmitted in the following format.
 ```json
 // Request
 {"cmd":"<COMMAND>","payload":{...}}\n
-````
+````</div>
+
+The server returns ACKs, events, and errors in the same NDJSON line format.
+
+<div style="max-width:fit-content;">
+
+```json
+// Response
+{"type":"*_ack", ...}\n
+{"type":"data", ...}\n
+{"error":"<code>","message":"<msg>", "hint":"<hint>"}\n
+```
+
+</div>
+
+<br>
+
+每个消息字段的含义如下。
+
+<h4 style="font-size:16px; font-weight:bold;">Request (Client → Server)</h4>
+
+<div style="max-width:fit-content;">
+
+| Key | Type | Required | Description |
+| --- | ---- | -------: | ----------- |
+| (
 
 </div>
 
@@ -517,7 +526,7 @@ The server returns ACKs, events, and errors in the same NDJSON line format.
 
 <br>
 
-The meaning of each message field is as follows.
+每个消息字段的含义如下。
 
 <h4 style="font-size:16px; font-weight:bold;">Request (Client → Server)</h4>
 
@@ -525,16 +534,36 @@ The meaning of each message field is as follows.
 
 | Key | Type | Required | Description |
 | --- | ---- | -------: | ----------- |
-| `cmd` | string | Yes | Command name (`HANDSHAKE`, `MONITOR`, `CONTROL`, `STOP`) |
-| `payload` | object | Yes | Command parameter object (see each command document for schema details) |
+| )`cmd`| string | Yes | Command name ( ( | string | Yes | Command name ()`HANDSHAKE` (, )`MONITOR` (, )`CONTROL` (, )`STOP`) |
+| () |
+| )`payload`| object | Yes | Command parameter object (see each command document for schema details) |
 
 1. [HANDSHAKE](./1-handshake.md): Protocol version negotiation (mandatory at session start)
 
-2. [MONITOR](./2-monitor.md): Periodic REST GET execution + `data` streaming
+2. [MONITOR](./2-monitor.md): Periodic REST GET execution + ( | object | Yes | Command parameter object (see each command document for schema details) |
+
+1. [HANDSHAKE](./1-handshake.md): Protocol version negotiation (mandatory at session start)
+
+2. [MONITOR](./2-monitor.md): Periodic REST GET execution + )`data`streaming
 
 3. [CONTROL](./3-control.md): One-shot REST execution (**no response line on success**)
 
-4. [STOP](./4-stop.md): Stop `monitor`, `control`, or `session`
+4. [STOP](./4-stop.md): Stop ( streaming
+
+3. [CONTROL](./3-control.md): One-shot REST execution (**no response line on success**)
+
+4. [STOP](./4-stop.md): Stop )`monitor` (, )`control`, or (, or )`session`</div>
+
+<br>
+<h4 style="font-size:16px; font-weight:bold;">Response (Client <-- Server)</h4>
+
+<h4 style="font-size:16px; font-weight:bold;">Success</h4>
+
+<div style="max-width:fit-content;">
+
+| Key | Type | Required | Description |
+| --- | ---- | -------: | ----------- |
+| (
 
 </div>
 
@@ -547,9 +576,9 @@ The meaning of each message field is as follows.
 
 | Key | Type | Required | Description |
 | --- | ---- | -------: | ----------- |
-| `type` | string | Yes | Event type (e.g. `handshake_ack`, `monitor_ack`, `data`, `stop_ack`) |
+| )`type`| string | Yes | Event type (e.g. ( | string | Yes | Event type (e.g. )`handshake_ack` (, )`monitor_ack` (, )`data` (, )`stop_ack`) | - For () |
 
-- For `HANDSHAKE` responses, the fields `ok` (boolean) and `version` (string) are additionally included.
+- For )`HANDSHAKE`responses, the fields ( responses, the fields )`ok`(boolean) and ( (boolean) and )`version`(string) are additionally included.
 
 </div>
 
@@ -559,20 +588,30 @@ The meaning of each message field is as follows.
 
 | Key | Type | Required | Description |
 | --- | ---- | -------: | ----------- |
-| `error` | string | Yes | Error code (machine-readable) |
-| `message` | string | Yes | Error description (human-readable) |
-| `hint` | string | No | Guidance or example for resolution |
+| ( (string) are additionally included.
 
 </div>
 
+<h4 style="font-size:16px; font-weight:bold;">Error</h4>
+
+<div style="max-width:fit-content;">
+
+| Key | Type | Required | Description |
+| --- | ---- | -------: | ----------- |
+| )`error`| string | Yes | Error code (machine-readable) |
+| ( | string | Yes | Error code (machine-readable) |
+| )`message`| string | Yes | Error description (human-readable) |
+| ( | string | Yes | Error description (human-readable) |
+| )`hint` | string | No | Guidance or example for resolution |
+
+</div>
 [__SOURCE](3-recipe/1-handshake.md)
-## 3.1 HANDSHAKE
+## 3.1 握手
 
-This is the **protocol version negotiation** step performed immediately after a session starts.  
-If `MONITOR` or `CONTROL` is called before `HANDSHAKE`, the server may reject the request.
+这是在会话开始后立即执行的 **协议版本协商** 步骤。  
+如果在 `握手` 之前调用 `监控` 或 `控制`，服务器可能会拒绝请求。
 
-
-<h4 style="font-size:16px; font-weight:bold;">Request</h4>
+<h4 style="font-size:16px; font-weight:bold;">请求</h4>
 
 <div style="max-width:fit-content;">
 
@@ -584,14 +623,14 @@ If `MONITOR` or `CONTROL` is called before `HANDSHAKE`, the server may reject th
 
 <div style="max-width:fit-content;">
 
-| Payload Field | Required | Type | Rules |
+| Payload 字段 | 必需 | 类型 | 规则 |
 | ------- | -------- | ---- | ----- |
-| `major` | Yes | int | Integer greater than or equal to 0 |
+| `major` | 是 | int | 大于或等于 0 的整数 |
 
 </div>
 
 <br>
-<h4 style="font-size:16px; font-weight:bold;">Response - Success (<b><u><i>ACK</i></u></b>)</h4>
+<h4 style="font-size:16px; font-weight:bold;">响应 - 成功 (<b><u><i>ACK</i></u></b>)</h4>
 
 <div style="max-width:fit-content;">
 
@@ -599,15 +638,15 @@ If `MONITOR` or `CONTROL` is called before `HANDSHAKE`, the server may reject th
 {"type":"handshake_ack","ok":true,"version":"1.0.0"}\n
 ```
 
-| Key | Type | Required | Description |
+| 键 | 类型 | 必需 | 描述 |
 | --- | ---- | -------: | ----------- |
-| `ok` | boolean | No | Explicit success flag for some ACKs (e.g. `handshake_ack`) |
-| `version` | string | No | Server protocol version (`MAJOR.MINOR.PATCH`) |
+| `ok` | boolean | 否 | 一些 ACK 的明确成功标志（例如 `handshake_ack`） |
+| `version` | string | 否 | 服务器协议版本 (`MAJOR.MINOR.PATCH`) |
 
 </div>
 
 <br>
-<h4 style="font-size:16px; font-weight:bold;">Response - Error</h4>
+<h4 style="font-size:16px; font-weight:bold;">响应 - 错误</h4>
 
 <div style="max-width:fit-content;">
 
@@ -618,59 +657,64 @@ If `MONITOR` or `CONTROL` is called before `HANDSHAKE`, the server may reject th
 </div>
 
 <br>
-<h4 style="font-size:16px; font-weight:bold;">Error Codes</h4>
+<h4 style="font-size:16px; font-weight:bold;">错误代码</h4>
 
 <div style="max-width:fit-content;">
 
-| Error Code | HTTP Status | Description | When it occurs |
+| 错误代码 | HTTP 状态 | 描述 | 发生时 |
 | ---------- | ----------- | ----------- | -------------- |
-| `busy_session_active` | 409 | An active task already exists | HANDSHAKE requested while CONTROL or MONITOR task is running |
-| `version_mismatch` | 400 | Protocol MAJOR version mismatch | Client `major` does not match server MAJOR |
-| `missing_major` | 400 | Missing required field | `major` key is missing in payload |
-| `invalid_major_type` | 400 | Invalid type | `major` is not a number (int) |
-| `invalid_version` | 400 | Invalid value range | `major` is negative |
+| `busy_session_active` | 409 | 已存在一个活动任务 | 在 CONTROL 或 MONITOR 任务运行时请求 HANDSHAKE |
+| `version_mismatch` | 400 | 协议 MAJOR 版本不匹配 | 客户端 `major` 与服务器 MAJOR 不匹配 |
+| `missing_major` | 400 | 缺少必需字段 | `major` 键在有效载荷中缺失 |
+| `invalid_major_type` | 400 | 类型无效 | `major` 不是数字（int） |
+| `invalid_version` | 400 | 值范围无效 | `major` 为负数 |
 
 </div>
 
 <br>
-<h4 style="font-size:16px; font-weight:bold;">Payload Validation Rules</h4>
+<h4 style="font-size:16px; font-weight:bold;">有效载荷验证规则</h4>
 
 <div style="max-width:fit-content;">
 
-| Field | Attribute | Type | Validation Rule | Error Code |
+| 字段 | 属性 | 类型 | 验证规则 | 错误代码 |
 | ---- | --------- | ---- | --------------- | ---------- |
-| `major` | Required | int | Must exist in payload | `missing_major` |
-| `major` | Type | int | Must be a number | `invalid_major_type` |
-| `major` | Range | int | Integer ≥ 0 | `invalid_version` |
+| `major` | 必需 | int | 必须存在于有效载荷中 | `missing_major` |
+| `major` | 类型 | int | 必须是一个数字 | `invalid_major_type` |
+| `major` | 范围 | int | 整数 ≥ 0 | `invalid_version` |
 
 </div>
 
 <br>
-<h4 style="font-size:16px; font-weight:bold;">Note</h4>
+<h4 style="font-size:16px; font-weight:bold;">注意</h4>
 
-- The server validates **only the MAJOR version**.
-- MINOR / PATCH changes do not break compatibility with existing clients.
-- For version policy details, refer to the [Release Notes](../7-release-notes/README.md).
-
+- 服务器仅验证 **MAJOR 版本**。
+- MINOR / PATCH 更改不会破坏与现有客户端的兼容性。
+- 有关版本策略的详细信息，请参阅 [发布说明](../7-release-notes/README.md)。
 [__SOURCE](3-recipe/2-monitor.md)
-## 3.2 MONITOR
+## 3.2 监视器
 
-This command periodically invokes a client-specified REST **GET** service  
-and streams the results as single-line NDJSON messages.
+此命令定期调用客户端指定的 REST **GET** 服务  
+并将结果作为单行 NDJSON 消息流式传输。
 
-- In the current implementation, **only one MONITOR is maintained per session**.
-- When a new `MONITOR` command is received, the existing monitor session is automatically terminated and replaced.
-- `MONITOR` can be used **only after a successful HANDSHAKE**.<br>
-  &rightarrow; If called before HANDSHAKE, a `handshake_required` error is returned.
+- 在当前实现中, **每个会话只能维护一个监视器**。
+- 当收到新的 `MONITOR` 命令时, 现有的监视会话会自动终止并被替换。
+- `MONITOR` 只能在 **成功的握手后使用**。<br>
+  &rightarrow; 如果在握手之前调用，将返回 `handshake_required` 错误。
 
 <br>
-<h4 style="font-size:16px; font-weight:bold;">Request</h4>
+<h4 style="font-size:16px; font-weight:bold;">请求</h4>
 
 <div style="max-width:fit-content;">
 
 ```json
 {"cmd":"MONITOR","payload":{"method":"GET","period_ms":2,"url":"/project/robot/joints/joint_states","args":{"jno_start":1,"jno_n":6}}}\n
-````
+````</div>
+
+<div style="max-width:fit-content;">
+
+| Payload Field | Required | Type | Rules |
+| ------------ | -------- | ---- | ----- |
+| (
 
 </div>
 
@@ -678,15 +722,18 @@ and streams the results as single-line NDJSON messages.
 
 | Payload Field | Required | Type | Rules |
 | ------------ | -------- | ---- | ----- |
-| `url` | Yes | string | Must start with `/`, no spaces, max length 2048 |
-| `method` | Yes | string | Only `"GET"` is allowed |
-| `period_ms` | Yes | int | 2 ~ 30000 (ms), out-of-range values are clamped |
-| `args` | No | object | Object for query parameters (JSON object only) |
+| )`url`| 是 | 字符串 | 必须以 ( | 是 | 字符串 | 必须以 )`/` 开头，无空格，最大长度 2048 |
+| (, 无空格，最大长度 2048 |
+| )`method`| 是 | 字符串 | 仅 ( | 是 | 字符串 | 仅允许 )`"GET"` |
+| ( 被允许 |
+| )`period_ms`| 是 | int | 2 ~ 30000 (ms)，超出范围的值会被限制 |
+| ( | 是 | int | 2 ~ 30000 (ms)，超出范围的值会被限制 |
+| )`args`| 否 | 对象 | 查询参数的对象（仅限 JSON 对象） |
 
 </div>
 
 <br>
-<h4 style="font-size:16px; font-weight:bold;">Response - Success (<b><u><i>ACK</i></u></b>)</h4>
+<h4 style="font-size:16px; font-weight:bold;">响应 - 成功 (<b><u><i>ACK</i></u></b>)</h4>
 
 <div style="max-width:fit-content;">
 
@@ -696,14 +743,30 @@ and streams the results as single-line NDJSON messages.
 
 </div>
 
-* `monitor_ack` indicates that the MONITOR request has been accepted.
-* The arrival order of `monitor_ack` and the first `data` event is **not guaranteed**.
+* ( | 否 | 对象 | 查询参数的对象（仅限 JSON 对象） |
+
+</div>
 
 <br>
-<h4 style="font-size:16px; font-weight:bold;">Response - Success (<b><u><i>Streaming</i></u></b>)</h4>
+<h4 style="font-size:16px; font-weight:bold;">响应 - 成功 (<b><u><i>ACK</i></u></b>)</h4>
 
-When MONITOR is active, the server repeatedly invokes the REST API (GET)  
-at the specified interval (`period_ms`) and sends the results as `data` events.
+<div style="max-width:fit-content;">
+
+```json
+{"type":"monitor_ack"}\n
+```
+
+</div>
+
+* )`monitor_ack`表示 MONITOR 请求已被接受。
+* ( 的到达顺序表示 MONITOR 请求已被接受。
+* )`monitor_ack` 和第一个 ( 以及第一个 )`data`事件的到达顺序 **不能保证**。
+
+<br>
+<h4 style="font-size:16px; font-weight:bold;">响应 - 成功 (<b><u><i>流式传输</i></u></b>)</h4>
+
+当 MONITOR 处于活动状态时，服务器会重复调用 REST API (GET)  
+在指定的间隔 ()`period_ms`) 并将结果作为 )`data`事件发送。
 
 <div style="max-width:fit-content;">
 
@@ -715,20 +778,38 @@ at the specified interval (`period_ms`) and sends the results as `data` events.
 
 <div style="max-width:fit-content;">
 
-| Response Field | Type | Description |
+| 响应字段 | 类型 | 描述 |
 | -------------- | ---- | ----------- |
-| `type` | string | Event type (`data`) |
-| `ts` | number | Server-side timestamp (ms) |
-| `svc_dur_ms` | number | Time spent on REST invocation and processing (ms) |
-| `result` | any | REST response body (if present) |
-| `status` | number | HTTP status code returned when REST body is empty |
+| ( 事件。
+
+<div style="max-width:fit-content;">
+
+```json
+{"type":"data","ts":402,"svc_dur_ms":2.960000,"result":{"_type":"JObject","position":[0.0,90.0,0.0,0.0,-90.0,0.0],"effort":[-0.0,98.923641,94.599385,-0.110933,-5.895076,0.0],"velocity":[-0.0,-0.0,0.0,0.0,-0.0,0.0]}}\n
+```
+
+</div>
+
+<div style="max-width:fit-content;">
+
+| 响应字段 | 类型 | 描述 |
+| -------------- | ---- | ----------- |
+| )`type`| 字符串 | 事件类型 ( | 字符串 | 事件类型 ()`data`) |
+| () |
+| )`ts`| 数字 | 服务器端时间戳 (ms) |
+| ( | 数字 | 服务器端时间戳 (ms) |
+| )`svc_dur_ms`| 数字 | REST 调用和处理耗时 (ms) |
+| ( | 数字 | REST 调用和处理耗时 (ms) |
+| )`result`| 任何 | REST 响应主体（如果存在） |
+| ( | 任何 | REST 响应主体（如果存在） |
+| )`status`| 数字 | 当 REST 主体为空时返回的 HTTP 状态码 |
 
 </div>
 
 <br>
-<h4 style="font-size:16px; font-weight:bold;">Response - Error</h4>
+<h4 style="font-size:16px; font-weight:bold;">响应 - 错误</h4>
 
-All error responses follow the common NDJSON error schema.
+所有错误响应遵循通用的 NDJSON 错误架构。
 
 <div style="max-width:fit-content;">
 
@@ -739,104 +820,196 @@ All error responses follow the common NDJSON error schema.
 </div>
 
 <br>
-<h4 style="font-size:16px; font-weight:bold;">Error Codes</h4>
+<h4 style="font-size:16px; font-weight:bold;">错误代码</h4>
 
 <div style="max-width:fit-content;">
 
-| Error Code | HTTP Status | Description | When it occurs |
+| 错误代码 | HTTP 状态 | 描述 | 出现时间 |
 | ---------- | ----------- | ----------- | -------------- |
-| `handshake_required` | 412 | HANDSHAKE not performed | MONITOR called before HANDSHAKE |
-| `missing_url` | 400 | Missing required field | `url` key is missing |
-| `invalid_url` | 400 | Invalid URL format | Does not start with `/` or contains spaces |
-| `url_too_long` | 400 | URL too long | URL length exceeds 2048 |
-| `missing_method` | 400 | Missing required field | `method` key is missing |
-| `invalid_method` | 400 | Invalid method | Not `"GET"` |
-| `missing_period_ms` | 400 | Missing required field | `period_ms` key is missing |
-| `invalid_period` | 400 | Invalid type | `period_ms` is not an int |
-| `invalid_args` | 400 | Invalid type | `args` is not an object |
+| ( | 数字 | 当 REST 主体为空时返回的 HTTP 状态码 |
 
 </div>
 
 <br>
-<h4 style="font-size:16px; font-weight:bold;">Payload Validation Rules</h4>
+<h4 style="font-size:16px; font-weight:bold;">响应 - 错误</h4>
+
+所有错误响应遵循通用的 NDJSON 错误架构。
 
 <div style="max-width:fit-content;">
 
-| Field | Attribute | Type | Validation Rule | Error Code |
-| ----- | --------- | ---- | --------------- | ---------- |
-| `url` | Required | string | Must exist in payload | `missing_url` |
-| `url` | Format | string | Must start with `/`, no spaces | `invalid_url` |
-| `url` | Length | string | Max 2048 | `url_too_long` |
-| `method` | Required | string | Must be `"GET"` | `missing_method`, `invalid_method` |
-| `period_ms` | Required | int | Must be int | `missing_period_ms`, `invalid_period` |
-| `period_ms` | Range | int | 2~30000, clamp if out of range | - |
-| `args` | Type | object | JSON object only | `invalid_args` |
+```json
+{"error":"<code>","message":"<msg>","hint":"<optional hint>"}\n
+```
 
 </div>
 
 <br>
-<h4 style="font-size:16px; font-weight:bold;">Watchdog Behavior</h4>
+<h4 style="font-size:16px; font-weight:bold;">错误代码</h4>
 
-* When MONITOR is activated, the watchdog transitions to the **ARM state**.
-* In this state, the session idle timeout is reduced from **180 seconds to 5 seconds**.
-* If the TCP connection is lost during monitoring, or  
-  if no meaningful commands are received from the client for a certain period,  
-  the watchdog detects this and automatically cleans up the session.
+<div style="max-width:fit-content;">
+
+| 错误代码 | HTTP 状态 | 描述 | 出现时间 |
+| ---------- | ----------- | ----------- | -------------- |
+| )`handshake_required`| 412 | 未执行握手 | MONITOR 在握手之前调用 |
+| ( | 412 | 未执行握手 | MONITOR 在握手之前调用 |
+| )`missing_url`| 400 | 缺少必填字段 | ( | 400 | 缺少必填字段 | )`url` 键丢失 |
+| ( 键丢失 |
+| )`invalid_url`| 400 | 无效的 URL 格式 | 不以 ( | 400 | 无效的 URL 格式 | 不以 )`/` 开头或包含空格 |
+| ( 或包含空格 |
+| )`url_too_long`| 400 | URL 太长 | URL 长度超过 2048 |
+| ( | 400 | URL 太长 | URL 长度超过 2048 |
+| )`missing_method`| 400 | 缺少必填字段 | ( | 400 | 缺少必填字段 | )`method` 键丢失 |
+| ( 键丢失 |
+| )`invalid_method`| 400 | 无效的方法 | 不是 ( | 400 | 无效的方法 | 不是 )`"GET"` |
+| ( |
+| )`missing_period_ms`| 400 | 缺少必填字段 | ( | 400 | 缺少必填字段 | )`period_ms` 键丢失 |
+| ( 键丢失 |
+| )`invalid_period`| 400 | 无效类型 | ( | 400 | 无效类型 | )`period_ms` 不是整数 |
+| ( 不是整数 |
+| )`invalid_args`| 400 | 无效类型 | ( | 400 | 无效类型 | )`args` 不是对象 |
+
+</div>
 
 <br>
-<h4 style="font-size:16px; font-weight:bold;">Note</h4>
+<h4 style="font-size:16px; font-weight:bold;">有效负载验证规则</h4>
 
-* MONITOR is a server-driven streaming mechanism.
-* `data` events may arrive at any time, regardless of whether `monitor_ack` has been received.
-* The client must always keep a receive loop running and handle events based on the `type` field.
+<div style="max-width:fit-content;">
 
+| 字段 | 属性 | 类型 | 验证规则 | 错误代码 |
+| ----- | --------- | ---- | --------------- | ---------- |
+| ( 不是对象 |
+
+</div>
+
+<br>
+<h4 style="font-size:16px; font-weight:bold;">有效负载验证规则</h4>
+
+<div style="max-width:fit-content;">
+
+| 字段 | 属性 | 类型 | 验证规则 | 错误代码 |
+| ----- | --------- | ---- | --------------- | ---------- |
+| )`url`| 必填 | 字符串 | 必须在有效负载中存在 | ( | 必填 | 字符串 | 必须在有效负载中存在 | )`missing_url` |
+| ( |
+| )`url`| 格式 | 字符串 | 必须以 ( | 格式 | 字符串 | 必须以 )`/` 开头，无空格 | (, 无空格 | )`invalid_url` |
+| ( |
+| )`url`| 长度 | 字符串 | 最大 2048 | ( | 长度 | 字符串 | 最大 2048 | )`url_too_long` |
+| ( |
+| )`method`| 必填 | 字符串 | 必须是 ( | 必填 | 字符串 | 必须是 )`"GET"`| ( | )`missing_method` (, )`invalid_method` |
+| ( |
+| )`period_ms`| 必填 | int | 必须是整数 | ( | 必填 | int | 必须是整数 | )`missing_period_ms` (, )`invalid_period` |
+| ( |
+| )`period_ms`| 范围 | int | 2~30000, 超出范围时限制 | - |
+| ( | 范围 | int | 2~30000, 超出范围时限制 | - |
+| )`args`| 类型 | 对象 | 仅限 JSON 对象 | ( | 类型 | 对象 | 仅限 JSON 对象 | )`invalid_args` |
+
+</div>
+
+<br>
+<h4 style="font-size:16px; font-weight:bold;">看门狗行为</h4>
+
+* 当 MONITOR 被激活时，看门狗将过渡到 **ARM 状态**。
+* 在此状态下，会议空闲超时从 **180 秒减少到 5 秒**。
+* 如果在监视过程中 TCP 连接丢失，或  
+  如果在一定时间内未从客户端接收到任何有效指令，  
+  看门狗会检测到这一点并自动清理会话。
+
+<br>
+<h4 style="font-size:16px; font-weight:bold;">注意</h4>
+
+* MONITOR 是一种服务器驱动的流式传输机制。
+* ( |
+
+</div>
+
+<br>
+<h4 style="font-size:16px; font-weight:bold;">看门狗行为</h4>
+
+* 当 MONITOR 被激活时，看门狗将过渡到 **ARM 状态**。
+* 在此状态下，会议空闲超时从 **180 秒减少到 5 秒**。
+* 如果在监视过程中 TCP 连接丢失，或  
+  如果在一定时间内未从客户端接收到任何有效指令，  
+  看门狗会检测到这一点并自动清理会话。
+
+<br>
+<h4 style="font-size:16px; font-weight:bold;">注意</h4>
+
+* MONITOR 是一种服务器驱动的流式传输机制。
+* )`data` 事件可能随时到达，无论是否 ( 事件可能随时到达，无论是否 )`monitor_ack` 已被接收。
+* 客户端必须始终保持接收循环运行，并根据 ( 已被接收。
+* 客户端必须始终保持接收循环运行，并根据 )`type` 字段处理事件。
 [__SOURCE](3-recipe/3-control.md)
-## 3.3 CONTROL
+## 3.3 控制
 
-CONTROL is a recipe command used by the client to control the robot or update internal controller data.  
-Internally, it invokes <b>POST / PUT / DELETE-based ${cont_model} OpenAPI</b>, and even in the Stream environment,  
-the <b>same REST paths and validation logic</b> as the existing OpenAPI are applied.
+控制是客户端用于控制机器人或更新内部控制器数据的命令。  
+在内部，它调用<b>POST / PUT / DELETE基础的 ${cont_model} OpenAPI</b>，即使在流环境中，  
+也应用与现有 OpenAPI 相同的<b>REST 路径和验证逻辑</b>。
 
-- CONTROL can be used **only after a successful HANDSHAKE**.<br>
-  &rightarrow; If called before HANDSHAKE, it is immediately rejected with a `handshake_required` error.
-- CONTROL is a <b>one-shot command</b>, and <b style="color:#ec1249;">no response NDJSON line is sent on success.</b>
-- CONTROL can be executed even while MONITOR is active.
+- 控制只能在**成功的握手后**使用。<br>
+  &rightarrow; 如果在握手之前调用，它将立即以`handshake_required`错误被拒绝。
+- 控制是<b>一次性命令</b>，并且<b style="color:#ec1249;">成功时不发送响应 NDJSON 行。</b>
+- 控制即使在监视器激活时也可以执行。
 
 <br>
-<h4 style="font-size:16px; font-weight:bold;">Request</h4>
+<h4 style="font-size:16px; font-weight:bold;">请求</h4>
 
 <div style="max-width:fit-content;">
 
 ```json
 {"cmd":"CONTROL","payload":{"method":"POST","url":"/project/robot/trajectory/joint_traject_insert_point","args":{},"body":{"interval":0.005,"time_from_start":-1,"look_ahead_time":0.004,"point":[1.014532178568314,91.01453217856832,1.014532178568314,1.014532178568314,1.014532178568314,0.013294178568314]}}}\n
-````
+````</div>
+
+<div style="max-width:fit-content;">
+
+| 有效负载字段 | 必需 | 类型 | 规则 |
+| ------------- | -------- | ---- | ----- |
+| (
 </div>
 
 <div style="max-width:fit-content;">
 
-| Payload Field | Required | Type | Rules |
+| 有效负载字段 | 必需 | 类型 | 规则 |
 | ------------- | -------- | ---- | ----- |
-| `url` | Yes | string | Must start with `/`, no spaces |
-| `method` | Yes | string | One of `POST`, `PUT`, `DELETE` |
-| `args` | No | object | Object for REST query parameters |
-| `body` | No | object \\| array | REST request body |
+| )`url`| 是 | 字符串 | 必须以( | 是 | 字符串 | 必须以) `/`开头，且没有空格 |
+| (, 没有空格 |
+| )`method`| 是 | 字符串 | 其中之一( | 是 | 字符串 | 其中之一) `POST`（,）`PUT`（,）`DELETE`|
+| ( |
+| )`args`| 否 | 对象 | REST 查询参数的对象 |
+| ( | 否 | 对象 | REST 查询参数的对象 |
+| )`body`| 否 | 对象 \\| 数组 | REST 请求主体 |
 
 </div>
 
 <br>
-<h4 style="font-size:16px; font-weight:bold;">Response - Success (<b><u><i>no response line</i></u></b>)</h4>
+<h4 style="font-size:16px; font-weight:bold;">响应 - 成功 (<b><u><i>无响应行</i></u></b>)</h4>
 
-If the CONTROL command is processed successfully,  
-<b>the server does not send a response NDJSON line.</b>  
-The client must be implemented to issue the command without expecting a return value.
+如果控制命令成功处理，  
+<b>服务器不会发送响应 NDJSON 行。</b>  
+客户端必须实现命令而不期待返回值。
 
-* This behavior is by design in the Stream protocol.
-* CONTROL success should be verified through <b>state changes or MONITOR results</b>, not by receiving an ACK.
+* 此行为是 Stream 协议的设计。
+* 控制成功应通过<b>状态变化或监视器结果</b>来验证，而不是通过接收 ACK。
 
 <br>
-<h4 style="font-size:16px; font-weight:bold;">Response - Error</h4>
+<h4 style="font-size:16px; font-weight:bold;">响应 - 错误</h4>
 
-If an error occurs, the server sends a `control_err` event to the current session.
+如果发生错误，服务器将发送( | 否 | 对象 \\| 数组 | REST 请求主体 |
+
+</div>
+
+<br>
+<h4 style="font-size:16px; font-weight:bold;">响应 - 成功 (<b><u><i>无响应行</i></u></b>)</h4>
+
+如果控制命令成功处理，  
+<b>服务器不会发送响应 NDJSON 行。</b>  
+客户端必须实现命令而不期待返回值。
+
+* 此行为是 Stream 协议的设计。
+* 控制成功应通过<b>状态变化或监视器结果</b>来验证，而不是通过接收 ACK。
+
+<br>
+<h4 style="font-size:16px; font-weight:bold;">响应 - 错误</h4>
+
+如果发生错误，服务器将发送 )`control_err`事件到当前会话。
 
 <div style="max-width:fit-content;">
 
@@ -848,69 +1021,108 @@ If an error occurs, the server sends a `control_err` event to the current sessio
 
 <div style="max-width:fit-content;">
 
-| Error Code | HTTP Status | Description | When it occurs |
+| 错误代码 | HTTP 状态 | 描述 | 发生的条件 |
 | ---------- | ----------- | ----------- | -------------- |
-| `handshake_required` | 412 | HANDSHAKE not performed | CONTROL called before HANDSHAKE |
-| `missing_url` | 400 | Missing required field | `url` key is missing |
-| `invalid_url` | 400 | Invalid URL format | Does not start with `/` or contains spaces |
-| `missing_method` | 400 | Missing required field | `method` key is missing |
-| `invalid_method` | 400 | Invalid method | Not `POST/PUT/DELETE` |
-| `invalid_args` | 400 | Invalid type | `args` is not an object |
-| `invalid_body` | 400 | Invalid type | `body` is not an object or array |
-
-</div>
-
-<br>
-<h4 style="font-size:16px; font-weight:bold;">Payload Validation Rules</h4>
+| ( 事件到当前会话。
 
 <div style="max-width:fit-content;">
 
-| Field | Attribute | Type | Validation Rule | Error Code |
-| ----- | --------- | ---- | --------------- | ---------- |
-| `url` | Required | string | Must exist in payload | `missing_url` |
-| `url` | Format | string | Must start with `/`, no spaces | `invalid_url` |
-| `method` | Required | string | One of `POST/PUT/DELETE` | `missing_method`, `invalid_method` |
-| `args` | Type | object | JSON object only | `invalid_args` |
-| `body` | Type | object \\| array | Object or array only | `invalid_body` |
+```json
+{"type":"control_err","status":<http_status>,"body":<optional_json>}\n
+```
+
+</div>
+
+<div style="max-width:fit-content;">
+
+| 错误代码 | HTTP 状态 | 描述 | 发生的条件 |
+| ---------- | ----------- | ----------- | -------------- |
+| )`handshake_required`| 412 | 未执行握手 | 控制在握手之前调用 |
+| ( | 412 | 未执行握手 | 控制在握手之前调用 |
+| )`missing_url`| 400 | 缺少必需字段 | ( | 400 | 缺少必需字段 | )`url`键缺失 |
+| ( 键缺失 |
+| )`invalid_url`| 400 | 无效的 URL 格式 | 不以( | 400 | 无效的 URL 格式 | 不以) `/`开头或包含空格 |
+| ( 或包含空格 |
+| )`missing_method`| 400 | 缺少必需字段 | ( | 400 | 缺少必需字段 | )`method`键缺失 |
+| ( 键缺失 |
+| )`invalid_method`| 400 | 无效的方法 | 不是( | 400 | 无效的方法 | 不是) `POST/PUT/DELETE`|
+| ( |
+| )`invalid_args`| 400 | 类型无效 | ( | 400 | 类型无效 | )`args`不是对象 |
+| ( 不是对象 |
+| )`invalid_body`| 400 | 类型无效 | ( | 400 | 类型无效 | )`body`不是对象或数组 |
 
 </div>
 
 <br>
-<h4 style="font-size:16px; font-weight:bold;">Watchdog Interaction</h4>
+<h4 style="font-size:16px; font-weight:bold;">有效负载验证规则</h4>
 
-- When a CONTROL command is executed successfully, the watchdog updates the last-activity timestamp it monitors.
+<div style="max-width:fit-content;">
 
-[__SOURCE](3-recipe/4-stop.md)
-## 3.4 STOP
+| 字段 | 属性 | 类型 | 验证规则 | 错误代码 |
+| ----- | --------- | ---- | --------------- | ---------- |
+| ( 不是对象或数组 |
 
-STOP is a recipe command used to interrupt ongoing operations in the current session  
-or to explicitly notify the server of the intent to terminate the session.
-
-- STOP can be used **only after a successful HANDSHAKE**.
-- Depending on the `target` value, it stops one of `monitor`, `control`, or `session`.
-- `target=session` is used to explicitly indicate a graceful shutdown intent,  
-  after which the client is recommended to close the TCP connection.
+</div>
 
 <br>
-<h4 style="font-size:16px; font-weight:bold;">Request</h4>
+<h4 style="font-size:16px; font-weight:bold;">有效负载验证规则</h4>
+
+<div style="max-width:fit-content;">
+
+| 字段 | 属性 | 类型 | 验证规则 | 错误代码 |
+| ----- | --------- | ---- | --------------- | ---------- |
+| )`url`| 必需 | 字符串 | 必须存在于有效负载中 | ( | 必需 | 字符串 | 必须存在于有效负载中 | )`missing_url`|
+| ( |
+| )`url`| 格式 | 字符串 | 必须以( | 格式 | 字符串 | 必须以) `/`开头，且没有空格 | (, 没有空格 | )`invalid_url`|
+| ( |
+| )`method`| 必需 | 字符串 | 其中之一( | 必需 | 字符串 | 其中之一) `POST/PUT/DELETE`| ( | )`missing_method` (, )`invalid_method`|
+| ( |
+| )`args`| 类型 | 对象 | 仅限 JSON 对象 | ( | 类型 | 对象 | 仅限 JSON 对象 | )`invalid_args`|
+| ( |
+| )`body`| 类型 | 对象 \\| 数组 | 仅限对象或数组 | ( | 类型 | 对象 \\| 数组 | 仅限对象或数组 | )`invalid_body` |
+
+</div>
+
+<br>
+<h4 style="font-size:16px; font-weight:bold;">看门狗交互</h4>
+
+- 当成功执行控制命令时，看门狗更新其监视的最后活动时间戳。
+[__SOURCE](3-recipe/4-stop.md)
+## 3.4 停止
+
+STOP 是一个用于中断当前会话中正在进行的操作的命令，  
+或明确通知服务器终止会话的意图。
+
+- STOP **只能在成功的握手之后使用**。
+- 根据 `目标 (target)` 值，它停止 `monitor`、`control` 或 `session` 之一。
+- `target=session` 用于明确表示优雅关闭的意图，  
+  之后建议客户端关闭 TCP 连接。
+
+<br>
+<h4 style="font-size:16px; font-weight:bold;">请求</h4>
 
 <div style="max-width:fit-content;">
 
 ```json
 {"cmd":"STOP","payload":{"target":"session"}}\n
-````
+````</div>
+<div style="max-width:fit-content;">
+
+| Payload Field | Required | Type | Rules |
+| ------------ | -------- | ---- | ----- |
+| (
 
 </div>
 <div style="max-width:fit-content;">
 
 | Payload Field | Required | Type | Rules |
 | ------------ | -------- | ---- | ----- |
-| `target` | Yes | string | One of `"session"`, `"control"`, `"monitor"` |
+| )`target`| 是 | string | 必须是 ( | 是 | string | 必须是 )`"session"` (, )`"control"` (, )`"monitor"`|
 
 </div>
 
 <br>
-<h4 style="font-size:16px; font-weight:bold;">Response - Success (<b><u><i>ACK</i></u></b>)</h4>
+<h4 style="font-size:16px; font-weight:bold;">响应 - 成功 (<b><u><i>ACK</i></u></b>)</h4>
 
 <div style="max-width:fit-content;">
 
@@ -920,13 +1132,28 @@ or to explicitly notify the server of the intent to terminate the session.
 
 </div>
 
-* The value of `stop_ack.target` is identical to the requested `target` value.
-* Indicates that the STOP request has been successfully accepted.
+* ( 的值 |
+
+</div>
 
 <br>
-<h4 style="font-size:16px; font-weight:bold;">Response - Error</h4>
+<h4 style="font-size:16px; font-weight:bold;">响应 - 成功 (<b><u><i>ACK</i></u></b>)</h4>
 
-All error responses follow the common NDJSON error schema.
+<div style="max-width:fit-content;">
+
+```json
+{"type":"stop_ack","target":"session"}\n
+```
+
+</div>
+
+* )`stop_ack.target`的值与请求的 ( 的值相同，  
+* 表示 STOP 请求已成功接受。
+
+<br>
+<h4 style="font-size:16px; font-weight:bold;">响应 - 错误</h4>
+
+所有错误响应遵循通用的 NDJSON 错误模式。
 
 <div style="max-width:fit-content;">
 
@@ -938,49 +1165,98 @@ All error responses follow the common NDJSON error schema.
 
 <div style="max-width:fit-content;">
 
-| Error Code | HTTP Status | Description | When it occurs |
+| 错误代码 | HTTP 状态 | 描述 | 发生时机 |
 | ---------- | ----------- | ----------- | -------------- |
-| `handshake_required` | 412 | HANDSHAKE not performed | STOP called before HANDSHAKE |
-| `missing_target` | 400 | Missing required field | `target` key is missing |
-| `invalid_target` | 400 | Invalid target value | Unsupported `target` value |
-
-</div>
+| ( 值。
+* 表示 STOP 请求已成功接受。
 
 <br>
-<h4 style="font-size:16px; font-weight:bold;">Payload Validation Rules</h4>
+<h4 style="font-size:16px; font-weight:bold;">响应 - 错误</h4>
+
+所有错误响应遵循通用的 NDJSON 错误模式。
 
 <div style="max-width:fit-content;">
 
-| Field | Attribute | Type | Validation Rule | Error Code |
-| ----- | --------- | ---- | --------------- | ---------- |
-| `target` | Required | string | Must exist in payload | `missing_target` |
-| `target` | Value | string | One of `"session"`, `"control"`, `"monitor"` | `invalid_target` |
+```json
+{"error":"<code>","message":"<msg>","hint":"<optional hint>"}\n
+```
+
+</div>
+
+<div style="max-width:fit-content;">
+
+| 错误代码 | HTTP 状态 | 描述 | 发生时机 |
+| ---------- | ----------- | ----------- | -------------- |
+| )`handshake_required`| 412 | 未执行握手 | 在握手之前调用 STOP |
+| ( | 412 | 未执行握手 | 在握手之前调用 STOP |
+| )`missing_target`| 400 | 缺少必需字段 | ( | 400 | 缺少必需字段 | )`target`键丢失 |
+| ( 键丢失 |
+| )`invalid_target`| 400 | 无效的目标值 | 不支持的 ( | 400 | 无效的目标值 | 不支持的 )`target`值 |
 
 </div>
 
 <br>
-<h4 style="font-size:16px; font-weight:bold;">Behavior Notes</h4>
+<h4 style="font-size:16px; font-weight:bold;">有效负载验证规则</h4>
 
-* `target=monitor`
-  * Stops the active MONITOR streaming.
-* `target=control`
-  * Cleans up the CONTROL execution state.
-* `target=session`
-  * Explicitly notifies the server of session termination intent.
-  * Closing the TCP connection after receiving `stop_ack` is recommended.
+<div style="max-width:fit-content;">
+
+| 字段 | 属性 | 类型 | 验证规则 | 错误代码 |
+| ----- | --------- | ---- | --------------- | ---------- |
+| ( 值 |
+
+</div>
 
 <br>
-<h4 style="font-size:16px; font-weight:bold;">Note</h4>
+<h4 style="font-size:16px; font-weight:bold;">有效负载验证规则</h4>
 
-* STOP is intended to safely release server resources.
-* Using `target=session` is strongly recommended for graceful shutdown scenarios.
+<div style="max-width:fit-content;">
 
+| 字段 | 属性 | 类型 | 验证规则 | 错误代码 |
+| ----- | --------- | ---- | --------------- | ---------- |
+| )`target`| 必填 | string | 必须存在于有效负载中 | ( | 必填 | string | 必须存在于有效负载中 | )`missing_target`|
+| ( |
+| )`target`| 值 | string | 必须是 ( | 值 | string | 必须是 )`"session"` (, )`"control"` (, )`"monitor"`| ( | )`invalid_target`|
+
+</div>
+
+<br>
+<h4 style="font-size:16px; font-weight:bold;">行为注意事项</h4>
+
+* ( |
+
+</div>
+
+<br>
+<h4 style="font-size:16px; font-weight:bold;">行为注意事项</h4>
+
+* )`target=monitor`* 停止活动的 MONITOR 流。
+* (
+  * 停止活动的 MONITOR 流。
+* )`target=control`* 清理 CONTROL 执行状态。
+* (
+  * 清理 CONTROL 执行状态。
+* )`target=session`* 明确通知服务器会话终止意图。
+  * 在接收到 (
+  * 明确通知服务器会话终止意图。
+  * 在收到 )`stop_ack`后关闭 TCP 连接是推荐的。
+
+<br>
+<h4 style="font-size:16px; font-weight:bold;">注意</h4>
+
+* STOP 旨在安全释放服务器资源。
+* 使用 ( 是推荐的。
+
+<br>
+<h4 style="font-size:16px; font-weight:bold;">注意</h4>
+
+* STOP 旨在安全释放服务器资源。
+* 使用 )`target=session` 强烈推荐用于优雅关闭的场景。
 [__SOURCE](4-error/README.md)
-# 4. Error Codes
+# 4. 错误代码
 
-This document describes the **error codes** that can be returned by the Open Stream server and their meanings.
+本文档描述了 Open Stream 服务器返回的 **错误代码** 及其含义。
 
-Errors are generally delivered as **single-line NDJSON messages** in the following format.
+错误通常以 **单行 NDJSON 消息** 的以下格式发送。
 
 <div style="max-width: fit-content;">
 
@@ -988,13 +1264,13 @@ Errors are generally delivered as **single-line NDJSON messages** in the followi
 {"error":"<error_code>","message":"...","hint":"..."}
 ```
 
-| Field   | Description |
-| ------- | ----------- |
-| error   | Machine-readable error code |
-| message | Human-readable short description |
-| hint    | Optional field. Additional hint for troubleshooting |
+| 字段     | 描述               |
+| -------- | ------------------ |
+| error    | 机器可读错误代码   |
+| message  | 人可读简短描述     |
+| hint     | 可选字段。故障排除的附加提示 |
 
-- (Note) Not all errors include the `hint` field.
+- （注意）并非所有错误都包含 `hint` 字段。
 
 </div>
 
@@ -1002,197 +1278,193 @@ Errors are generally delivered as **single-line NDJSON messages** in the followi
 
 <div style="max-width: fit-content;">
 
-<h4 style="font-size:15px; font-weight:bold;">1. Protocol / Session Errors</h4>
+<h4 style="font-size:15px; font-weight:bold;">1. 协议 / 会话错误</h4>
 
-Errors that occur during protocol parsing, session state handling, or violations of initialization procedures.
+在协议解析、会话状态处理或初始化程序违反过程期间发生的错误。
 
-| Error Code          | Description                 | Typical Cause                              | Client Action                                  |
-| ------------------- | --------------------------- | ------------------------------------------ | ---------------------------------------------- |
-| invalid_ndjson      | NDJSON parsing failure      | Broken JSON, missing newline (`\n`)        | Follow one-JSON-per-line + newline rule        |
-| rx_buf_overflow     | Receive buffer overflow     | Oversized messages or excessive bursts     | Reduce message size, limit send rate           |
-| handshake_required  | HANDSHAKE not performed     | Initial handshake omitted                  | Perform HANDSHAKE immediately after connect    |
-| version_mismatch    | Protocol version mismatch   | MAJOR version mismatch                     | Match server MAJOR version                     |
-| busy_session_active | Session already in use      | MONITOR/CONTROL active                     | Retry after STOP                               |
-| session_timeout     | Session idle timeout        | Watchdog timeout                           | Maintain periodic activity or reconnect        |
-
-<br>
-
-<h4 style="font-size:15px; font-weight:bold;">2. Command / Payload Validation Errors</h4>
-
-Errors that occur during request message structure or field validation.
-
-| Error Code      | Description               | Typical Cause               | Client Action                 |
-| --------------- | ------------------------- | --------------------------- | ----------------------------- |
-| invalid_cmd     | Unsupported cmd           | Typo or unsupported command | Verify `cmd` value            |
-| invalid_payload | Invalid payload format    | Not an object               | Change payload to object      |
-| missing_field   | Missing required field    | Missing `url`, `method`, etc.| Add required fields           |
-| invalid_type    | Invalid field type        | number ↔ string confusion   | Fix field type                |
-| invalid_value   | Invalid value             | Out of enum range           | Use allowed values            |
+| 错误代码               | 描述                     | 典型原因                              | 客户端操作                                  |
+| ---------------------- | ------------------------ | ------------------------------------- | ------------------------------------------- |
+| invalid_ndjson         | NDJSON 解析失败         | JSON 损坏，缺少换行符 (`\n`)         | 遵循每行一个 JSON + 换行规则                |
+| rx_buf_overflow        | 接收缓冲区溢出         | 消息过大或突发过多                   | 减少消息大小，限制发送速率                  |
+| handshake_required     | 未执行握手             | 初始握手被省略                       | 在连接后立即执行握手                        |
+| version_mismatch       | 协议版本不匹配         | MAJOR 版本不匹配                     | 匹配服务器 MAJOR 版本                       |
+| busy_session_active    | 会话已经在使用中       | MONITOR/CONTROL 处于活动状态        | 在 STOP 后重试                             |
+| session_timeout        | 会话空闲超时           | 看门狗超时                           | 维护周期性活动或重新连接                    |
 
 <br>
 
-<h4 style="font-size:15px; font-weight:bold;">3. HANDSHAKE Errors</h4>
+<h4 style="font-size:15px; font-weight:bold;">2. 命令 / 有效负载验证错误</h4>
 
-Errors that occur during HANDSHAKE processing.
+在请求消息结构或字段验证期间发生的错误。
 
-| Error Code         | Description                     | Typical Cause                     | Client Action                 |
-| ------------------ | ------------------------------- | --------------------------------- | ----------------------------- |
-| version_mismatch   | Protocol MAJOR mismatch         | Client/server MAJOR differs       | Use server MAJOR version      |
-| handshake_rejected | HANDSHAKE rejected              | Invalid session state             | Close existing session, retry |
-
-<br>
-
-<h4 style="font-size:15px; font-weight:bold;">4. MONITOR Errors</h4>
-
-Errors that occur during MONITOR configuration or execution.  
-These mainly arise during periodic REST invocation validation.
-
-| Error Code             | Description                         | Typical Cause              | Client Action               |
-| ---------------------- | ----------------------------------- | -------------------------- | --------------------------- |
-| invalid_method         | Non-GET method used in MONITOR      | POST/PUT used              | Change method to GET        |
-| invalid_url            | Invalid URL format                  | Not starting with `/`, spaces | Follow URL rules            |
-| invalid_period         | Invalid `period_ms` range           | Too small or too large     | Adjust to allowed range     |
-| monitor_already_active | Duplicate MONITOR request           | Already active             | STOP then retry             |
-| monitor_internal_error | Internal REST invocation failure    | Internal server error      | Check server logs           |
+| 错误代码         | 描述                     | 典型原因                  | 客户端操作                   |
+| ---------------- | ------------------------ | ------------------------ | --------------------------- |
+| invalid_cmd      | 不支持的命令            | 打字错误或不支持的命令  | 验证 `cmd` 值               |
+| invalid_payload  | 无效的有效负载格式      | 不是对象                  | 将有效负载更改为对象       |
+| missing_field    | 缺少必需字段            | 缺少 `url`、`method` 等   | 添加必需字段               |
+| invalid_type     | 无效的字段类型          | 数字 ↔ 字符串混淆        | 修正字段类型               |
+| invalid_value    | 无效的值                | 超出枚举范围              | 使用允许的值               |
 
 <br>
 
-<h4 style="font-size:15px; font-weight:bold;">5. CONTROL Errors</h4>
+<h4 style="font-size:15px; font-weight:bold;">3. HANDSHAKE 错误</h4>
 
-Errors that occur during CONTROL request processing.  
-They may be reported depending on REST execution results.
+在 HANDSHAKE 处理期间发生的错误。
 
-| Error Code         | Description                    | Typical Cause       | Client Action               |
-| ------------------ | ------------------------------ | ------------------- | --------------------------- |
-| control_err        | CONTROL execution failure      | REST 4xx/5xx        | Inspect status/body         |
-| invalid_body       | Invalid body JSON              | Serialization error | Verify body structure       |
-| method_not_allowed | Method not allowed             | Using GET, etc.     | Use POST/PUT/DELETE         |
-| control_busy       | Control unavailable state      | Another control active | Retry later              |
+| 错误代码              | 描述                          | 典型原因                         | 客户端操作                   |
+| --------------------- | ----------------------------- | -------------------------------- | --------------------------- |
+| version_mismatch      | 协议 MAJOR 不匹配             | 客户端/服务器 MAJOR 不同          | 使用服务器 MAJOR 版本      |
+| handshake_rejected    | HANDSHAKE 被拒绝              | 无效的会话状态                   | 关闭现有会话，重试          |
+
+<br>
+
+<h4 style="font-size:15px; font-weight:bold;">4. MONITOR 错误</h4>
+
+在 MONITOR 配置或执行期间发生的错误。  
+这些主要在周期性 REST 调用验证期间出现。
+
+| 错误代码                   | 描述                          | 典型原因                          | 客户端操作                    |
+| -------------------------- | ----------------------------- | --------------------------------- | ---------------------------- |
+| invalid_method             | MONITOR 中使用了非 GET 方法    | 使用了 POST/PUT                   | 将方法更改为 GET             |
+| invalid_url                | 无效的 URL 格式               | 未以 ` (/)` 开头，有空格         | 遵循 URL 规则                |
+| invalid_period             | 无效的 `period_ms` 范围      | 太小或太大                        | 调整为允许的范围             |
+| monitor_already_active     | 重复的 MONITOR 请求            | 已处于活动状态                    | STOP 然后重试                |
+| monitor_internal_error     | 内部 REST 调用失败           | 内部服务器错误                    | 检查服务器日志               |
+
+<br>
+
+<h4 style="font-size:15px; font-weight:bold;">5. CONTROL 错误</h4>
+
+在 CONTROL 请求处理期间发生的错误。  
+它们可能会根据 REST 执行结果被报告。
+
+| 错误代码              | 描述                         | 典型原因               | 客户端操作                   |
+| --------------------- | ---------------------------- | --------------------- | --------------------------- |
+| control_err           | CONTROL 执行失败            | REST 4xx/5xx         | 检查状态/主体              |
+| invalid_body          | 无效的主体 JSON             | 序列化错误           | 验证主体结构               |
+| method_not_allowed    | 不允许的方法                 | 使用 GET 等          | 使用 POST/PUT/DELETE        |
+| control_busy          | 控制不可用状态               | 另一个控制活动        | 稍后重试                   |
 
 {% hint style="warning" %}
 
-CONTROL does not return a response on success.  
-Only on failure may `control_err` or a common error message be delivered.
+CONTROL 不会在成功时返回响应。  
+只有在失败时可能会传递 `control_err` 或通用错误消息。
 
 {% endhint %}
 
 <br>
 
-<h4 style="font-size:15px; font-weight:bold;">6. STOP Errors</h4>
+<h4 style="font-size:15px; font-weight:bold;">6. STOP 错误</h4>
 
-Errors that occur during STOP request processing.
+在 STOP 请求处理期间发生的错误。
 
-| Error Code      | Description             | Typical Cause     | Client Action                                   |
-| --------------- | ----------------------- | ----------------- | ----------------------------------------------- |
-| invalid_target  | Invalid STOP target     | Target typo       | Choose monitor / control / session              |
-| nothing_to_stop | Nothing to stop         | Already terminated| Can be ignored                                  |
-| stop_failed     | Internal cleanup failure| Internal state error | Reconnection recommended                     |
+| 错误代码           | 描述                      | 典型原因             | 客户端操作                                   |
+| ------------------ | ------------------------- | ------------------- | --------------------------------------------- |
+| invalid_target     | 无效的 STOP 目标        | 目标拼写错误       | 选择 monitor / control / session             |
+| nothing_to_stop    | 没有什么可停止的        | 已经终止            | 可以忽略                                      |
+| stop_failed        | 内部清理失败            | 内部状态错误       | 推荐重新连接                                   |
 
 <br>
 
-<h4 style="font-size:15px; font-weight:bold;">7. Error Handling Guidelines</h4>
+<h4 style="font-size:15px; font-weight:bold;">7. 错误处理指南</h4>
 
-Error messages are always received as single-line NDJSON.
+错误消息始终以单行 NDJSON 接收。
 
-Clients are recommended to:
-- First check for the presence of the `error` field in the receive loop, and  
-  clearly clean up session state (STOP or reconnect) when an error occurs.
+建议客户端：
+- 首先检查接收循环中 `错误 (error)` 字段的存在，并在发生错误时明确清理会话状态（STOP 或重新连接）。
 
-- Some errors are recoverable, while others may require reconnection (fatal).
+- 一些错误是可恢复的，而其他错误可能需要重新连接（致命）。
 
-- Determine recoverability based on the "Client Action" column for each error.
+- 根据每个错误的 "客户端操作" 列确定可恢复性。
 
 </div>
-
 [__SOURCE](5-examples/README.md)
-# 5. Examples
+# 5. 示例
 
 {% hint style="info" %}
 
-This section provides step-by-step examples to help first-time Open Stream users understand  
-<b>how to design the client-side architecture</b>.  
-Each example focuses on <b>understanding structure and control flow</b> rather than providing fully optimized or production-ready code.
+本部分提供逐步示例，以帮助首次使用 Open Stream 的用户理解  
+<b>如何设计客户端架构</b>。  
+每个示例专注于 <b>理解结构和控制流</b> 而不是提供完全优化或准备投入生产的代码。
 
 {% endhint %}
 
-<h4 style="font-size:16px; font-weight:bold;">Manual Example Section Structure</h4>
+<h4 style="font-size:16px; font-weight:bold;">手动示例部分结构</h4>
 
 <div style="max-width:fit-content;">
 
 ```text
-5. Examples
-├── 5.1 utils       # Common utilities (send/receive, parsing, event dispatch)
-├── 5.2 handshake   # Standalone HANDSHAKE example
-├── 5.3 monitor     # MONITOR streaming example
-├── 5.4 control     # CONTROL one-shot request example
-└── 5.5 stop        # STOP and graceful shutdown example
+5. 示例
+├── 5.1 utils       # 常用工具（发送/接收、解析、事件分发）
+├── 5.2 handshake   # 独立的 HANDSHAKE 示例
+├── 5.3 monitor     # MONITOR 流媒体示例
+├── 5.4 control     # CONTROL 一次性请求示例
+└── 5.5 stop        # STOP 和优雅关闭示例
 ```
 </div>
 
 <br>
-<h4 style="font-size:16px; font-weight:bold;">Client Directory Structure</h4>
+<h4 style="font-size:16px; font-weight:bold;">客户端目录结构</h4>
 
-Below is a recommended minimal directory structure  
-for a client application that uses Open Stream.
+以下是使用 Open Stream 的客户端应用程序推荐的最小目录结构。
 
 <div style="max-width:fit-content;">
 
 ```text
 OpenStreamClient/
 ├── utils/
-│   ├── net.py            # TCP socket connection and send/receive
-│   ├── parser.py         # NDJSON stream parsing
-│   ├── dispatcher.py     # Event dispatch based on type / error
-│   ├── motion.py         # Generating sine wave motion
-│   └── api.py            # Wrappers for HANDSHAKE / MONITOR / CONTROL / STOP
+│   ├── net.py            # TCP 套接字连接和发送/接收
+│   ├── parser.py         # NDJSON 流解析
+│   ├── dispatcher.py     # 基于类型/错误的事件分发
+│   ├── motion.py         # 生成正弦波运动
+│   └── api.py            # HANDSHAKE / MONITOR / CONTROL / STOP 的包装器
 │
 ├── scenarios/
-│   ├── handshake.py      # Standalone HANDSHAKE scenario
-│   ├── monitor.py        # MONITOR streaming scenario
-│   ├── control.py        # CONTROL one-shot request scenario
-│   └── stop.py           # STOP and graceful shutdown scenario
+│   ├── handshake.py      # 独立的 HANDSHAKE 场景
+│   ├── monitor.py        # MONITOR 流媒体场景
+│   ├── control.py        # CONTROL 一次性请求场景
+│   └── stop.py           # STOP 和优雅关闭场景
 │
-└── main.py               # Client entry point
+└── main.py               # 客户端入口点
 ```
 </div>
 
 <br>
-<h4 style="font-size:16px; font-weight:bold;">Execution Environment</h4>
+<h4 style="font-size:16px; font-weight:bold;">执行环境</h4>
 
 <div style="max-width:fit-content;">
 
-| Item | Description |
+| 项目 | 描述 |
 | ---- | ----------- |
-| Language | Python 3.8.0 |
-| OS | Linux / macOS / Windows (any environment supporting TCP sockets) |
-| Libraries | Standard library only |
+| 语言 | Python 3.8.0 |
+| 操作系统 | Linux / macOS / Windows（任何支持 TCP 套接字的环境） |
+| 库 | 仅标准库 |
 
 </div>
 
-- These examples intentionally minimize external dependencies  
-  to focus on understanding the Open Stream protocol itself.
-
+- 这些示例故意最小化外部依赖  
+  以专注于理解 Open Stream 协议本身。
 [__SOURCE](5-examples/1-utils.md)
 ## 5.1 Common Utilities (utils)
 
 {% hint style="info" %}
 
-This document provides the <b>Open Stream client utility code</b>  
-that is commonly used across all subsequent examples.
+本文档提供了<b>Open Stream客户端工具代码</b>  
+该代码通常用于后续所有示例。
 
-The code below is <b>fully functional, runnable code</b>, not just illustrative samples.  
-You may copy it directly into your own project and use it as-is.
+下面的代码是<b>完全面能的可运行代码</b>，而不仅仅是示例样本。  
+您可以将其直接复制到自己的项目中并按原样使用。
 
-For clarity and reproducibility, this example is intentionally implemented using a  
-<b>"receive thread + blocking socket (with timeout)"</b> model.
+为了清晰和可重复性，这个示例故意使用了  
+<b>"接收线程 + 阻塞套接字（带超时）"</b>模型。
 
 {% endhint %}
 
 <br>
-<h4 style="font-size:16px; font-weight:bold;">Directory Structure</h4>
+<h4 style="font-size:16px; font-weight:bold;">目录结构</h4>
 
-Create the `utils/` directory as shown below  
-and copy each file exactly as provided.
+创建如下所示的`utils/`目录  
+并精确复制每个文件。
 
 <div style="max-width: fit-content;">
 
@@ -1208,15 +1480,15 @@ OpenStreamClient/
 </div>
 
 <br>
-<h4 style="font-size:16px; font-weight:bold;">Utility Roles</h4>
+<h4 style="font-size:16px; font-weight:bold;">工具角色</h4>
 
-| File | Role | Main Responsibilities |
+| 文件 | 角色 | 主要职责 |
 | ---- | ---- | --------------------- |
-| <b>net.py</b> | TCP network layer | TCP socket connect/disconnect, receive loop (thread), raw byte reception |
-| <b>parser.py</b> | NDJSON parser | NDJSON stream parsing, JSON object creation |
-| <b>dispatcher.py</b> | Message dispatcher | Callback dispatch based on message `type` / `error` |
-| <b>motion.py</b> | Trajectory utilities | Sine trajectory generation, file save/load |
-| <b>api.py</b> | Open Stream API wrapper | Abstraction for HANDSHAKE / MONITOR / CONTROL / STOP |
+| <b>net.py</b> | TCP网络层 | TCP套接字连接/断开，接收循环（线程），原始字节接收 |
+| <b>parser.py</b> | NDJSON解析器 | NDJSON流解析，JSON对象创建 |
+| <b>dispatcher.py</b> | 消息调度器 | 基于消息`类型 (type)` / `错误 (error)`的回调调度 |
+| <b>motion.py</b> | 轨迹工具 | 正弦轨迹生成，文件保存/加载 |
+| <b>api.py</b> | Open Stream API封装 | HANDSHAKE / MONITOR / CONTROL / STOP的抽象 |
 
 </div>
 
@@ -1227,25 +1499,25 @@ OpenStreamClient/
 
 <h4 style="font-size:16px; font-weight:bold;">utils/net.py</h4>
 
-This module implements the network layer responsible for TCP socket connection and I/O.
+该模块实现了负责TCP套接字连接和I/O的网络层。
 
-<b>Responsibilities</b>  
-(1) Create, maintain, and close the TCP connection to the Open Stream server.  
-(2) Read incoming raw byte streams from the server in a receive thread and forward them via a callback (`on_bytes`).  
-(3) Decouple higher layers (parser/dispatcher) from direct network I/O handling.
+<b>职责</b>  
+(1) 创建、维护并关闭与Open Stream服务器的TCP连接。  
+(2) 在接收线程中读取来自服务器的原始字节流，并通过回调（`on_bytes`）转发它们。  
+(3) 将更高层（解析器/调度器）与直接网络I/O处理解耦。
 
-<b>Key Design Points</b>  
-(1) `TCP_NODELAY` (Nagle OFF): reduces latency for small NDJSON lines.  
-(2) `SO_KEEPALIVE`: helps detect half-open connections.  
-(3) Timeout-based recv loop: ensures responsiveness during shutdown or interruption.
+<b>关键设计点</b>  
+(1) `TCP_NODELAY`（Nagle OFF）：减少小NDJSON行的延迟。  
+(2) `SO_KEEPALIVE`：帮助检测半开放连接。  
+(3) 基于超时的接收循环：确保在关闭或中断期间的响应能力。
 
-<b>Main APIs</b>  
-(1) `connect()`: establish socket connection and configure options  
-(2) `send_line(line)`: send one NDJSON line (newline appended automatically)  
-(3) `start_recv_loop(on_bytes)`: start receive thread  
-(4) `close()`: close the connection
+<b>主要API</b>  
+(1) `connect()`：建立套接字连接并配置选项  
+(2) `send_line(line)`：发送一行NDJSON（换行符自动追加）  
+(3) `start_recv_loop(on_bytes)`：启动接收线程  
+(4) `close()`：关闭连接
 
-<details><summary>Click to check the python code</summary>
+<details><summary>点击查看python代码</summary>
 
 ```python
 # utils/net.py
@@ -1265,7 +1537,7 @@ class NetClient:
     def connect(self) -> None:
         self.sock = socket.create_connection((self.host, self.port))
 
-        # Nagle OFF (low latency)
+        # Nagle OFF (低延迟)
         try:
             self.sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
         except OSError:
@@ -1279,7 +1551,7 @@ class NetClient:
 
         self.sock.settimeout(1.0)
         self._running = True
-        print(f"[net] connected to {self.host}:{self.port}")
+        print(f"[net] 已连接到 {self.host}:{self.port}")
 
     def close(self) -> None:
         self._running = False
@@ -1288,17 +1560,17 @@ class NetClient:
                 self.sock.close()
             except Exception:
                 pass
-        print("[net] connection closed")
+        print("[net] 连接已关闭")
 
     def send_line(self, line: str) -> None:
         if not self.sock:
-            raise RuntimeError("socket not connected")
+            raise RuntimeError("套接字未连接")
         self.sock.sendall((line + "\n").encode("utf-8"))
         print(f"[tx] {line}")
 
     def start_recv_loop(self, on_bytes: Callable[[bytes], None]) -> None:
         if not self.sock:
-            raise RuntimeError("socket not connected")
+            raise RuntimeError("套接字未连接")
 
         def loop():
             while self._running:
@@ -1323,19 +1595,19 @@ class NetClient:
 <br>
 <h4 style="font-size:16px; font-weight:bold;">utils/parser.py</h4>
 
-This parser converts an NDJSON (Newline Delimited JSON) stream into  
-<b>line-based JSON objects</b>.
+该解析器将NDJSON（换行分隔的JSON）流转换为  
+<b>基于行的JSON对象</b>。
 
-- <b>Input</b>: byte chunks. TCP does not preserve message boundaries, so a message may be split across chunks or multiple messages may be combined.
-- <b>Output</b>: completed JSON dictionaries passed to the `on_message(dict)` callback.
-- <b>Behavior</b><br>
-  (1) Accumulate data in an internal buffer and split by `\n`.  
-  (2) Decode each line as UTF-8 and parse via `json.loads()`.  
-  (3) On JSON parse failure, log the error and skip the line.
+- <b>输入</b>: 字节块。 TCP不会保留消息边界，因此一条消息可能会跨块分裂，或者多个消息可能会合并。
+- <b>输出</b>: 传递给`on_message(dict)`回调的完整JSON字典。
+- <b>行为</b><br>
+  (1) 在内部缓冲区中累积数据并按`\n`分割。  
+  (2) 将每一行解码为UTF-8，并通过`json.loads()`解析。  
+  (3) 在JSON解析失败时，记录错误并跳过该行。
 
-This module standardizes the boundary between "raw bytes" and "parsed messages".
+该模块标准化了"原始字节"和"解析消息"之间的边界。
 
-<details><summary>Click to check the python code</summary>
+<details><summary>点击查看python代码</summary>
 
 ```python
 # utils/parser.py
@@ -1359,7 +1631,7 @@ class NDJSONParser:
                 msg = json.loads(line.decode("utf-8"))
                 on_message(msg)
             except json.JSONDecodeError as e:
-                print(f"[parser] json decode error: {e}")
+                print(f"[parser] json解码错误: {e}")
 ```
 
 </details>
@@ -1369,23 +1641,21 @@ class NDJSONParser:
 <br>
 <h4 style="font-size:16px; font-weight:bold;">utils/dispatcher.py</h4>
 
-This dispatcher routes parsed messages (dict) to registered callbacks  
-based on <b>`type` / `error`</b>.
+该调度器根据<b>`类型 (type)` / `错误 (error)`</b>将解析消息（dict）路由到注册的回调。
 
-- <b>Responsibilities</b>  
-  (1) Separate message handling logic from the network/parser layers.  
-  (2) Example scripts (handshake/monitor/control) only need to register handlers with the dispatcher.
+- <b>职责</b>  
+  (1) 将消息处理逻辑与网络/解析层分开。  
+  (2) 示例脚本（握手/监控/控制）只需要向调度器注册处理程序。
 
-- <b>Dispatch Rules (current implementation)</b>  
-  (1) If `msg` contains the key `"error"`, call `on_error(msg)` (or print if not registered).  
-  (2) Otherwise, dispatch using `msg.get("type")` to the corresponding `on_type[type]` callback.  
-  (3) If no matching callback exists, print the event by default.
+- <b>调度规则（当前实现）</b>  
+  (1) 如果`内容 (msg)`包含键`"error"`，则调用`on_error(msg)`（如果未注册则打印）。  
+  (2) 否则，使用`msg.get("type")`调度到相应的`on_type[type]`回调。  
+  (3) 如果没有匹配的回调存在，默认情况下打印事件。
 
-- <b>Extension Points</b>  
-  Projects may explicitly separate `ack` / `event` handling by extending  
-  the key-based dispatch logic inside `dispatch()`.
+- <b>扩展点</b>  
+  项目可以通过扩展`dispatch()`内部的基于键的调度逻辑，明确分离`ack` / `event`处理。
 
-<details><summary>Click to check the python code</summary>
+<details><summary>点击查看python代码</summary>
 
 ```python
 # utils/dispatcher.py
@@ -1402,14 +1672,14 @@ class Dispatcher:
             if self.on_error:
                 self.on_error(msg)
             else:
-                print(f"[error] {msg}")
+                print(f"[错误] {msg}")
             return
 
         msg_type = msg.get("type")
         if msg_type and msg_type in self.on_type:
             self.on_type[msg_type](msg)
         else:
-            print(f"[event] {msg}")
+            print(f"[事件] {msg}")
 ```
 
 </details>
@@ -1419,40 +1689,40 @@ class Dispatcher:
 <br>
 <h4 style="font-size:16px; font-weight:bold;">utils/motion.py</h4>
 
-`motion.py` provides **joint trajectory generation and reuse utilities**  
-used by the CONTROL examples.
+`motion.py`提供了**关节轨迹生成和重用工具**  
+在CONTROL示例中使用。
 
-The primary purpose is to keep the CONTROL example focused by  
-<b>separating trajectory generation logic</b> from communication logic.
+其主要目的是通过  
+<b>将轨迹生成逻辑与通信逻辑分离</b>来保持CONTROL示例的专注。
 
-- CONTROL transmission already involves complex timing and schema handling.
-- Mixing trajectory generation into the same example would make it excessively long.
-- Therefore, trajectories are generated in `motion.py`, while CONTROL examples focus on  
-  "sending generated points at fixed intervals".
+- CONTROL传输已经涉及复杂的时序和方案处理。
+- 将轨迹生成混合到同一示例中会使其过长。
+- 因此，轨迹在`motion.py`中生成，而CONTROL示例专注于  
+  “以固定间隔发送生成的点”。
 
-Role 1. **Trajectory Generation (sine wave)**
+角色1. **轨迹生成（正弦波）**
 - `generate_sine_trajectory(base_deg, cycle_sec, amplitude_deg, dt_sec, total_sec, active_joint_count)`
-- Applies sine displacement only to the first N joints to create oscillatory motion.
-- Returns a `List[List[float]]` of **degree-based points**.
+- 仅对前N个关节应用正弦位移，以产生振荡运动。
+- 返回`List[List[float]]`的**基于度数的点**。
 
-Role 2. **Trajectory Save / Load**
+角色2. **轨迹保存/加载**
 - `save_trajectory(points_deg, dt_sec, base_dir="data") -> saved_path`
 - `load_trajectory(path) -> (dt_sec, points_deg)`
-- JSON format:  
-  → `dt_sec`: time interval between points (sec)  
-  → `points_deg`: list of joint angle points
+- JSON格式：  
+  → `dt_sec`：点之间的时间间隔（秒）  
+  → `points_deg`：关节角度点的列表
 
-Usage Locations
-- In `control.md` scenarios:
-  - Read base pose (rad) → convert via `rad_to_deg()`
-  - Generate points with `generate_sine_trajectory()`
-  - Optionally save and reuse trajectories via `save_trajectory()` / `load_trajectory()`
+使用位置
+- 在`control.md`场景中：
+  - 读取基准姿态（弧度）→通过`rad_to_deg()`转换
+  - 使用`generate_sine_trajectory()`生成点
+  - 可选地通过`save_trajectory()` / `load_trajectory()`保存和重用轨迹
 
-Notes
-- CONTROL `joint_traject_insert_point` assumes **degrees** for `point` values (example standard).
-- `dt_sec` directly affects transmission timing and `interval/time_from_start` settings and must be preserved when saving/loading.
+备注
+- CONTROL `joint_traject_insert_point`假定`point`值为**度**（示例标准）。
+- `dt_sec`直接影响传输时序和`interval/time_from_start`设置，保存/加载时必须保留。
 
-<details><summary>Click to check the python code</summary>
+<details><summary>点击查看python代码</summary>
 
 ```python
 # utils/motion.py
@@ -1530,38 +1800,37 @@ def load_trajectory(path: str) -> Tuple[float, List[List[float]]]:
 <br>
 <h4 style="font-size:16px; font-weight:bold;">utils/api.py</h4>
 
-This module is a thin wrapper that <b>consistently constructs JSON messages</b>  
-for the Open Stream protocol.
+该模块是一个薄包装器，<b>一致地构建JSON消息</b>  
+用于Open Stream协议。
 
-- <b>Responsibilities</b>  
-  (1) Prevent example scripts from repeatedly writing raw JSON schemas.  
-  (2) Standardize payload structures per `cmd` (HANDSHAKE / MONITOR / CONTROL / STOP).
+- <b>职责</b>  
+  (1) 防止示例脚本重复编写原始JSON模式。  
+  (2) 针对`cmd`（HANDSHAKE / MONITOR / CONTROL / STOP）标准化负载结构。
 
-- <b>Important Notes</b>  
-  (1) `api.py` does not send network data directly; it sends NDJSON lines via `net.send_line()`.  
-  (2) CONTROL is a first-class protocol command; `joint_traject_*` helpers are subordinate utilities for trajectory control.
+- <b>重要说明</b>  
+  (1) `api.py`不直接发送网络数据；它通过`net.send_line()`发送NDJSON行。  
+  (2) CONTROL是一个一流的协议命令；`joint_traject_*`辅助工具是轨迹控制的从属工具。
 
-Protocol Command Overview
+协议命令概述
 
-| cmd | Description |
+| cmd | 描述 |
 | --- | ----------- |
-| HANDSHAKE | Session initialization and version negotiation |
-| MONITOR | Periodic state / HTTP API polling |
-| CONTROL | Robot control (trajectory, etc.) |
-| STOP | Stop session or streams |
+| HANDSHAKE | 会话初始化和版本协商 |
+| MONITOR | 周期性状态 / HTTP API轮询 |
+| CONTROL | 机器人控制（轨迹等） |
+| STOP | 停止会话或流 |
 
-Provided Methods
+提供的方法
 
-| API Method | cmd | Description |
+| API方法 | cmd | 描述 |
 | ---------- | --- | ----------- |
-| `handshake(major)` | HANDSHAKE | Initialize Open Stream session |
-| `monitor(url, period_ms, args=None, monitor_id=1)` | MONITOR | Periodically poll target URL |
-| `monitor_stop()` | MONITOR | Stop MONITOR |
-| `joint_traject_init()` | CONTROL | Initialize joint trajectory control |
-| `joint_traject_insert_point(body)` | CONTROL | Send one trajectory point |
-| `stop(target)` | STOP | Stop session or control/monitor |
-
-<details><summary>Click to check the python code</summary>
+| `handshake(major)` | HANDSHAKE | 初始化Open Stream会话 |
+| `monitor(url, period_ms, args=None, monitor_id=1)` | MONITOR | 定期轮询目标URL |
+| `monitor_stop()` | MONITOR | 停止MONITOR |
+| `joint_traject_init()` | CONTROL | 初始化关节轨迹控制 |
+| `joint_traject_insert_point(body)` | CONTROL | 发送一个轨迹点 |
+| `stop(target)` | STOP | 停止会话或控制/监控 |
+<details><summary>点击以查看python代码</summary>
 
 ```python
 # utils/api.py
@@ -1578,7 +1847,7 @@ class OpenStreamAPI:
         self.net.send_line(line)
 
     # -------------------------
-    # HANDSHAKE
+    # 握手
     # -------------------------
 
     def handshake(self, major: int = 1) -> None:
@@ -1590,7 +1859,7 @@ class OpenStreamAPI:
         })
 
     # -------------------------
-    # MONITOR
+    # 监控
     # -------------------------
 
     def monitor(
@@ -1625,7 +1894,7 @@ class OpenStreamAPI:
         })
 
     # -------------------------
-    # STOP
+    # 停止
     # -------------------------
 
     def stop(self, target: str = "session") -> None:
@@ -1637,7 +1906,7 @@ class OpenStreamAPI:
         })
 
     # -------------------------
-    # CONTROL (joint trajectory)
+    # 控制（关节轨迹）
     # -------------------------
 
     def joint_traject_init(self) -> None:
@@ -1672,35 +1941,34 @@ class OpenStreamAPI:
 <br>
 
 <br>
-<h4 style="font-size:16px; font-weight:bold;">About main.py</h4>
+<h4 style="font-size:16px; font-weight:bold;">关于main.py</h4>
 
-Although not part of the <code>utils/</code> package, <code>main.py</code> plays an important role  
-as the <b>execution entry point</b> for all example scenarios.
+虽然不是<code>utils/</code>包的一部分，<code>main.py</code>在所有示例场景中扮演着重要角色  
+作为<b>执行入口点</b>。
 
-<code>main.py</code> is responsible for:
+<code>main.py</code>负责：
 <ul>
-  <li>Parsing command-line arguments (scenario type, host, port, etc.)</li>
-  <li>Selecting and invoking the appropriate scenario module</li>
-  <li>Providing a unified execution interface for all examples</li>
+  <li>解析命令行参数（场景类型、主机、端口等）</li>
+  <li>选择并调用适当的场景模块</li>
+  <li>为所有示例提供统一的执行接口</li>
 </ul>
 
-This separation is intentional:
+这种分离是故意的：
 <ul>
-  <li><code>utils/</code> contains <b>reusable, scenario-agnostic building blocks</b></li>
-  <li><code>scenarios/*.py</code> contains <b>step-by-step protocol flows</b></li>
-  <li><code>main.py</code> only orchestrates execution and does not implement protocol logic itself</li>
+  <li><code>utils/</code>包含<b>可重用、不依赖场景的构建模块</b></li>
+  <li><code>scenarios/*.py</code>包含<b>逐步的协议流程</b></li>
+  <li><code>main.py</code>只是协调执行，并不实现协议逻辑</li>
 </ul>
 
-Each example in the following sections assumes execution via <code>main.py</code>.
-
+以下部分中的每个示例假定通过<code>main.py</code>执行。
 
 <br>
-<h4 style="font-size:16px; font-weight:bold;">main.py (Scenario Launcher)</h4>
+<h4 style="font-size:16px; font-weight:bold;">main.py（场景启动器）</h4>
 
-<code>main.py</code> provides a unified entry point for running each example scenario via command-line arguments.
-It parses common options (host/port/major, etc.) and dispatches to the corresponding module under <code>scenarios/</code>.
+<code>main.py</code>提供了一个统一的入口点，通过命令行参数运行每个示例场景。
+它解析常见选项（主机/端口/主要等），并分发到<code>scenarios/</code>下的相应模块。
 
-<details><summary>Click to check the python code</summary>
+<details><summary>点击以查看python代码</summary>
 
 ```python
 import argparse
@@ -1720,13 +1988,13 @@ def main():
     p.add_argument("--major", type=int, default=1)
 
     # -------------------------
-    # MONITOR options
+    # 监控选项
     # -------------------------
     p.add_argument("--url", default="/api/health")
     p.add_argument("--period-ms", type=int, default=1000)
 
     # -------------------------
-    # CONTROL options
+    # 控制选项
     # -------------------------
     p.add_argument("--http-port", type=int, default=8888)
     p.add_argument("--dt-sec", type=float, default=0.02)
@@ -1739,7 +2007,7 @@ def main():
     p.add_argument("--target", \
                    choices=["session", "control", "monitor"], \
                    default="session", \
-                   help="STOP target (session | control | monitor)")
+                   help="停止目标（session | control | monitor）")
 
 
     args = p.parse_args()
@@ -1780,40 +2048,35 @@ if __name__ == "__main__":
 
 </details>
 
+<h4 style="font-size:16px; font-weight:bold;">总结</h4>
 
-
-<h4 style="font-size:16px; font-weight:bold;">Summary</h4>
-
-* The `utils` code above is <b>reused unchanged in all subsequent examples</b>.
-* It works correctly with <b>copy-and-paste only</b>, without modification.
-* Starting from the next document, step-by-step scenarios for  
-  <b>HANDSHAKE → MONITOR → CONTROL → STOP</b> will be explained using these utilities.
-
+* 上面的`utils`代码在所有后续示例中<b>保持不变地重用</b>。
+* 它正确运行，<b>只需复制和粘贴</b>，无需修改。
+* 从下一个文档开始，将使用这些工具逐步解释  
+  <b>握手 → 监控 → 控制 → 停止</b>的场景。
 [__SOURCE](5-examples/2-handshake.md)
-## 5.2 HANDSHAKE Example
+## 5.2 HANDSHAKE 示例
 
-This example demonstrates the most basic flow required to start an Open Stream session.
+此示例演示了开始 Open Stream 会话所需的最基本流程。
 
+<h4 style="font-size:16px; font-weight:bold;">执行场景</h4>
 
-<h4 style="font-size:16px; font-weight:bold;">Execution Scenario</h4>
-
-1. Establish a TCP connection
-2. Start the NDJSON receive loop (parser + dispatcher wired)
-3. Send HANDSHAKE
-4. Confirm receipt of `handshake_ack`
-5. Close the connection
-
-<br>
-<h4 style="font-size:16px; font-weight:bold;">Prerequisites</h4>
-
-- `utils/` directory (net.py / parser.py / dispatcher.py / api.py)
-- Server address and port (`49000`)
-
+1. 建立 TCP 连接
+2. 启动 NDJSON 接收循环（解析器 + 派发器连接）
+3. 发送 HANDSHAKE
+4. 确认收到 `handshake_ack`
+5. 关闭连接
 
 <br>
-<h4 style="font-size:16px; font-weight:bold;">Example Code</h4>
+<h4 style="font-size:16px; font-weight:bold;">前提条件</h4>
 
-To run this example, the following files must exist in your project.
+- `utils/` 目录 (net.py / parser.py / dispatcher.py / api.py)
+- 服务器地址和端口 (`49000`)
+
+<br>
+<h4 style="font-size:16px; font-weight:bold;">示例代码</h4>
+
+要运行此示例，以下文件必须存在于您的项目中。
 
 <div style="max-width:fit-content;">
 
@@ -1827,9 +2090,9 @@ OpenStreamClient/
 │   └── api.py
 │
 ├── scenarios/
-│   └── handshake.py      # Scenario code provided in this document
+│   └── handshake.py      # 文档中提供的场景代码
 │
-└── main.py               # Scenario launcher (entry point)
+└── main.py               # 场景启动器（入口点）
 ```
 </div>
 
@@ -1853,7 +2116,7 @@ def run(host: str, port: int, major: int) -> None:
     dispatcher = Dispatcher()
     api = OpenStreamAPI(net)
 
-    # Register event handlers
+    # 注册事件处理程序
     dispatcher.on_type["handshake_ack"] = lambda m: print(
         f"[ack] handshake_ack ok={m.get('ok')} version={m.get('version')}"
     )
@@ -1861,23 +2124,22 @@ def run(host: str, port: int, major: int) -> None:
         f"[ERR] code={e.get('error')} message={e.get('message')} hint={e.get('hint')}"
     )
 
-    # Connect and start receive loop
+    # 连接并启动接收循环
     net.connect()
     net.start_recv_loop(lambda b: parser.feed(b, dispatcher.dispatch))
 
-    # Send HANDSHAKE
+    # 发送 HANDSHAKE
     api.handshake(major=major)
 
-    # Wait briefly for ACK, then close
+    # 简要等待 ACK，然后关闭
     time.sleep(0.5)
     net.close()
 ```
 </div>
 
 <div style="max-width:fit-content;">
-  &rightarrow; This is an executable scenario that sends a HANDSHAKE request and verifies receipt of `handshake_ack`.
+  &rightarrow; 这是一个可执行的场景，它发送一个 HANDSHAKE 请求并验证收到 `handshake_ack`。
 </div>
-
 
 <br>
 <h4 style="font-size:16px; font-weight:bold;">main.py</h4>
@@ -1891,12 +2153,12 @@ import argparse
 from scenarios import handshake as sc_handshake
 
 def main() -> None:
-    p = argparse.ArgumentParser(description="Open Stream Examples")
+    p = argparse.ArgumentParser(description="Open Stream 示例")
     p.add_argument("scenario", choices=["handshake", "monitor", "control", "stop"])
     p.add_argument("--host", default="192.168.1.150")
     p.add_argument("--port", type=int, default=49000)
 
-    # common options
+    # 通用选项
     p.add_argument("--major", type=int, default=1)
     p.add_argument("--period-ms", type=int, default=10)
     p.add_argument("--target", choices=["session", "control", "monitor"], default="session")
@@ -1913,9 +2175,9 @@ if __name__ == "__main__":
 </div>
 
 <br>
-<h4 style="font-size:16px; font-weight:bold;">How to Run</h4>
+<h4 style="font-size:16px; font-weight:bold;">如何运行</h4>
 
-Run the following command from the project root.
+从项目根目录运行以下命令。
 
 <div style="max-width:fit-content;">
 
@@ -1924,7 +2186,7 @@ $ python3 main.py handshake --host 192.168.1.150 --port 49000 --major 1
 ```
 </div>
 
-<h4 style="font-size:16px; font-weight:bold;">Expected Output</h4>
+<h4 style="font-size:16px; font-weight:bold;">预期输出</h4>
 
 ```text
 [net] connected to 192.168.1.150:49000
@@ -1933,38 +2195,36 @@ $ python3 main.py handshake --host 192.168.1.150 --port 49000 --major 1
 [net] connection closed
 ```
 
-- Note: If an error occurs, it will be received in the form  
+- 注意：如果发生错误，将以以下形式接收  
   `{ "error": "...", "message": "...", "hint": "..." }`.
-
 [__SOURCE](5-examples/3-monitor.md)
-## 5.3 MONITOR Example
+## 5.3 MONITOR 示例
 
-This example demonstrates the basic flow for starting **MONITOR streaming**  
-in an Open Stream session and processing periodically received data.
+此示例演示了在 Open Stream 会话中启动 **MONITOR 流** 的基本流程，以及处理周期性接收的数据。
 
-<h4 style="font-size:16px; font-weight:bold;">Execution Scenario</h4>
+<h4 style="font-size:16px; font-weight:bold;">执行场景</h4>
 
-1. Establish a TCP connection  
-2. Start NDJSON receive loop (parser + dispatcher wired)  
-3. Send MONITOR (method / url / period_ms / args)  
-4. Confirm receipt of `monitor_ack` (or server-defined ACK type)  
-5. Process streamed `monitor_data`  
-6. Exit example (close connection)
+1. 建立 TCP 连接  
+2. 启动 NDJSON 接收循环（解析器 + 派发器连接）  
+3. 发送 MONITOR（方法 / URL / period_ms / 参数）  
+4. 确认收到 `monitor_ack`（或服务器定义的 ACK 类型）  
+5. 处理流式 `monitor_data`  
+6. 退出示例（关闭连接）
 
-* In real operation, it is recommended to send `STOP target=monitor` when terminating streaming  
-(this is covered in the STOP example).
-
-<br>
-<h4 style="font-size:16px; font-weight:bold;">Prerequisites</h4>
-
-* `utils/` directory (net.py / parser.py / motion.py / dispatcher.py / api.py)  
-* Server address and port (`49000`)  
-* Target REST URL for MONITOR, `period_ms`, and `args`
+* 在实际操作中，建议在终止流时发送 `STOP target=monitor`  
+（这在 STOP 示例中有所涵盖）。
 
 <br>
-<h4 style="font-size:16px; font-weight:bold;">Example Code</h4>
+<h4 style="font-size:16px; font-weight:bold;">前提条件</h4>
 
-To run this example, the following files must exist in your project.
+* `utils/` 目录（net.py / parser.py / motion.py / dispatcher.py / api.py）  
+* 服务器地址和端口（`49000`）  
+* MONITOR 的目标 REST URL、`period_ms` 和 `args`
+
+<br>
+<h4 style="font-size:16px; font-weight:bold;">示例代码</h4>
+
+要运行此示例，以下文件必须存在于您的项目中。
 
 <div style="max-width:fit-content;">
 
@@ -1979,9 +2239,9 @@ OpenStreamClient/
 │
 ├── scenarios/
 │   ├── handshake.py
-│   └── monitor.py        # Scenario code provided in this document
+│   └── monitor.py        # 本文档提供的场景代码
 │
-└── main.py               # Scenario launcher (entry point)
+└── main.py               # 场景启动器（入口点）
 ```
 </div>
 
@@ -2007,10 +2267,10 @@ def run(host: str, port: int, *, major: int, url: str, period_ms: int) -> None:
     dispatcher = Dispatcher()
     api = OpenStreamAPI(net)
 
-    # --- synchronization event (wait for ACK) ---
+    # --- 同步事件（等待 ACK） ---
     handshake_ok = threading.Event()
 
-    # register event handlers
+    # 注册事件处理程序
     def _on_handshake_ack(m: dict) -> None:
         ok = bool(m.get("ok"))
         print(f"[ack] handshake_ack ok={ok} version={m.get('version')}")
@@ -2019,7 +2279,7 @@ def run(host: str, port: int, *, major: int, url: str, period_ms: int) -> None:
 
     dispatcher.on_type["handshake_ack"] = _on_handshake_ack
 
-    # MONITOR ACK / DATA (type names may vary by server implementation)
+    # MONITOR ACK / 数据（类型名称可能因服务器实现而异）
     dispatcher.on_type["monitor_ack"] = lambda m: print(
         f"[ack] monitor_ack ok={m.get('ok')} url={m.get('url')} period_ms={m.get('period_ms')}"
     )
@@ -2031,31 +2291,31 @@ def run(host: str, port: int, *, major: int, url: str, period_ms: int) -> None:
         f"[ERR] code={e.get('error')} message={e.get('message')} hint={e.get('hint')}"
     )
 
-    # connect and start receive loop
+    # 连接并启动接收循环
     net.connect()
     net.start_recv_loop(lambda b: parser.feed(b, dispatcher.dispatch))
 
-    # 1) HANDSHAKE
+    # 1) 握手
     api.handshake(major=major)
 
-    # 2) wait for handshake_ack (timeout adjustable)
+    # 2) 等待 handshake_ack（超时可调）
     if not handshake_ok.wait(timeout=1.0):
-        print("[ERR] handshake_ack timeout; MONITOR will not be sent.")
+        print("[ERR] handshake_ack 超时；将不发送 MONITOR。")
         net.close()
         return
 
-    # 3) send MONITOR
+    # 3) 发送 MONITOR
     api.monitor(url=url, period_ms=period_ms, args={})
 
-    # wait briefly to receive stream, then exit
-    # (for graceful shutdown, send STOP target=monitor as shown in STOP example)
+    # 等待一段时间以接收流，然后退出
+    # （为了优雅关机，发送 STOP target=monitor，如 STOP 示例中所示）
     time.sleep(2.0)
     net.close()
 ```
 </div>
 
 <div style="max-width:fit-content;">
-  &rightarrow; Executable scenario that sends a MONITOR request and prints ACK and streaming data.
+  &rightarrow; 可执行场景，发送 MONITOR 请求并打印 ACK 和流数据。
 </div>
 
 <br>
@@ -2072,17 +2332,17 @@ from scenarios import monitor as sc_monitor
 
 
 def main() -> None:
-    p = argparse.ArgumentParser(description="Open Stream Examples")
+    p = argparse.ArgumentParser(description="Open Stream 示例")
     p.add_argument("scenario", choices=["handshake", "monitor", "control", "stop"])
     p.add_argument("--host", default="192.168.1.150")
     p.add_argument("--port", type=int, default=49000)
 
-    # common options
+    # 通用选项
     p.add_argument("--major", type=int, default=1)
     p.add_argument("--period-ms", type=int, default=10)
     p.add_argument("--target", choices=["session", "control", "monitor"], default="session")
 
-    # monitor options
+    # monitor 选项
     p.add_argument("--url", default="/api/health")
 
     args = p.parse_args()
@@ -2096,7 +2356,7 @@ def main() -> None:
             args.port,
             major=args.major,
             url=args.url,
-            period_ms=args.period_ms,
+            period_ms=args.period.ms,
         )
 
 
@@ -2106,7 +2366,7 @@ if __name__ == "__main__":
 </div>
 
 <br>
-<h4 style="font-size:16px; font-weight:bold;">How to Run</h4>
+<h4 style="font-size:16px; font-weight:bold;">如何运行</h4>
 
 <div style="max-width:fit-content;">
 
@@ -2115,58 +2375,57 @@ python3 main.py monitor --host 192.168.1.150 --port 49000 --major 1 --url /proje
 ```
 </div>
 
-<h4 style="font-size:16px; font-weight:bold;">Expected Output</h4>
+<h4 style="font-size:16px; font-weight:bold;">预期输出</h4>
 
 ```text
-[net] connected to 192.168.1.150:49000
+[net] 连接到 192.168.1.150:49000
 [tx] {"cmd":"HANDSHAKE","payload":{"major":1}}
 [ack] handshake_ack ok=True version=1.0.0
 [tx] {"cmd":"MONITOR","payload":{"method":"GET","url":"/project/robot/joints/joint_states","period_ms":1000,"id":1,"args":{}}}
 [ack] monitor_ack ok=None url=None period_ms=None
 [event] {'type': 'data', 'id': 1, 'ts': 1000, 'svc_dur_ms': 0.224, 'result': {...}}
-[net] connection closed
+[net] 连接关闭
 ```
 
-* Note: Errors are received in the form `{ "error": "...", "message": "...", "hint": "..." }`.  
-* Note: The payload schema of `monitor_data` (`ts`, `value`, etc.) may vary depending on server implementation.
-
+* 注意：错误以 `{ "error": "...", "message": "...", "hint": "..." }` 的形式接收。  
+* 注意：`monitor_data` 的有效负载模式（`ts`、`值 (value)` 等）可能因服务器实现而异。
 [__SOURCE](5-examples/4-control.md)
-## 5.4 CONTROL Example (Joint Trajectory)
+## 5.4 控制示例 (关节轨迹)
 
 {% hint style="info" %}
 
-This document provides an example of **streaming joint trajectory points** to a robot using the Open Stream **CONTROL** command.
+本文档提供了使用 Open Stream **控制** 命令向机器人**流式传输关节轨迹点**的示例。
 
-Trajectory generation and storage are handled by `utils/motion.py`.<br>
-Open Stream message construction and transmission are handled by `utils/api.py`.<br>
-You can copy the code below directly into your own project.
+轨迹生成和存储由 `utils/motion.py` 处理。<br>
+Open Stream 消息构建和传输由 `utils/api.py` 处理。<br>
+您可以将以下代码直接复制到自己的项目中。
 
 {% endhint %}
 
 <br>
-<h4 style="font-size:16px; font-weight:bold;">Prerequisites</h4>
+<h4 style="font-size:16px; font-weight:bold;">先决条件</h4>
 
-- `utils/` directory (net.py / parser.py / dispatcher.py / motion.py / api.py)
-- Open Stream server address/port (e.g. `192.168.1.150:49000`)
-- Joint state must be accessible via HTTP  
-  e.g. `GET http://{host}:8888/project/robot/joints/joint_states`
+- `utils/` 目录 (net.py / parser.py / dispatcher.py / motion.py / api.py)
+- Open Stream 服务器地址/端口 (例如 `192.168.1.150:49000`)
+- 必须通过 HTTP 访问关节状态  
+  例如 `GET http://{host}:8888/project/robot/joints/joint_states`
 
 ---
 
 <br>
-<h4 style="font-size:16px; font-weight:bold;">Scenario Flow</h4>
+<h4 style="font-size:16px; font-weight:bold;">场景流程</h4>
 
-1) Establish TCP connection and start receive loop  
-2) Send HANDSHAKE and confirm ACK  
-3) Retrieve `/project/robot/joints/joint_states` via HTTP GET (degree)  
-4) Generate a degree-based trajectory using `motion.generate_sine_trajectory()`  
-5) Send `CONTROL / joint_traject_init`  
-6) Repeatedly send `CONTROL / joint_traject_insert_point` at dt intervals  
-7) Exit (use STOP example if needed)
+1) 建立 TCP 连接并开始接收循环  
+2) 发送握手并确认 ACK  
+3) 通过 HTTP GET 检索 `/project/robot/joints/joint_states`（度）  
+4) 使用 `motion.generate_sine_trajectory()` 生成基于度数的轨迹  
+5) 发送 `CONTROL / joint_traject_init`  
+6) 在 dt 间隔重复发送 `CONTROL / joint_traject_insert_point`  
+7) 退出（如果需要，请使用 STOP 示例）
 ---
 
 <br>
-<h4 style="font-size:16px; font-weight:bold;">Directory Structure</h4>
+<h4 style="font-size:16px; font-weight:bold;">目录结构</h4>
 
 <div style="max-width:fit-content;">
 
@@ -2185,31 +2444,35 @@ OpenStreamClient/
 │   └── control.py
 │
 └── main.py
-````
-
-</div>
+````</div>
 
 ---
 
 <br>
-<h4 style="font-size:16px; font-weight:bold;">CONTROL Body Rules</h4>
+<h4 style="font-size:16px; font-weight:bold;">控制体规则</h4>
 
-It is recommended that `joint_traject_insert_point` includes the following fields.
+建议 `joint_traject_insert_point` 包含以下字段。
 
-* `interval` (sec): interval between points (e.g. `dt_sec`)
-* `time_from_start` (sec): time offset from start (e.g. `index * dt_sec`)
-  * Depending on server implementation, **omitting this field may cause errors**, so it is recommended to include it.
-* `look_ahead_time` (sec): controller look-ahead time
-* `point` (deg): list of joint angles
+* ( 包含以下字段。
+
+* )`interval`(秒): 点之间的间隔 (例如 )`dt_sec`
+* ()
+* )`time_from_start`(秒): 从开始的时间偏移 (例如 )`index * dt_sec`
+  * 根据服务器实现，**省略此字段可能会导致错误**，因此建议包含它。
+* ()
+  * 根据服务器实现，**省略此字段可能会导致错误**，因此建议包含它。
+* )`look_ahead_time`(秒): 控制器前视时间
+* ( (秒): 控制器前视时间
+* )`point`(度): 关节角度列表
 
 ---
 
 <br>
 <h4 style="font-size:16px; font-weight:bold;">scenarios/control.py</h4>
 
-The code below is **runnable as-is after copy and paste**.
+以下代码是**复制并粘贴后可直接运行的**。
 
-<details><summary>Click to check the python code</summary>
+<details><summary>点击查看 Python 代码</summary>
 
 ```python
 # scenarios/control.py
@@ -2229,12 +2492,12 @@ from utils.motion import generate_sine_trajectory, save_trajectory
 
 def http_get_joint_states(host: str, *, http_port: int = 8888, timeout_sec: float = 1.0) -> List[float]:
     """
-    Retrieve joint positions via HTTP GET from /project/robot/joints/joint_states.
+    通过 HTTP GET 从 /project/robot/joints/joint_states 获取关节位置。
 
-    Server-side:
-    - position: degrees
-    - velocity: deg/s
-    - effort: Nm
+    服务器端：
+    - 位置：度
+    - 速度：deg/s
+    - 努力：Nm
     """
     url = f"http://{host}:{http_port}/project/robot/joints/joint_states"
 
@@ -2243,9 +2506,9 @@ def http_get_joint_states(host: str, *, http_port: int = 8888, timeout_sec: floa
             raw = r.read().decode("utf-8")
         data = json.loads(raw)
     except (HTTPError, URLError, TimeoutError) as e:
-        raise RuntimeError(f"HTTP GET failed: {url} ({e})") from e
+        raise RuntimeError(f"HTTP GET 失败: {url} ({e})") from e
     except json.JSONDecodeError as e:
-        raise RuntimeError(f"HTTP response is not valid JSON: {raw[:200]!r}") from e
+        raise RuntimeError(f"HTTP 响应不是有效的 JSON: {raw[:200]!r}") from e
 
     q: List[float] = []
 
@@ -2253,12 +2516,12 @@ def http_get_joint_states(host: str, *, http_port: int = 8888, timeout_sec: floa
         q = [float(v) for v in data if isinstance(v, (int, float))]
 
     elif isinstance(data, dict):
-        # Expected format:
+        # 预期格式：
         # {"position":[deg...], "velocity":[deg/s...], "effort":[Nm...]}
         if "position" in data and isinstance(data["position"], list):
             q = [float(v) for v in data["position"] if isinstance(v, (int, float))]
         else:
-            # Fallback for formats like {"j1": 10.0, "j2": 20.0, ...}
+            # 备用格式，例如 {"j1": 10.0, "j2": 20.0, ...}
             items: List[Tuple[int, float]] = []
             for k, v in data.items():
                 if not isinstance(v, (int, float)):
@@ -2272,7 +2535,7 @@ def http_get_joint_states(host: str, *, http_port: int = 8888, timeout_sec: floa
             q = [v for _, v in sorted(items, key=lambda x: x[0])]
 
     if not q:
-        raise RuntimeError(f"Cannot extract joint positions from response: {data!r}")
+        raise RuntimeError(f"无法从响应中提取关节位置: {data!r}")
 
     return q
 
@@ -2283,13 +2546,13 @@ def run(
     *,
     major: int = 1,
     http_port: int = 8888,
-    # trajectory parameters
+    # 轨迹参数
     cycle_sec: float = 1.0,
     amplitude_deg: float = 5.0,
     dt_sec: float = 0.02,
     total_sec: float = 1.0,
     active_joint_count: Optional[int] = 6,
-    # control timing
+    # 控制定时
     look_ahead_time: float = 0.1,
 ) -> None:
     net = NetClient(host, port)
@@ -2307,11 +2570,11 @@ def run(
     dispatcher.on_type["handshake_ack"] = on_handshake_ack
     dispatcher.on_error = lambda e: print(f"[ERR] {e}")
 
-    # 1) Establish TCP connection and start receive loop
+    # 1) 建立 TCP 连接并开始接收循环
     net.connect()
     net.start_recv_loop(lambda b: parser.feed(b, dispatcher.dispatch))
 
-    # 2) Perform HANDSHAKE
+    # 2) 执行握手
     api.handshake(major=major)
 
     t_wait = time.time() + 2.0
@@ -2319,15 +2582,15 @@ def run(
         time.sleep(0.01)
 
     if not handshake_ok["ok"]:
-        print("[ERR] handshake_ack not received; aborting.")
+        print("[ERR] 未收到 handshake_ack；中止。")
         net.close()
         return
 
-    # 3) Retrieve base joint pose (degrees) via HTTP
+    # 3) 通过 HTTP 检索基准关节姿态（度数）
     base_deg = http_get_joint_states(host, http_port=http_port, timeout_sec=1.0)
-    print(f"[INFO] base pose joints={len(base_deg)} deg-range={min(base_deg):.2f}..{max(base_deg):.2f}")
+    print(f"[INFO] 基准姿态关节={len(base_deg)} 度范围={min(base_deg):.2f}..{max(base_deg):.2f}")
 
-    # 4) Generate joint trajectory in degrees
+    # 4) 生成关节轨迹（度数）
     points_deg = generate_sine_trajectory(
         base_deg=base_deg,
         cycle_sec=cycle_sec,
@@ -2338,23 +2601,23 @@ def run(
     )
 
     saved_path = save_trajectory(points_deg, dt_sec, base_dir="data")
-    print(f"[INFO] trajectory saved: {saved_path} (points={len(points_deg)}, dt={dt_sec})")
+    print(f"[INFO] 轨迹已保存: {saved_path} (points={len(points_deg)}, dt={dt_sec})")
 
-    # 5) Initialize joint trajectory control
+    # 5) 初始化关节轨迹控制
     api.joint_traject_init()
 
-    # 6) Stream trajectory points using CONTROL
+    # 6) 使用控制流式传输轨迹点
     t0 = time.time()
     for i, point_deg in enumerate(points_deg):
         body = {
             "interval": float(dt_sec),
             "time_from_start": float(i * dt_sec),
             "look_ahead_time": float(look_ahead_time),
-            "point": [float(x) for x in point_deg],  # degrees (converted to rad on server side)
+            "point": [float(x) for x in point_deg],  # 度（在服务器端转换为弧度）
         }
         api.joint_traject_insert_point(body)
 
-        # Pace transmission according to dt
+        # 根据 dt 调整传输步伐
         target = t0 + (i + 1) * dt_sec
         remain = target - time.time()
         if remain > 0:
@@ -2368,11 +2631,180 @@ def run(
 ---
 
 <br>
-<h4 style="font-size:16px; font-weight:bold;">main.py Integration Example</h4>
+<h4 style="font-size:16px; font-weight:bold;">main.py 集成示例</h4>
 
-If you keep the existing `main.py` structure, you can invoke the `control` scenario as shown below.
+如果您保持现有的 ( (度): 关节角度列表
 
-<details><summary>Click to check the python code</summary>
+---
+
+<br>
+<h4 style="font-size:16px; font-weight:bold;">scenarios/control.py</h4>
+
+以下代码是**复制并粘贴后可直接运行的**。
+
+<details><summary>点击查看 Python 代码</summary>
+
+```python
+# scenarios/control.py
+import json
+import math
+import time
+from typing import Any, Dict, List, Optional, Tuple
+from urllib.request import urlopen
+from urllib.error import URLError, HTTPError
+
+from utils.net import NetClient
+from utils.parser import NDJSONParser
+from utils.dispatcher import Dispatcher
+from utils.api import OpenStreamAPI
+from utils.motion import generate_sine_trajectory, save_trajectory
+
+
+def http_get_joint_states(host: str, *, http_port: int = 8888, timeout_sec: float = 1.0) -> List[float]:
+    """
+    通过 HTTP GET 从 /project/robot/joints/joint_states 获取关节位置。
+
+    服务器端：
+    - 位置：度
+    - 速度：deg/s
+    - 努力：Nm
+    """
+    url = f"http://{host}:{http_port}/project/robot/joints/joint_states"
+
+    try:
+        with urlopen(url, timeout=timeout_sec) as r:
+            raw = r.read().decode("utf-8")
+        data = json.loads(raw)
+    except (HTTPError, URLError, TimeoutError) as e:
+        raise RuntimeError(f"HTTP GET 失败: {url} ({e})") from e
+    except json.JSONDecodeError as e:
+        raise RuntimeError(f"HTTP 响应不是有效的 JSON: {raw[:200]!r}") from e
+
+    q: List[float] = []
+
+    if isinstance(data, list):
+        q = [float(v) for v in data if isinstance(v, (int, float))]
+
+    elif isinstance(data, dict):
+        # 预期格式：
+        # {"position":[deg...], "velocity":[deg/s...], "effort":[Nm...]}
+        if "position" in data and isinstance(data["position"], list):
+            q = [float(v) for v in data["position"] if isinstance(v, (int, float))]
+        else:
+            # 备用格式，例如 {"j1": 10.0, "j2": 20.0, ...}
+            items: List[Tuple[int, float]] = []
+            for k, v in data.items():
+                if not isinstance(v, (int, float)):
+                    continue
+                if isinstance(k, str) and k.startswith("j"):
+                    try:
+                        idx = int(k[1:])
+                        items.append((idx, float(v)))
+                    except ValueError:
+                        continue
+            q = [v for _, v in sorted(items, key=lambda x: x[0])]
+
+    if not q:
+        raise RuntimeError(f"无法从响应中提取关节位置: {data!r}")
+
+    return q
+
+
+def run(
+    host: str,
+    port: int,
+    *,
+    major: int = 1,
+    http_port: int = 8888,
+    # 轨迹参数
+    cycle_sec: float = 1.0,
+    amplitude_deg: float = 5.0,
+    dt_sec: float = 0.02,
+    total_sec: float = 1.0,
+    active_joint_count: Optional[int] = 6,
+    # 控制定时
+    look_ahead_time: float = 0.1,
+) -> None:
+    net = NetClient(host, port)
+    parser = NDJSONParser()
+    dispatcher = Dispatcher()
+    api = OpenStreamAPI(net)
+
+    handshake_ok = {"ok": False}
+
+    def on_handshake_ack(m: dict) -> None:
+        ok = bool(m.get("ok"))
+        handshake_ok["ok"] = ok
+        print(f"[ack] handshake_ack ok={ok} version={m.get('version')}")
+
+    dispatcher.on_type["handshake_ack"] = on_handshake_ack
+    dispatcher.on_error = lambda e: print(f"[ERR] {e}")
+
+    # 1) 建立 TCP 连接并开始接收循环
+    net.connect()
+    net.start_recv_loop(lambda b: parser.feed(b, dispatcher.dispatch))
+
+    # 2) 执行握手
+    api.handshake(major=major)
+
+    t_wait = time.time() + 2.0
+    while time.time() < t_wait and not handshake_ok["ok"]:
+        time.sleep(0.01)
+
+    if not handshake_ok["ok"]:
+        print("[ERR] 未收到 handshake_ack；中止。")
+        net.close()
+        return
+
+    # 3) 通过 HTTP 检索基准关节姿态（度数）
+    base_deg = http_get_joint_states(host, http_port=http_port, timeout_sec=1.0)
+    print(f"[INFO] 基准姿态关节={len(base_deg)} 度范围={min(base_deg):.2f}..{max(base_deg):.2f}")
+
+    # 4) 生成关节轨迹（度数）
+    points_deg = generate_sine_trajectory(
+        base_deg=base_deg,
+        cycle_sec=cycle_sec,
+        amplitude_deg=amplitude_deg,
+        dt_sec=dt_sec,
+        total_sec=total_sec,
+        active_joint_count=active_joint_count,
+    )
+
+    saved_path = save_trajectory(points_deg, dt_sec, base_dir="data")
+    print(f"[INFO] 轨迹已保存: {saved_path} (points={len(points_deg)}, dt={dt_sec})")
+
+    # 5) 初始化关节轨迹控制
+    api.joint_traject_init()
+
+    # 6) 使用控制流式传输轨迹点
+    t0 = time.time()
+    for i, point_deg in enumerate(points_deg):
+        body = {
+            "interval": float(dt_sec),
+            "time_from_start": float(i * dt_sec),
+            "look_ahead_time": float(look_ahead_time),
+            "point": [float(x) for x in point_deg],  # 度（在服务器端转换为弧度）
+        }
+        api.joint_traject_insert_point(body)
+
+        # 根据 dt 调整传输步伐
+        target = t0 + (i + 1) * dt_sec
+        remain = target - time.time()
+        if remain > 0:
+            time.sleep(remain)
+
+    net.close()
+```
+</details>
+
+---
+
+<br>
+<h4 style="font-size:16px; font-weight:bold;">main.py 集成示例</h4>
+
+如果您保持现有的 )`main.py`结构，您可以调用( 结构，您可以调用 )`control`场景，如下所示。
+
+<details><summary>点击查看 python 代码</summary>
 
 <div style="max-width:fit-content;">
 
@@ -2455,23 +2887,115 @@ if __name__ == "__main__":
 </details>
 
 <br>
-<h4 style="font-size:16px; font-weight:bold;">How to Run</h4>
+<h4 style="font-size:16px; font-weight:bold;">如何运行</h4>
 
-1. Move the robot to its reference position. 
-2. The `joint_traject_insert_point` API works only while Playback is running.  
-Add the following wait instruction to the job file as-is.  
+1. 将机器人移动到参考位置。
+2. (场景，如下所示。
+
+<details><summary>点击查看 python 代码</summary>
+
+<div style="max-width:fit-content;">
+
+```python
+# main.py
+import argparse
+
+from scenarios import handshake as sc_handshake
+from scenarios import monitor as sc_monitor
+from scenarios import control as sc_control
+from scenarios import stop as sc_stop
+
+
+def main():
+    p = argparse.ArgumentParser(description="Open Stream Client Examples")
+
+    p.add_argument("scenario", choices=["handshake", "monitor", "control", "stop"])
+    p.add_argument("--host", default="192.168.1.150")
+    p.add_argument("--port", type=int, default=49000)
+    p.add_argument("--major", type=int, default=1)
+
+    # -------------------------
+    # MONITOR options
+    # -------------------------
+    p.add_argument("--url", default="/api/health")
+    p.add_argument("--period-ms", type=int, default=1000)
+
+    # -------------------------
+    # CONTROL options
+    # -------------------------
+    p.add_argument("--http-port", type=int, default=8888)
+    p.add_argument("--dt-sec", type=float, default=0.02)
+    p.add_argument("--total-duration-sec", type=float, default=1.0)
+    p.add_argument("--cycle-sec", type=float, default=1.0)
+    p.add_argument("--amplitude-deg", type=float, default=5.0)
+    p.add_argument("--active-joint-count", type=int, default=6)
+    p.add_argument("--look-ahead-time", type=float, default=0.1)
+
+    args = p.parse_args()
+
+    if args.scenario == "handshake":
+        sc_handshake.run(args.host, args.port, major=args.major)
+
+    elif args.scenario == "monitor":
+        sc_monitor.run(
+            args.host,
+            args.port,
+            major=args.major,
+            url=args.url,
+            period_ms=args.period_ms,
+        )
+
+    elif args.scenario == "control":
+        sc_control.run(
+            args.host,
+            args.port,
+            major=args.major,
+            http_port=args.http_port,
+            cycle_sec=args.cycle_sec,
+            amplitude_deg=args.amplitude_deg,
+            dt_sec=args.dt_sec,
+            total_sec=args.total_duration_sec,
+            active_joint_count=args.active_joint_count,
+            look_ahead_time=args.look_ahead_time,
+        )
+
+    elif args.scenario == "stop":
+        sc_stop.run(args.host, args.port, target="session")
+
+
+if __name__ == "__main__":
+    main()
+
+```
+
+---
+
+</div>
+
+</details>
+
+<br>
+<h4 style="font-size:16px; font-weight:bold;">如何运行</h4>
+
+1. 将机器人移动到参考位置。
+2. )`joint_traject_insert_point`API 仅在播放期间运行。  
+将以下等待指令按原样添加到作业文件中。  
 0001.job - ```wait di1```
-3. Start `0001.job` in auto mode.
-4. Run the following `main.py` command.
+3. 启动( API 仅在播放期间运行。  
+将以下等待指令按原样添加到作业文件中。  
+0001.job - ```wait di1```
+3. 在自动模式下启动 )`0001.job`。
+4. 在自动模式下运行以下(。
+4. 在自动模式下运行以下 )`main.py`命令。
 
     <div style="max-width:fit-content;">
 
     ```bash
-    # Example: Send a 30-second sine trajectory (amplitude 1 deg) with dt = 2 ms.
-    # - cycle-sec=5  : One sine period (0 → 2π) corresponds to 5 seconds.
-    # - With look-ahead-time = 0.04 s and dt = 0.002 s,
-    #   the look-ahead buffer size is 0.04 / 0.002 = 20 points.
-    #   (Tracking may be delayed until the buffer is filled with 20 points.)
+    # 示例：发送一个 30 秒的正弦轨迹（振幅 1 deg）与 dt = 2 ms。
+    # - cycle-sec=5  : 一个正弦周期 (0 → 2π) 对应 5 秒。
+    # - 使用 look-ahead-time = 0.04 s 和 dt = 0.002 s,
+    #   前瞻缓冲区大小为 0.04 / 0.002 = 20 点。
+    #   (跟踪可能会延迟，直到缓冲区填满 20 点。)
 
     python3 main.py control \
     --host 192.168.1.150 \
@@ -2490,9 +3014,9 @@ Add the following wait instruction to the job file as-is.
 ---
 
 <br>
-<h4 style="font-size:16px; font-weight:bold;">Expected Output</h4>
+<h4 style="font-size:16px; font-weight:bold;">预期输出</h4>
 
-Output may vary by environment, but you should generally observe the following flow.
+输出可能因环境而异，但通常应观察到以下流程。
 
 <div style="max-width:fit-content;">
 
@@ -2512,70 +3036,121 @@ Output may vary by environment, but you should generally observe the following f
 
 ---
 
-#### Summary
+#### 摘要
 
-* CONTROL is the protocol command used to transmit robot control messages.
-* Trajectory generation and storage are separated into `utils/motion.py`, so the control example focuses on the **transmission logic**.
-* When sending `joint_traject_insert_point`, it is recommended to include `time_from_start` and increment it based on `dt`.
+* CONTROL 是用于传输机器人控制消息的协议命令。
+* 轨迹生成和存储被分开到(命令中。
 
+    <div style="max-width:fit-content;">
+
+    ```bash
+    # 示例：发送一个 30 秒的正弦轨迹（振幅 1 deg）与 dt = 2 ms。
+    # - cycle-sec=5  : 一个正弦周期 (0 → 2π) 对应 5 秒。
+    # - 使用 look-ahead-time = 0.04 s 和 dt = 0.002 s,
+    #   前瞻缓冲区大小为 0.04 / 0.002 = 20 点。
+    #   (跟踪可能会延迟，直到缓冲区填满 20 点。)
+
+    python3 main.py control \
+    --host 192.168.1.150 \
+    --port 49000 \
+    --major 1 \
+    --http-port 8888 \
+    --total-duration-sec 30.0 \
+    --dt-sec 0.002 \
+    --look-ahead-time 0.04 \
+    --amplitude-deg 1 \
+    --cycle-sec 5
+    ```
+
+    </div>
+
+---
+
+<br>
+<h4 style="font-size:16px; font-weight:bold;">预期输出</h4>
+
+输出可能因环境而异，但通常应观察到以下流程。
+
+<div style="max-width:fit-content;">
+
+```text
+[net] connected to 192.168.1.150:49000
+[tx] {"cmd":"HANDSHAKE","payload":{"major":1}}
+[ack] handshake_ack ok=True version=1.0.0
+[INFO] base pose joints=6
+[INFO] trajectory saved: .../data/trajectory_XXXXXX.json (points=51, dt=0.02)
+[tx] {"cmd":"CONTROL",... "url":"/project/robot/trajectory/joint_traject_init", ...}
+[tx] {"cmd":"CONTROL",... "url":"/project/robot/trajectory/joint_traject_insert_point", ...}
+...
+[net] connection closed
+```
+
+</div>
+
+---
+
+#### 摘要
+
+* CONTROL 是用于传输机器人控制消息的协议命令。
+* 轨迹生成和存储被分开到 )`utils/motion.py`，因此控制示例集中于**传输逻辑**。
+* 发送(时，因此控制示例集中于**传输逻辑**。
+* 发送 )`joint_traject_insert_point`时，建议包括(，建议包括 )`time_from_start`并根据(进行递增并根据 )`dt`进行递增。
 [__SOURCE](5-examples/5-stop.md)
-## 5.5 STOP Example (Session / Stream Termination)
+## 5.5 停止示例 (会话 / 流终止)
 
 {% hint style="info" %}
 
-This document explains how to use the Open Stream **STOP** command to  
-gracefully terminate the currently running **session** or **CONTROL / MONITOR stream**
-in a controlled and safe manner.
+本文件解释如何使用 Open Stream **停止** 命令 
+以受控和安全的方式优雅地终止当前运行的 **会话** 或 **控制 / 监控流**。
 
-- STOP is a **mandatory command** for safe termination.
-- Use STOP when a CONTROL trajectory is being transmitted or a MONITOR stream is active
-  and an immediate interruption is required.
-- The code below is <b>fully functional</b> and can be copied and used as-is.
+- 停止是安全终止的 **强制命令**。
+- 当正在传输控制轨迹或监控流处于活动状态并需要立即中断时，请使用停止。
+- 下面的代码是 <b>完全功能性</b> 的，可以直接复制和使用。
 
 {% endhint %}
 
 <br>
-<h4 style="font-size:16px; font-weight:bold;">STOP Command Overview</h4>
+<h4 style="font-size:16px; font-weight:bold;">停止命令概述</h4>
 
-STOP is a control command used to terminate an Open Stream session or a specific stream.
+停止是一个控制命令，用于终止 Open Stream 会话或特定流。
 
-- To <b>immediately stop</b> the robot, or
-- To <b>gracefully release</b> CONTROL / MONITOR streams.
+- <b>立即停止</b> 机器人，或
+- <b>优雅释放</b> 控制 / 监控流。
 
-When a STOP command is sent, the server cleans up its internal state
-and releases related resources if necessary (trajectory buffers, monitor tasks, etc.).
+当发送停止命令时，服务器会清理其内部状态
+并在必要时释放相关资源（轨迹缓冲区、监控任务等）。
 
 ---
 
 <br>
-<h4 style="font-size:16px; font-weight:bold;">STOP Target</h4>
+<h4 style="font-size:16px; font-weight:bold;">停止目标</h4>
 
-The STOP command specifies its termination scope using the `target` field.
+停止命令通过 `目标 (target)` 字段指定其终止范围。
 
-| target value | Description |
+| target value | 描述 |
 |------------|------|
-| `session`  | Terminate the entire Open Stream session (recommended default) |
-| `control`  | Terminate only the CONTROL stream |
-| `monitor`  | Terminate only the MONITOR stream |
+| `session`  | 终止整个 Open Stream 会话（推荐默认） |
+| `control`  | 仅终止控制流 |
+| `monitor`  | 仅终止监控流 |
 
-* Depending on implementation or version, `control` and `monitor` may be optional.  
-The safest approach is to terminate the entire `session`.
-
----
-
-<br>
-<h4 style="font-size:16px; font-weight:bold;">Scenario Flow</h4>
-
-(1) Establish TCP connection and start receive loop  
-(2) Perform HANDSHAKE  
-(3) Send STOP command  
-(4) Check server response  
-(5) Close socket
+* 根据实现或版本，`control` 和 `monitor` 可能是可选的。  
+最安全的方法是终止整个 `session`。
 
 ---
 
 <br>
-<h4 style="font-size:16px; font-weight:bold;">Directory Structure</h4>
+<h4 style="font-size:16px; font-weight:bold;">场景流程</h4>
+
+(1) 建立 TCP 连接并开始接收循环  
+(2) 执行握手  
+(3) 发送停止命令  
+(4) 检查服务器响应  
+(5) 关闭套接字
+
+---
+
+<br>
+<h4 style="font-size:16px; font-weight:bold;">目录结构</h4>
 
 <div style="max-width:fit-content;">
 
@@ -2594,18 +3169,16 @@ OpenStreamClient/
 │   └── stop.py
 │
 └── main.py
-````
-
-</div>
+````</div>
 
 ---
 
 <br>
 <h4 style="font-size:16px; font-weight:bold;">scenarios/stop.py</h4>
 
-The following example sends a STOP command for the specified target.
+以下示例为指定目标发送停止命令。
 
-<details><summary>Click to check the python code</summary>
+<details><summary>点击查看 Python 代码</summary>
 
 ```python
 # scenarios/stop.py
@@ -2650,18 +3223,18 @@ def run(
         time.sleep(0.01)
 
     if not handshake_ok["ok"]:
-        print("[ERR] handshake failed; aborting stop.")
+        print("[ERR] 握手失败；中止停止。")
         net.close()
         return
 
-    # 3) STOP
-    print(f"[INFO] sending STOP target={target}")
+    # 3) 停止
+    print(f"[INFO] 发送停止 target={target}")
     api.stop(target=target)
 
-    # short wait (server-side processing time)
+    # 短暂等待（服务器端处理时间）
     time.sleep(0.5)
 
-    # 4) close socket
+    # 4) 关闭套接字
     net.close()
 ```
 
@@ -2671,9 +3244,88 @@ def run(
 ---
 
 <br>
-<h4 style="font-size:16px; font-weight:bold;">main.py Integration Example</h4>
+<h4 style="font-size:16px; font-weight:bold;">main.py 集成示例</h4>
 
-This shows how to invoke STOP according to the existing `main.py` scenario structure.
+这显示了如何根据现有的 (
+
+</div>
+
+---
+
+<br>
+<h4 style="font-size:16px; font-weight:bold;">scenarios/stop.py</h4>
+
+以下示例为指定目标发送停止命令。
+
+<details><summary>点击查看 Python 代码</summary>
+
+```python
+# scenarios/stop.py
+import time
+
+from utils.net import NetClient
+from utils.parser import NDJSONParser
+from utils.dispatcher import Dispatcher
+from utils.api import OpenStreamAPI
+
+
+def run(
+    host: str,
+    port: int,
+    *,
+    major: int = 1,
+    target: str = "session",
+) -> None:
+    net = NetClient(host, port)
+    parser = NDJSONParser()
+    dispatcher = Dispatcher()
+    api = OpenStreamAPI(net)
+
+    handshake_ok = {"ok": False}
+
+    def on_handshake_ack(m: dict) -> None:
+        handshake_ok["ok"] = bool(m.get("ok"))
+        print(f"[ack] handshake_ack ok={m.get('ok')} version={m.get('version')}")
+
+    dispatcher.on_type["handshake_ack"] = on_handshake_ack
+    dispatcher.on_error = lambda e: print(f"[ERR] {e}")
+
+    # 1) connect + receive loop
+    net.connect()
+    net.start_recv_loop(lambda b: parser.feed(b, dispatcher.dispatch))
+
+    # 2) handshake
+    api.handshake(major=major)
+
+    t_wait = time.time() + 2.0
+    while time.time() < t_wait and not handshake_ok["ok"]:
+        time.sleep(0.01)
+
+    if not handshake_ok["ok"]:
+        print("[ERR] 握手失败；中止停止。")
+        net.close()
+        return
+
+    # 3) 停止
+    print(f"[INFO] 发送停止 target={target}")
+    api.stop(target=target)
+
+    # 短暂等待（服务器端处理时间）
+    time.sleep(0.5)
+
+    # 4) 关闭套接字
+    net.close()
+```
+
+
+</details>
+
+---
+
+<br>
+<h4 style="font-size:16px; font-weight:bold;">main.py 集成示例</h4>
+
+这显示了如何根据现有的 )`main.py` 场景结构调用停止。
 
 <div style="max-width:fit-content;">
 
@@ -2696,18 +3348,18 @@ elif args.scenario == "stop":
 ---
 
 <br>
-<h4 style="font-size:16px; font-weight:bold;">How to Run</h4>
+<h4 style="font-size:16px; font-weight:bold;">如何运行</h4>
 
 <div style="max-width:fit-content;">
 
 ```bash
-# Terminate the entire session (recommended)
+# 终止整个会话（推荐）
 python main.py stop --host 192.168.1.150 --port 49000 --target session
 
-# Terminate CONTROL only
+# 仅终止控制
 python main.py stop --host 192.168.1.150 --port 49000 --target control
 
-# Terminate MONITOR only
+# 仅终止监控
 python main.py stop --host 192.168.1.150 --port 49000 --target monitor
 ```
 
@@ -2716,99 +3368,96 @@ python main.py stop --host 192.168.1.150 --port 49000 --target monitor
 ---
 
 <br>
-<h4 style="font-size:16px; font-weight:bold;">Expected Output</h4>
+<h4 style="font-size:16px; font-weight:bold;">预期输出</h4>
 
 <div style="max-width:fit-content;">
 
 ```text
-[net] connected to 192.168.1.150:49000
+[net] 连接到 192.168.1.150:49000
 [tx] {"cmd":"HANDSHAKE","payload":{"major":1}}
 [ack] handshake_ack ok=True version=1.0.0
-[INFO] sending STOP target=session
+[INFO] 发送停止 target=session
 [tx] {"cmd":"STOP","payload":{"target":"session"}}
-[net] connection closed
+[net] 连接关闭
 ```
 
 </div>
 
 ---
 
-#### Summary
+#### 摘要
 
-* STOP is a command used to **safely terminate** robot control and monitoring.
-* It is strongly recommended to terminate CONTROL trajectory transmission using STOP.
-* The safest default usage is `target=session`.
-
+* 停止是用于 **安全终止** 机器人控制和监控的命令。
+* 强烈建议使用停止终止控制轨迹传输。
+* 最安全的默认用法是 )`target=session`。
 [__SOURCE](6-faq/README.md)
 # 6. FAQ
 
-Q1. Why is HANDSHAKE required first?
-A. If the server is not in the `handshake_ok` state, it returns **412 (handshake_required)** for MONITOR / CONTROL / STOP.
+Q1. 为什么首先需要 HANDSHAKE?
+A. 如果服务器不在 `handshake_ok` 状态，它将对 MONITOR / CONTROL / STOP 返回 **412 (handshake_required)**。
 
-Q2. CONTROL succeeded, but there is no response.
-A. This is expected behavior. When CONTROL completes with HTTP 200, the response line is intentionally omitted (not sent).
+Q2. CONTROL 成功了，但没有响应。
+A. 这是预期行为。当 CONTROL 完成并返回 HTTP 200 时，响应行故意被省略（未发送）。
 
-Q3. Can MONITOR use POST or PUT as the method?
-A. No. The `method` field in the MONITOR payload must be **"GET"**.
+Q3. MONITOR 可以使用 POST 或 PUT 作为方法吗？
+A. 不可以。MONITOR payload 中的 `method` 字段必须是 **"GET"**。
 
-Q4. What if the URL contains spaces?
-A. The request is rejected. URLs must not contain spaces.
-
+Q4. 如果 URL 包含空格怎么办？
+A. 请求将被拒绝。URL 不能包含空格。
 [__SOURCE](7-release-notes/README.md)
-# 7. Release Notes
+# 7. 发行说明
 
-This section summarizes the version-by-version change history of the Open Stream interface.<br>
-Each version documents feature additions, behavioral changes, fixes, and compatibility notes.
+本节总结了开放流接口的逐版本变更历史。<br>
+每个版本记录了功能的增加、行为的变化、修复和兼容性说明。
 
-<h4 style="font-size:15px; font-weight:bold;">Release Information</h4>
+<h4 style="font-size:15px; font-weight:bold;">发行信息</h4>
 
 <div style="max-width:fit-content;">
 
-| *Version | ${cont_model} Version | Release Schedule | Link |
+| *版本 | ${cont_model} 版本 | 发行时间表 | 链接 |
 |:--:|:--:|:--:|:--:|
-|1.0.0|>=V70.00-00 |Mar, 2026|[🔗](1-v1-0-0.md)|
+|1.0.0|>=V70.00-00 |2026年3月|[🔗](1-v1-0-0.md)|
 
 ----
 
 </div>
 
-*Version: **`MAJOR.MINOR.PATCH`**
+*版本: **`MAJOR.MINOR.PATCH`**
 
 <div style="max-width:fit-content;">
 
-| Field | Meaning | Compatibility Policy |
+| 字段 | 含义 | 兼容性政策 |
 |------|---------|----------------------|
-| MAJOR | Fundamental protocol changes | **Incompatible if MAJOR differs** |
-| MINOR | Feature additions (backward compatible) | Compatible if MAJOR matches |
-| PATCH | Bug fixes and internal improvements | Always compatible |
+| MAJOR | 基本协议变更 | **如果 MAJOR 不同则不兼容** |
+| MINOR | 功能添加（向后兼容） | 如果 MAJOR 一致则兼容 |
+| PATCH | 修复bug和内部改进 | 始终兼容 |
 
 </div>
 
 
 <br>
 
-<h4 style="font-size:15px; font-weight:bold;">Release Note Categories</h4>
+<h4 style="font-size:15px; font-weight:bold;">发行说明类别</h4>
 
 <div style="max-width:fit-content;">
 
-| Category | Description |
+| 分类 | 描述 |
 |:--|:--|
-|<span style="border-left:4px solid rgb(255,140,0); padding-left:6px;"><b>Added</b></span>|New features, commands, fields, or options added|
-|<span style="border-left:4px solid #3F51B5; padding-left:6px;"><b>Changed</b></span>|Changes to existing behavior, specifications, or defaults|
-|<span style="border-left:4px solid #2E7D32; padding-left:6px;"><b>Fixed</b></span>|Bug fixes, stability improvements, abnormal behavior corrections|
-|<span style="border-left:4px solid #B71C1C; padding-left:6px;"><b>Deprecated</b></span>|Features planned for removal or no longer recommended|
-|<span style="border-left:4px solid #9E9E9E; padding-left:6px;"><b>Caution</b></span>|Important usage notes that must be acknowledged for this version|
+|<span style="border-left:4px solid rgb(255,140,0); padding-left:6px;"><b>新增</b></span>|新增的功能、命令、字段或选项|
+|<span style="border-left:4px solid #3F51B5; padding-left:6px;"><b>已更改</b></span>|对现有行为、规格或默认值的更改|
+|<span style="border-left:4px solid #2E7D32; padding-left:6px;"><b>已修复</b></span>|修复bug、稳定性改进、异常行为纠正|
+|<span style="border-left:4px solid #B71C1C; padding-left:6px;"><b>已弃用</b></span>|计划移除或不再推荐的功能|
+|<span style="border-left:4px solid #9E9E9E; padding-left:6px;"><b>注意</b></span>|必须确认的重要使用说明|
 
 </div>
 
 <br>
 
-Each release document describes **only the changes introduced in that version** according to the categories above.<br>
-For detailed usage instructions or protocol descriptions, refer to the corresponding reference sections in this documentation.
+每个发行文档仅描述 **该版本中引入的更改**，按照上述类别。<br>
+有关详细的使用说明或协议描述，请参考本文档中相应的参考部分。
 
-If a release introduces behavioral changes, it may impact existing systems.<br>
-Always review the release notes for the target version before updating.
-
+如果一个发行版引入了行为上的更改，可能会影响现有系统。<br>
+在更新之前，请始终查看目标版本的发行说明。
 [__SOURCE](7-release-notes/1-v1-0-0.md)
 ## 7.1 Release Notes - v1.0.0
   <span style="
@@ -2819,25 +3468,25 @@ Always review the release notes for the target version before updating.
     border:1px solid #c62828;
     color:#c62828;
   ">
-    PREVIEW
+    预览
   </span>
 
 
 {% hint style="warning" %}
 
-<h4 style="font-size:15px; font-weight:bold;">Status</h4>
+<h4 style="font-size:15px; font-weight:bold;">状态</h4>
 
-- This version is the first public release of the Open Stream interface.
-- Official release: March 2026 (planned)
+- 此版本是 Open Stream 接口的首次公开发布。
+- 官方发布：2026 年 3 月（计划）
 
 {% endhint %}
 
 {% hint style="info" %}
 
-<h4 style="font-size:15px; font-weight:bold;">Overview</h4>
+<h4 style="font-size:15px; font-weight:bold;">概述</h4>
 
-- Open Stream is a real-time streaming-based interface designed for robot control and state acquisition.
-- This release provides the core Open Stream protocol, recipe commands, and related communication rules.
+- Open Stream 是一种基于实时流媒体的接口，旨在用于机器人控制和状态获取。
+- 本次发布提供了核心 Open Stream 协议、配方命令和相关通信规则。
 
 {% endhint %}
 
@@ -2850,24 +3499,24 @@ Always review the release notes for the target version before updating.
   font-size:15px;
   font-weight:bold;
 ">
-  Added
+  添加
 </h4>
 
 <ul>
-  <li>Protocol
+  <li>协议
     <ul>
-      <li>Lightweight streaming protocol based on NDJSON</li>
-      <li>Bidirectional communication over a single TCP connection</li>
-      <li>Command-based session management model</li>
+      <li>基于 NDJSON 的轻量级流媒体协议</li>
+      <li>通过单个 TCP 连接实现双向通信</li>
+      <li>基于命令的会话管理模型</li>
     </ul>
   </li>
 
-  <li>Recipe Commands
+  <li>配方命令
     <ul>
-      <li>HANDSHAKE: Protocol version negotiation</li>
-      <li>MONITOR: Periodic state data streaming (millisecond-level interval)</li>
-      <li>CONTROL: Real-time control command transmission (high priority)</li>
-      <li>STOP: Terminate an active session or recipe</li>
+      <li>HANDSHAKE: 协议版本协商</li>
+      <li>MONITOR: 定期状态数据流（毫秒级间隔）</li>
+      <li>CONTROL: 实时控制命令传输（高优先级）</li>
+      <li>STOP: 结束活动会话或配方</li>
     </ul>
   </li>
 </ul>
@@ -2881,11 +3530,11 @@ Always review the release notes for the target version before updating.
   font-size:15px;
   font-weight:bold;
 ">
-  Changed
+  更改
 </h4>
 
 <ul>
-  <li>This is the initial public release; there are no changes compared to previous versions.</li>
+  <li>这是首次公开发布；与以前版本相比没有更改。</li>
 </ul>
 
 <br>
@@ -2897,11 +3546,11 @@ Always review the release notes for the target version before updating.
   font-size:15px;
   font-weight:bold;
 ">
-  Fixed
+  修复
 </h4>
 
 <ul>
-  <li>This is the initial public release; there are no fixed issues.</li>
+  <li>这是首次公开发布；没有修复问题。</li>
 </ul>
 
 <br>
@@ -2913,11 +3562,11 @@ Always review the release notes for the target version before updating.
   font-size:15px;
   font-weight:bold;
 ">
-  Deprecated
+  弃用
 </h4>
 
 <ul>
-  <li>This is the initial public release; there are no deprecated or removed features.</li>
+  <li>这是首次公开发布；没有被弃用或移除的功能。</li>
 </ul>
 
 <br>
@@ -2929,26 +3578,26 @@ Always review the release notes for the target version before updating.
   font-size:15px;
   font-weight:bold;
 ">
-  Caution
+  注意
 </h4>
 
 <ul>
-  <li>When CONTROL and MONITOR run concurrently, real-time performance of CONTROL is prioritized.</li>
-  <li>Periodic delays may occur depending on OS scheduling and network conditions.</li>
-  <li>Only one MONITOR session can be active per TCP connection.</li>
-  <li>MONITOR data is not suitable for real-time control decisions.</li>
-  <li>Latency and jitter may occur depending on network and client performance.</li>
+  <li>当 CONTROL 和 MONITOR 同时运行时，优先考虑 CONTROL 的实时性能。</li>
+  <li>根据操作系统调度和网络条件，可能会发生周期性延迟。</li>
+  <li>每个 TCP 连接最多只能有一个 MONITOR 会话处于活动状态。</li>
+  <li>MONITOR 数据不适合用于实时控制决策。</li>
+  <li>根据网络和客户端性能，可能会发生延迟和抖动。</li>
 </ul>
 
 <br>
 
-<h4 style="font-size:15px; font-weight:bold;">Related Documentation</h4>
+<h4 style="font-size:15px; font-weight:bold;">相关文档</h4>
 
 <ul>
-  <li><a href="../1-overview/README.md">Open Stream Overview</a></li>
-  <li><a href="../1-overview/2-usage-considerations.md">Usage Considerations</a></li>
-  <li><a href="../2-protocol/README.md">Protocol</a></li>
-  <li><a href="../3-recipe/README.md">Recipe Commands</a></li>
-  <li><a href="../5-examples/README.md">Examples</a></li>
-  <li><a href="../6-faq/README.md">FAQ</a></li>
+  <li><a href="../1-overview/README.md">Open Stream 概述</a></li>
+  <li><a href="../1-overview/2-usage-considerations.md">使用注意事项</a></li>
+  <li><a href="../2-protocol/README.md">协议</a></li>
+  <li><a href="../3-recipe/README.md">配方命令</a></li>
+  <li><a href="../5-examples/README.md">示例</a></li>
+  <li><a href="../6-faq/README.md">常见问题解答</a></li>
 </ul>

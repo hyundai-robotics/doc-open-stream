@@ -1,11 +1,11 @@
-﻿## 2.2 Session and Streaming Rules
+## 2.2 会话和流规则
 
 <div style="fit-content;">
 
 {% hint style="info" %}
 
-This document explains the <b>Session Lifecycle</b> and <b>Streaming Behavior</b>  
-that must be understood to properly implement and operate Open Stream.
+本文件解释了 <b>会话生命周期</b> 和 <b>流行为</b>  
+必须了解，以正确实施和操作 Open Stream。
 
 {% endhint %}
 
@@ -13,42 +13,42 @@ that must be understood to properly implement and operate Open Stream.
 
 <br>
 
-<h4 style="font-size:16px; font-weight:bold;">1. Session Lifecycle</h4>
+<h4 style="font-size:16px; font-weight:bold;">1. 会话生命周期</h4>
 
-Open Stream treats <b>one TCP connection as one session</b>.  
-A typical session flow is as follows:
+Open Stream 将 <b>一个 TCP 连接视为一个会话</b>。  
+典型的会话流程如下：
 
-1. The client connects to the server over TCP to create a session.
-2. Immediately after connection, the client sends the `HANDSHAKE` command to verify protocol version compatibility with the server.
-3. After processing the `HANDSHAKE` request, if the protocol version matches, the server sends a `handshake_ack` event.
-4. After `HANDSHAKE`, the client can request periodic data streaming via `MONITOR`, or execute one-shot requests via `CONTROL`. (`CONTROL` can also be sent while `MONITOR` is active.)
-5. When `MONITOR` is active, the server sends `data` events periodically regardless of additional client requests.
-6. A `CONTROL` command sends no separate ACK on success; only on failure may an `error` or `control_err` event be delivered.
-7. When work is complete, the client sends `STOP` to indicate termination intent for the active operation or session, then closes the TCP connection after receiving `stop_ack` from the server.
+1. 客户端通过 TCP 连接到服务器以创建会话。
+2. 连接后，客户端立即发送 `HANDSHAKE` 命令以验证与服务器的协议版本兼容性。
+3. 处理 `HANDSHAKE` 请求后，如果协议版本匹配，服务器发送 `handshake_ack` 事件。
+4. 在 `HANDSHAKE` 之后，客户端可以通过 `MONITOR` 请求周期性的数据流，或通过 `CONTROL` 执行一次性请求。（在 `MONITOR` 活动时也可以发送 `CONTROL`。）
+5. 当 `MONITOR` 活动时，服务器定期发送 `data` 事件，而不管其他客户端请求。
+6. `CONTROL` 命令在成功时不发送单独的 ACK；仅在失败时可能发送 `错误 (error)` 或 `control_err` 事件。
+7. 工作完成时，客户端发送 `STOP` 表示对活动操作或会话的终止意图，然后在收到服务器的 `stop_ack` 后关闭 TCP 连接。
 
 {% hint style="warning" %}
 
-Open Stream is an event-driven streaming protocol and does not guarantee request-response ordering.  
-Since the arrival order between `data`, `*_ack`, and `error` events is not guaranteed, clients must handle events without relying on message order.
+Open Stream 是一种事件驱动的流协议，不保证请求-响应的顺序。  
+由于 `data`、`*_ack` 和 `错误 (error)` 事件之间的到达顺序不保证，客户端必须在不依赖消息顺序的情况下处理事件。
 
 {% endhint %}
 
 
 <br>
 
-<h4 style="font-size:16px; font-weight:bold;">2. Usage Rules</h4>
+<h4 style="font-size:16px; font-weight:bold;">2. 使用规则</h4>
 
-The following rules must be followed to use Open Stream correctly.
+要正确使用 Open Stream，必须遵循以下规则。
 
-- `HANDSHAKE` must be performed <b>at the beginning of the session</b>.
-- If `MONITOR` or `CONTROL` is called before `HANDSHAKE`, the server may reject the request.
-- `STOP(target=session)` is used to explicitly indicate "graceful termination intent," and it is recommended to close the TCP connection afterward.
+- `HANDSHAKE` 必须在 <b>会话开始时</b> 执行。
+- 如果在 `HANDSHAKE` 之前调用 `MONITOR` 或 `CONTROL`，服务器可能会拒绝请求。
+- `STOP(target=session)` 用于明确表示“优雅终止意图”，建议在之后关闭 TCP 连接。
 
 <br>
-<h4 style="font-size:16px; font-weight:bold;">3. Message Direction</h4>
+<h4 style="font-size:16px; font-weight:bold;">3. 消息方向</h4>
 
 <p>
-Messages used in Open Stream are categorized as follows based on <b>direction and role</b>.
+在 Open Stream 中使用的消息根据 <b>方向和角色</b> 分类如下。
 </p>
 
 <div style="display:flex; flex-wrap:wrap; gap:16px; align-items:flex-start;">
@@ -66,48 +66,48 @@ Messages used in Open Stream are categorized as follows based on <b>direction an
 <div style="flex:1 1 520px; min-width:280px; max-width:fit-content; display:flex; flex-direction:column; gap:12px;">
 
   <div style="overflow-x:auto;">
-    <div style="font-weight:bold; margin-bottom:6px;">Client → Server (Commands)</div>
+    <div style="font-weight:bold; margin-bottom:6px;">客户端 → 服务器 (命令)</div>
     <table style="width:fit-content; min-width:fit-content; border-collapse:collapse;">
       <thead>
         <tr>
-          <th>Command</th>
-          <th>Description</th>
+          <th>命令</th>
+          <th>描述</th>
         </tr>
       </thead>
       <tbody>
-        <tr><td><code>HANDSHAKE</code></td><td>Protocol version negotiation</td></tr>
-        <tr><td><code>MONITOR</code></td><td>Configure periodic data streaming</td></tr>
-        <tr><td><code>CONTROL</code></td><td>Execute command-type REST requests</td></tr>
-        <tr><td><code>STOP</code></td><td>Terminate active operation or session</td></tr>
+        <tr><td><code>HANDSHAKE</code></td><td>协议版本协商</td></tr>
+        <tr><td><code>MONITOR</code></td><td>配置周期性数据流</td></tr>
+        <tr><td><code>CONTROL</code></td><td>执行命令类型的 REST 请求</td></tr>
+        <tr><td><code>STOP</code></td><td>终止活动操作或会话</td></tr>
       </tbody>
     </table>
   </div>
 
   <div style="overflow-x:auto;">
-    <div style="font-weight:bold; margin-bottom:6px;">Client <-- Server (Events)</div>
+    <div style="font-weight:bold; margin-bottom:6px;">客户端 <-- 服务器 (事件)</div>
     <table style="width:fit-content; min-width:fit-content; border-collapse:collapse;">
       <thead>
         <tr>
-          <th>Event</th>
-          <th>Description</th>
-          <th>Notes</th>
+          <th>事件</th>
+          <th>描述</th>
+          <th>备注</th>
         </tr>
       </thead>
       <tbody>
         <tr>
           <td><code>*_ack</code></td>
-          <td>ACK indicating that a command has been accepted</td>
-          <td>e.g. <code>handshake_ack</code>, <code>monitor_ack</code>, <code>stop_ack</code></td>
+          <td>表示命令已被接受的 ACK</td>
+          <td>例如 <code>handshake_ack</code>、<code>monitor_ack</code>、<code>stop_ack</code></td>
         </tr>
         <tr>
           <td><code>data</code></td>
-          <td>Periodic data event while MONITOR is active</td>
-          <td>Result of executing the ${cont_model} Open API service function</td>
+          <td>当 MONITOR 活动时的周期性数据事件</td>
+          <td>执行 ${cont_model} Open API 服务功能的结果</td>
         </tr>
         <tr>
           <td><code>error</code></td>
-          <td>Error message delivered when a failure occurs</td>
-          <td>Refer to the Error Codes section for details</td>
+          <td>在发生故障时传递的错误消息</td>
+          <td>有关详细信息，请参阅错误代码部分</td>
         </tr>
       </tbody>
     </table>
@@ -115,10 +115,10 @@ Messages used in Open Stream are categorized as follows based on <b>direction an
 
   {% hint style="info" %}
 
-  Server → Client events may <b>not correspond 1:1 with client</b> requests.  
-  While `*_ack` and `error` follow a request-response pattern,  
-  `data` events generated by MONITOR are streamed independently.  
-  The client must always keep the receive loop running.
+  服务器 → 客户端事件可能 <b>与客户端</b> 请求不对应 1:1。  
+  虽然 `*_ack` 和 `错误 (error)` 遵循请求-响应模式，  
+  由 MONITOR 生成的 `data` 事件是独立流的。  
+  客户端必须始终保持接收循环运行。
 
   {% endhint %}
   
@@ -127,70 +127,70 @@ Messages used in Open Stream are categorized as follows based on <b>direction an
 
 <div style="max-width:fit-content;">
 
-| Request-Response | Streaming |
+| 请求-响应 | 流 |
 |---|---|
-| Client → `HANDSHAKE/MONITOR/CONTROL/STOP` → Server<br>Client ← `*_ack`, `error` ← Server | (after `monitor_ack`)<br>Server → `data` → Client<br>Server → `data` → Client<br>... |
+| 客户端 → `HANDSHAKE/MONITOR/CONTROL/STOP` → 服务器<br>客户端 ← `*_ack`、`错误 (error)` ← 服务器 | （在 `monitor_ack` 之后）<br>服务器 → `data` → 客户端<br>服务器 → `data` → 客户端<br>... |
 
 </div>
 
 <br>
-<h4 style="font-size:16px; font-weight:bold;">4. MONITOR Streaming Behavior</h4>
+<h4 style="font-size:16px; font-weight:bold;">4. MONITOR 流行为</h4>
 
-`MONITOR` is a server-driven mechanism where, based on the recipe provided by the client,  
-the server executes the ${cont_model} Open API service function at the specified interval (`period_ms`)  
-and streams the result as `data` events.
+`MONITOR` 是一个由服务器驱动的机制，基于客户端提供的配方，  
+服务器在指定的间隔内 (`period_ms`) 执行 ${cont_model} Open API 服务功能  
+并将结果作为 `data` 事件流。
 
-Clients must be implemented with the following assumptions.
+客户端必须在以下假设下实现。
 
-- Always keep the receive loop running.
-- Do not assume synchronous request-response pairing.
-
-<br>
-<h4 style="font-size:16px; font-weight:bold;">5. CONTROL Command Execution</h4>
-
-
-Depending on policy/implementation, <b>CONTROL provides no separate response line on success.</b>
-
-Recommended strategy:
-
-- Detect failures via `error` or `control_err` events.
-- Verify success using the following approaches:
-  - Confirm changes in MONITOR results
-  - Use a dedicated state-query MONITOR endpoint
-
+- 始终保持接收循环运行。
+- 不要假设同步的请求-响应配对。
 
 <br>
-<h4 style="font-size:16px; font-weight:bold;">6. Timeout / Watchdog</h4>
+<h4 style="font-size:16px; font-weight:bold;">5. CONTROL 命令执行</h4>
 
-The server may terminate the connection if the session remains idle for an extended period.
 
-Client recommendations:
+根据策略/实现，<b>成功时 CONTROL 不提供单独的响应行。</b>
 
-- Perform `HANDSHAKE` immediately after connection
-- Perform a graceful shutdown using `STOP(target=session)`
-- Prevent the receive loop from stopping during streaming
-- Prepare reconnection and re-HANDSHAKE logic on EOF or socket errors
+建议的策略：
 
-In the current server implementation, the following policies apply.
+- 通过 `错误 (error)` 或 `control_err` 事件检测故障。
+- 使用以下方法验证成功：
+  - 确认 MONITOR 结果中的变化
+  - 使用专用状态查询 MONITOR 端点
 
-- <b>Disarmed state (Idle / No active MONITOR)</b>  
-  &rightarrow; Session is terminated after approximately <b>180 seconds</b> of no meaningful activity
-
-- <b>Armed state (Active MONITOR streaming)</b>  
-  &rightarrow; Session is terminated if streaming remains interrupted for more than approximately <b>5 seconds</b>
-
-* The above time values may change depending on server policy or operating environment.
 
 <br>
-<h4 style="font-size:16px; font-weight:bold;">7. Recommended Architecture </h4>
+<h4 style="font-size:16px; font-weight:bold;">6. 超时 / 看门狗</h4>
 
-For practical implementations, the following structure is recommended.
+如果会话长时间保持空闲，服务器可能会终止连接。
 
-- Separate sending (Commands) and receiving (Events)  
-  &rightarrow; Send: build command + `sendall`  
-  &rightarrow; Receive: NDJSON line parser + dispatcher
+客户端建议：
 
-- Single-responsibility receive loop  
-  &rightarrow; Split lines by `\n`  
-  &rightarrow; JSON parsing  
-  &rightarrow; Event routing based on `type` / `error`
+- 在连接后立即执行 `HANDSHAKE`
+- 使用 `STOP(target=session)` 进行优雅关机
+- 在流式传输期间防止接收循环停止
+- 在 EOF 或套接字错误时准备重连和重新 HANDSHAKE 的逻辑
+
+在当前服务器实现中，适用以下策略。
+
+- <b>解除武装状态（空闲 / 没有活动 MONITOR）</b>  
+  &rightarrow; 在大约 <b>180 秒</b> 没有有意义活动后会话被终止
+
+- <b>武装状态（活动 MONITOR 流）</b>  
+  &rightarrow; 如果流式传输中断超过大约 <b>5 秒</b>，会话被终止
+
+* 以上时间值可能会根据服务器策略或操作环境而变化。
+
+<br>
+<h4 style="font-size:16px; font-weight:bold;">7. 推荐架构 </h4>
+
+对于实际实现，建议以下结构。
+
+- 分开发送（命令）和接收（事件）  
+  &rightarrow; 发送：构建命令 + `sendall`  
+  &rightarrow; 接收：NDJSON 行解析器 + 分发器
+
+- 单一责任接收循环  
+  &rightarrow; 按 `\n` 拆分行  
+  &rightarrow; JSON 解析  
+  &rightarrow; 基于 `类型 (type)` / `错误 (error)` 的事件路由

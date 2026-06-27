@@ -1,23 +1,23 @@
-﻿## 5.1 Common Utilities (utils)
+## 5.1 Common Utilities (utils)
 
 {% hint style="info" %}
 
-This document provides the <b>Open Stream client utility code</b>  
-that is commonly used across all subsequent examples.
+本文档提供了<b>Open Stream客户端工具代码</b>  
+该代码通常用于后续所有示例。
 
-The code below is <b>fully functional, runnable code</b>, not just illustrative samples.  
-You may copy it directly into your own project and use it as-is.
+下面的代码是<b>完全面能的可运行代码</b>，而不仅仅是示例样本。  
+您可以将其直接复制到自己的项目中并按原样使用。
 
-For clarity and reproducibility, this example is intentionally implemented using a  
-<b>"receive thread + blocking socket (with timeout)"</b> model.
+为了清晰和可重复性，这个示例故意使用了  
+<b>"接收线程 + 阻塞套接字（带超时）"</b>模型。
 
 {% endhint %}
 
 <br>
-<h4 style="font-size:16px; font-weight:bold;">Directory Structure</h4>
+<h4 style="font-size:16px; font-weight:bold;">目录结构</h4>
 
-Create the `utils/` directory as shown below  
-and copy each file exactly as provided.
+创建如下所示的`utils/`目录  
+并精确复制每个文件。
 
 <div style="max-width: fit-content;">
 
@@ -33,15 +33,15 @@ OpenStreamClient/
 </div>
 
 <br>
-<h4 style="font-size:16px; font-weight:bold;">Utility Roles</h4>
+<h4 style="font-size:16px; font-weight:bold;">工具角色</h4>
 
-| File | Role | Main Responsibilities |
+| 文件 | 角色 | 主要职责 |
 | ---- | ---- | --------------------- |
-| <b>net.py</b> | TCP network layer | TCP socket connect/disconnect, receive loop (thread), raw byte reception |
-| <b>parser.py</b> | NDJSON parser | NDJSON stream parsing, JSON object creation |
-| <b>dispatcher.py</b> | Message dispatcher | Callback dispatch based on message `type` / `error` |
-| <b>motion.py</b> | Trajectory utilities | Sine trajectory generation, file save/load |
-| <b>api.py</b> | Open Stream API wrapper | Abstraction for HANDSHAKE / MONITOR / CONTROL / STOP |
+| <b>net.py</b> | TCP网络层 | TCP套接字连接/断开，接收循环（线程），原始字节接收 |
+| <b>parser.py</b> | NDJSON解析器 | NDJSON流解析，JSON对象创建 |
+| <b>dispatcher.py</b> | 消息调度器 | 基于消息`类型 (type)` / `错误 (error)`的回调调度 |
+| <b>motion.py</b> | 轨迹工具 | 正弦轨迹生成，文件保存/加载 |
+| <b>api.py</b> | Open Stream API封装 | HANDSHAKE / MONITOR / CONTROL / STOP的抽象 |
 
 </div>
 
@@ -52,25 +52,25 @@ OpenStreamClient/
 
 <h4 style="font-size:16px; font-weight:bold;">utils/net.py</h4>
 
-This module implements the network layer responsible for TCP socket connection and I/O.
+该模块实现了负责TCP套接字连接和I/O的网络层。
 
-<b>Responsibilities</b>  
-(1) Create, maintain, and close the TCP connection to the Open Stream server.  
-(2) Read incoming raw byte streams from the server in a receive thread and forward them via a callback (`on_bytes`).  
-(3) Decouple higher layers (parser/dispatcher) from direct network I/O handling.
+<b>职责</b>  
+(1) 创建、维护并关闭与Open Stream服务器的TCP连接。  
+(2) 在接收线程中读取来自服务器的原始字节流，并通过回调（`on_bytes`）转发它们。  
+(3) 将更高层（解析器/调度器）与直接网络I/O处理解耦。
 
-<b>Key Design Points</b>  
-(1) `TCP_NODELAY` (Nagle OFF): reduces latency for small NDJSON lines.  
-(2) `SO_KEEPALIVE`: helps detect half-open connections.  
-(3) Timeout-based recv loop: ensures responsiveness during shutdown or interruption.
+<b>关键设计点</b>  
+(1) `TCP_NODELAY`（Nagle OFF）：减少小NDJSON行的延迟。  
+(2) `SO_KEEPALIVE`：帮助检测半开放连接。  
+(3) 基于超时的接收循环：确保在关闭或中断期间的响应能力。
 
-<b>Main APIs</b>  
-(1) `connect()`: establish socket connection and configure options  
-(2) `send_line(line)`: send one NDJSON line (newline appended automatically)  
-(3) `start_recv_loop(on_bytes)`: start receive thread  
-(4) `close()`: close the connection
+<b>主要API</b>  
+(1) `connect()`：建立套接字连接并配置选项  
+(2) `send_line(line)`：发送一行NDJSON（换行符自动追加）  
+(3) `start_recv_loop(on_bytes)`：启动接收线程  
+(4) `close()`：关闭连接
 
-<details><summary>Click to check the python code</summary>
+<details><summary>点击查看python代码</summary>
 
 ```python
 # utils/net.py
@@ -90,7 +90,7 @@ class NetClient:
     def connect(self) -> None:
         self.sock = socket.create_connection((self.host, self.port))
 
-        # Nagle OFF (low latency)
+        # Nagle OFF (低延迟)
         try:
             self.sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
         except OSError:
@@ -104,7 +104,7 @@ class NetClient:
 
         self.sock.settimeout(1.0)
         self._running = True
-        print(f"[net] connected to {self.host}:{self.port}")
+        print(f"[net] 已连接到 {self.host}:{self.port}")
 
     def close(self) -> None:
         self._running = False
@@ -113,17 +113,17 @@ class NetClient:
                 self.sock.close()
             except Exception:
                 pass
-        print("[net] connection closed")
+        print("[net] 连接已关闭")
 
     def send_line(self, line: str) -> None:
         if not self.sock:
-            raise RuntimeError("socket not connected")
+            raise RuntimeError("套接字未连接")
         self.sock.sendall((line + "\n").encode("utf-8"))
         print(f"[tx] {line}")
 
     def start_recv_loop(self, on_bytes: Callable[[bytes], None]) -> None:
         if not self.sock:
-            raise RuntimeError("socket not connected")
+            raise RuntimeError("套接字未连接")
 
         def loop():
             while self._running:
@@ -148,19 +148,19 @@ class NetClient:
 <br>
 <h4 style="font-size:16px; font-weight:bold;">utils/parser.py</h4>
 
-This parser converts an NDJSON (Newline Delimited JSON) stream into  
-<b>line-based JSON objects</b>.
+该解析器将NDJSON（换行分隔的JSON）流转换为  
+<b>基于行的JSON对象</b>。
 
-- <b>Input</b>: byte chunks. TCP does not preserve message boundaries, so a message may be split across chunks or multiple messages may be combined.
-- <b>Output</b>: completed JSON dictionaries passed to the `on_message(dict)` callback.
-- <b>Behavior</b><br>
-  (1) Accumulate data in an internal buffer and split by `\n`.  
-  (2) Decode each line as UTF-8 and parse via `json.loads()`.  
-  (3) On JSON parse failure, log the error and skip the line.
+- <b>输入</b>: 字节块。 TCP不会保留消息边界，因此一条消息可能会跨块分裂，或者多个消息可能会合并。
+- <b>输出</b>: 传递给`on_message(dict)`回调的完整JSON字典。
+- <b>行为</b><br>
+  (1) 在内部缓冲区中累积数据并按`\n`分割。  
+  (2) 将每一行解码为UTF-8，并通过`json.loads()`解析。  
+  (3) 在JSON解析失败时，记录错误并跳过该行。
 
-This module standardizes the boundary between "raw bytes" and "parsed messages".
+该模块标准化了"原始字节"和"解析消息"之间的边界。
 
-<details><summary>Click to check the python code</summary>
+<details><summary>点击查看python代码</summary>
 
 ```python
 # utils/parser.py
@@ -184,7 +184,7 @@ class NDJSONParser:
                 msg = json.loads(line.decode("utf-8"))
                 on_message(msg)
             except json.JSONDecodeError as e:
-                print(f"[parser] json decode error: {e}")
+                print(f"[parser] json解码错误: {e}")
 ```
 
 </details>
@@ -194,23 +194,21 @@ class NDJSONParser:
 <br>
 <h4 style="font-size:16px; font-weight:bold;">utils/dispatcher.py</h4>
 
-This dispatcher routes parsed messages (dict) to registered callbacks  
-based on <b>`type` / `error`</b>.
+该调度器根据<b>`类型 (type)` / `错误 (error)`</b>将解析消息（dict）路由到注册的回调。
 
-- <b>Responsibilities</b>  
-  (1) Separate message handling logic from the network/parser layers.  
-  (2) Example scripts (handshake/monitor/control) only need to register handlers with the dispatcher.
+- <b>职责</b>  
+  (1) 将消息处理逻辑与网络/解析层分开。  
+  (2) 示例脚本（握手/监控/控制）只需要向调度器注册处理程序。
 
-- <b>Dispatch Rules (current implementation)</b>  
-  (1) If `msg` contains the key `"error"`, call `on_error(msg)` (or print if not registered).  
-  (2) Otherwise, dispatch using `msg.get("type")` to the corresponding `on_type[type]` callback.  
-  (3) If no matching callback exists, print the event by default.
+- <b>调度规则（当前实现）</b>  
+  (1) 如果`内容 (msg)`包含键`"error"`，则调用`on_error(msg)`（如果未注册则打印）。  
+  (2) 否则，使用`msg.get("type")`调度到相应的`on_type[type]`回调。  
+  (3) 如果没有匹配的回调存在，默认情况下打印事件。
 
-- <b>Extension Points</b>  
-  Projects may explicitly separate `ack` / `event` handling by extending  
-  the key-based dispatch logic inside `dispatch()`.
+- <b>扩展点</b>  
+  项目可以通过扩展`dispatch()`内部的基于键的调度逻辑，明确分离`ack` / `event`处理。
 
-<details><summary>Click to check the python code</summary>
+<details><summary>点击查看python代码</summary>
 
 ```python
 # utils/dispatcher.py
@@ -227,14 +225,14 @@ class Dispatcher:
             if self.on_error:
                 self.on_error(msg)
             else:
-                print(f"[error] {msg}")
+                print(f"[错误] {msg}")
             return
 
         msg_type = msg.get("type")
         if msg_type and msg_type in self.on_type:
             self.on_type[msg_type](msg)
         else:
-            print(f"[event] {msg}")
+            print(f"[事件] {msg}")
 ```
 
 </details>
@@ -244,40 +242,40 @@ class Dispatcher:
 <br>
 <h4 style="font-size:16px; font-weight:bold;">utils/motion.py</h4>
 
-`motion.py` provides **joint trajectory generation and reuse utilities**  
-used by the CONTROL examples.
+`motion.py`提供了**关节轨迹生成和重用工具**  
+在CONTROL示例中使用。
 
-The primary purpose is to keep the CONTROL example focused by  
-<b>separating trajectory generation logic</b> from communication logic.
+其主要目的是通过  
+<b>将轨迹生成逻辑与通信逻辑分离</b>来保持CONTROL示例的专注。
 
-- CONTROL transmission already involves complex timing and schema handling.
-- Mixing trajectory generation into the same example would make it excessively long.
-- Therefore, trajectories are generated in `motion.py`, while CONTROL examples focus on  
-  "sending generated points at fixed intervals".
+- CONTROL传输已经涉及复杂的时序和方案处理。
+- 将轨迹生成混合到同一示例中会使其过长。
+- 因此，轨迹在`motion.py`中生成，而CONTROL示例专注于  
+  “以固定间隔发送生成的点”。
 
-Role 1. **Trajectory Generation (sine wave)**
+角色1. **轨迹生成（正弦波）**
 - `generate_sine_trajectory(base_deg, cycle_sec, amplitude_deg, dt_sec, total_sec, active_joint_count)`
-- Applies sine displacement only to the first N joints to create oscillatory motion.
-- Returns a `List[List[float]]` of **degree-based points**.
+- 仅对前N个关节应用正弦位移，以产生振荡运动。
+- 返回`List[List[float]]`的**基于度数的点**。
 
-Role 2. **Trajectory Save / Load**
+角色2. **轨迹保存/加载**
 - `save_trajectory(points_deg, dt_sec, base_dir="data") -> saved_path`
 - `load_trajectory(path) -> (dt_sec, points_deg)`
-- JSON format:  
-  → `dt_sec`: time interval between points (sec)  
-  → `points_deg`: list of joint angle points
+- JSON格式：  
+  → `dt_sec`：点之间的时间间隔（秒）  
+  → `points_deg`：关节角度点的列表
 
-Usage Locations
-- In `control.md` scenarios:
-  - Read base pose (rad) → convert via `rad_to_deg()`
-  - Generate points with `generate_sine_trajectory()`
-  - Optionally save and reuse trajectories via `save_trajectory()` / `load_trajectory()`
+使用位置
+- 在`control.md`场景中：
+  - 读取基准姿态（弧度）→通过`rad_to_deg()`转换
+  - 使用`generate_sine_trajectory()`生成点
+  - 可选地通过`save_trajectory()` / `load_trajectory()`保存和重用轨迹
 
-Notes
-- CONTROL `joint_traject_insert_point` assumes **degrees** for `point` values (example standard).
-- `dt_sec` directly affects transmission timing and `interval/time_from_start` settings and must be preserved when saving/loading.
+备注
+- CONTROL `joint_traject_insert_point`假定`point`值为**度**（示例标准）。
+- `dt_sec`直接影响传输时序和`interval/time_from_start`设置，保存/加载时必须保留。
 
-<details><summary>Click to check the python code</summary>
+<details><summary>点击查看python代码</summary>
 
 ```python
 # utils/motion.py
@@ -355,38 +353,37 @@ def load_trajectory(path: str) -> Tuple[float, List[List[float]]]:
 <br>
 <h4 style="font-size:16px; font-weight:bold;">utils/api.py</h4>
 
-This module is a thin wrapper that <b>consistently constructs JSON messages</b>  
-for the Open Stream protocol.
+该模块是一个薄包装器，<b>一致地构建JSON消息</b>  
+用于Open Stream协议。
 
-- <b>Responsibilities</b>  
-  (1) Prevent example scripts from repeatedly writing raw JSON schemas.  
-  (2) Standardize payload structures per `cmd` (HANDSHAKE / MONITOR / CONTROL / STOP).
+- <b>职责</b>  
+  (1) 防止示例脚本重复编写原始JSON模式。  
+  (2) 针对`cmd`（HANDSHAKE / MONITOR / CONTROL / STOP）标准化负载结构。
 
-- <b>Important Notes</b>  
-  (1) `api.py` does not send network data directly; it sends NDJSON lines via `net.send_line()`.  
-  (2) CONTROL is a first-class protocol command; `joint_traject_*` helpers are subordinate utilities for trajectory control.
+- <b>重要说明</b>  
+  (1) `api.py`不直接发送网络数据；它通过`net.send_line()`发送NDJSON行。  
+  (2) CONTROL是一个一流的协议命令；`joint_traject_*`辅助工具是轨迹控制的从属工具。
 
-Protocol Command Overview
+协议命令概述
 
-| cmd | Description |
+| cmd | 描述 |
 | --- | ----------- |
-| HANDSHAKE | Session initialization and version negotiation |
-| MONITOR | Periodic state / HTTP API polling |
-| CONTROL | Robot control (trajectory, etc.) |
-| STOP | Stop session or streams |
+| HANDSHAKE | 会话初始化和版本协商 |
+| MONITOR | 周期性状态 / HTTP API轮询 |
+| CONTROL | 机器人控制（轨迹等） |
+| STOP | 停止会话或流 |
 
-Provided Methods
+提供的方法
 
-| API Method | cmd | Description |
+| API方法 | cmd | 描述 |
 | ---------- | --- | ----------- |
-| `handshake(major)` | HANDSHAKE | Initialize Open Stream session |
-| `monitor(url, period_ms, args=None, monitor_id=1)` | MONITOR | Periodically poll target URL |
-| `monitor_stop()` | MONITOR | Stop MONITOR |
-| `joint_traject_init()` | CONTROL | Initialize joint trajectory control |
-| `joint_traject_insert_point(body)` | CONTROL | Send one trajectory point |
-| `stop(target)` | STOP | Stop session or control/monitor |
-
-<details><summary>Click to check the python code</summary>
+| `handshake(major)` | HANDSHAKE | 初始化Open Stream会话 |
+| `monitor(url, period_ms, args=None, monitor_id=1)` | MONITOR | 定期轮询目标URL |
+| `monitor_stop()` | MONITOR | 停止MONITOR |
+| `joint_traject_init()` | CONTROL | 初始化关节轨迹控制 |
+| `joint_traject_insert_point(body)` | CONTROL | 发送一个轨迹点 |
+| `stop(target)` | STOP | 停止会话或控制/监控 |
+<details><summary>点击以查看python代码</summary>
 
 ```python
 # utils/api.py
@@ -403,7 +400,7 @@ class OpenStreamAPI:
         self.net.send_line(line)
 
     # -------------------------
-    # HANDSHAKE
+    # 握手
     # -------------------------
 
     def handshake(self, major: int = 1) -> None:
@@ -415,7 +412,7 @@ class OpenStreamAPI:
         })
 
     # -------------------------
-    # MONITOR
+    # 监控
     # -------------------------
 
     def monitor(
@@ -450,7 +447,7 @@ class OpenStreamAPI:
         })
 
     # -------------------------
-    # STOP
+    # 停止
     # -------------------------
 
     def stop(self, target: str = "session") -> None:
@@ -462,7 +459,7 @@ class OpenStreamAPI:
         })
 
     # -------------------------
-    # CONTROL (joint trajectory)
+    # 控制（关节轨迹）
     # -------------------------
 
     def joint_traject_init(self) -> None:
@@ -497,35 +494,34 @@ class OpenStreamAPI:
 <br>
 
 <br>
-<h4 style="font-size:16px; font-weight:bold;">About main.py</h4>
+<h4 style="font-size:16px; font-weight:bold;">关于main.py</h4>
 
-Although not part of the <code>utils/</code> package, <code>main.py</code> plays an important role  
-as the <b>execution entry point</b> for all example scenarios.
+虽然不是<code>utils/</code>包的一部分，<code>main.py</code>在所有示例场景中扮演着重要角色  
+作为<b>执行入口点</b>。
 
-<code>main.py</code> is responsible for:
+<code>main.py</code>负责：
 <ul>
-  <li>Parsing command-line arguments (scenario type, host, port, etc.)</li>
-  <li>Selecting and invoking the appropriate scenario module</li>
-  <li>Providing a unified execution interface for all examples</li>
+  <li>解析命令行参数（场景类型、主机、端口等）</li>
+  <li>选择并调用适当的场景模块</li>
+  <li>为所有示例提供统一的执行接口</li>
 </ul>
 
-This separation is intentional:
+这种分离是故意的：
 <ul>
-  <li><code>utils/</code> contains <b>reusable, scenario-agnostic building blocks</b></li>
-  <li><code>scenarios/*.py</code> contains <b>step-by-step protocol flows</b></li>
-  <li><code>main.py</code> only orchestrates execution and does not implement protocol logic itself</li>
+  <li><code>utils/</code>包含<b>可重用、不依赖场景的构建模块</b></li>
+  <li><code>scenarios/*.py</code>包含<b>逐步的协议流程</b></li>
+  <li><code>main.py</code>只是协调执行，并不实现协议逻辑</li>
 </ul>
 
-Each example in the following sections assumes execution via <code>main.py</code>.
-
+以下部分中的每个示例假定通过<code>main.py</code>执行。
 
 <br>
-<h4 style="font-size:16px; font-weight:bold;">main.py (Scenario Launcher)</h4>
+<h4 style="font-size:16px; font-weight:bold;">main.py（场景启动器）</h4>
 
-<code>main.py</code> provides a unified entry point for running each example scenario via command-line arguments.
-It parses common options (host/port/major, etc.) and dispatches to the corresponding module under <code>scenarios/</code>.
+<code>main.py</code>提供了一个统一的入口点，通过命令行参数运行每个示例场景。
+它解析常见选项（主机/端口/主要等），并分发到<code>scenarios/</code>下的相应模块。
 
-<details><summary>Click to check the python code</summary>
+<details><summary>点击以查看python代码</summary>
 
 ```python
 import argparse
@@ -545,13 +541,13 @@ def main():
     p.add_argument("--major", type=int, default=1)
 
     # -------------------------
-    # MONITOR options
+    # 监控选项
     # -------------------------
     p.add_argument("--url", default="/api/health")
     p.add_argument("--period-ms", type=int, default=1000)
 
     # -------------------------
-    # CONTROL options
+    # 控制选项
     # -------------------------
     p.add_argument("--http-port", type=int, default=8888)
     p.add_argument("--dt-sec", type=float, default=0.02)
@@ -564,7 +560,7 @@ def main():
     p.add_argument("--target", \
                    choices=["session", "control", "monitor"], \
                    default="session", \
-                   help="STOP target (session | control | monitor)")
+                   help="停止目标（session | control | monitor）")
 
 
     args = p.parse_args()
@@ -605,11 +601,9 @@ if __name__ == "__main__":
 
 </details>
 
+<h4 style="font-size:16px; font-weight:bold;">总结</h4>
 
-
-<h4 style="font-size:16px; font-weight:bold;">Summary</h4>
-
-* The `utils` code above is <b>reused unchanged in all subsequent examples</b>.
-* It works correctly with <b>copy-and-paste only</b>, without modification.
-* Starting from the next document, step-by-step scenarios for  
-  <b>HANDSHAKE → MONITOR → CONTROL → STOP</b> will be explained using these utilities.
+* 上面的`utils`代码在所有后续示例中<b>保持不变地重用</b>。
+* 它正确运行，<b>只需复制和粘贴</b>，无需修改。
+* 从下一个文档开始，将使用这些工具逐步解释  
+  <b>握手 → 监控 → 控制 → 停止</b>的场景。
